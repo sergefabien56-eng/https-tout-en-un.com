@@ -149,7 +149,7 @@ export function AppShell({ userName, permissions, globalPermissions, children }:
             {rail ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </Button>
           <strong className="topbar-name">{appConfig.shortName}</strong>
-          <span className="shop-context" title="Aucune boutique connectée">Toutes les boutiques <small>Indisponible</small></span>
+          <Link className="shop-context" href="/espace/boutiques" title="Boutiques autorisées">Choisir une boutique</Link>
           <div className="topbar-spacer" />
           <button type="button" className="topbar-disabled" disabled title="Recherche bientôt disponible" aria-label="Recherche bientôt disponible"><Search size={18} /></button>
           <button type="button" className="topbar-disabled" disabled title="Notifications bientôt disponibles" aria-label="Notifications bientôt disponibles"><Bell size={18} /></button>

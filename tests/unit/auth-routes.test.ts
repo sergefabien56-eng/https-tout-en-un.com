@@ -10,6 +10,8 @@ import { GET as adminUserDetailGet } from '@/app/api/admin/users/[id]/route';
 import { GET as adminRolesGet } from '@/app/api/admin/roles/route';
 import { GET as deepHealthGet } from '@/app/api/health/deep/route';
 import { GET as sessionsGet } from '@/app/api/auth/sessions/route';
+import { GET as shopAuditGet } from '@/app/api/shops/[shopId]/audit/route';
+import { GET as shopsGet } from '@/app/api/shops/route';
 import { POST as refreshPost } from '@/app/api/auth/refresh/route';
 import { nextLock } from '@/core/auth/service';
 
@@ -84,6 +86,14 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
     const csrfOnly = new NextRequest('https://app.example.com/api/auth/refresh', { method: 'POST',
       headers: { origin: 'https://app.example.com', cookie: `toutenun_csrf=${token}`, 'x-csrf-token': token } });
     expect((await refreshPost(csrfOnly)).status).toBe(401);
+  });
+  it('GET audit boutique sans cookie est refusé', async () => {
+    const request = new NextRequest('https://app.example.com/api/shops/1/audit');
+    expect((await shopAuditGet(request, { params: Promise.resolve({ shopId: '1' }) })).status).toBe(401);
+  });
+  it('GET catalogue sans session refuse les boutiques', async () => {
+    const request = new NextRequest('https://app.example.com/api/shops');
+    expect((await shopsGet(request)).status).toBe(401);
   });
   it('verrouillage progressif, plafonné', () => {
     const now = new Date('2026-11-10T00:00:00Z');

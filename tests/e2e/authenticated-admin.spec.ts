@@ -57,7 +57,18 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number };
   expect(health.database).toBe('ok');
-  expect(health.migrationsApplied).toBe(7);
+  expect(health.migrationsApplied).toBe(8);
+  await page.goto('/espace/boutiques');
+  await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
+  await expect(page.getByText('Aucune boutique accessible')).toBeVisible();
+  const shopsResponse = await page.request.get('/api/shops');
+  expect(shopsResponse.status()).toBe(200);
+  expect((await shopsResponse.json() as { shops: unknown[] }).shops).toEqual([]);
+  await page.goto('/espace/journal');
+  await expect(page.getByRole('heading', { name: 'Choisissez une boutique' })).toBeVisible();
+  // La CI ne relie pas une boutique Jumia fictive persistante au propriétaire.
+  // Une boutique inexistante ne doit pas exposer de journal, même au propriétaire.
+  expect((await page.request.get('/api/shops/999999/audit')).status()).toBe(403);
   await page.goto('/espace');
   await page.getByRole('link', { name: 'Consulter mes sessions actives' }).click();
   await expect(page.getByRole('heading', { name: 'Mes sessions' })).toBeVisible();

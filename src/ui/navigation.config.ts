@@ -41,7 +41,7 @@ export const navigation: readonly NavGroup[] = [
     soon('sales.export', 'Exports', '/exports/commandes', FileText, 'reports:export'),
   ] },
   { id: 'shops', label: 'Boutiques & Plateformes', icon: Store, children: [
-    soon('shops.all', 'Toutes les boutiques', '/boutiques', Store, 'shops:read'),
+    { id: 'shops.all', label: 'Toutes les boutiques', href: '/espace/boutiques', icon: Store, permission: 'shops:read', availability: 'ready' },
     soon('shops.add', 'Ajouter une boutique', '/boutiques/ajouter', Link2, 'shops:connect'),
     soon('shops.connect', 'Connexions Jumia', '/connexions', Link2, 'shops:read'),
     soon('shops.sync', 'Synchronisations', '/synchronisations', RefreshCw, 'sync:read'),
@@ -80,7 +80,7 @@ export const navigation: readonly NavGroup[] = [
   { id: 'admin', label: 'Administration', icon: Settings, children: [
     { id: 'admin.users', label: 'Utilisateurs', href: '/espace/utilisateurs', icon: Users, permission: 'users:read', availability: 'ready', scope: 'global' },
     { id: 'admin.roles', label: 'Rôles', href: '/espace/roles', icon: ShieldCheck, permission: 'roles:manage', availability: 'ready', scope: 'global' },
-    soon('admin.audit', "Journal d'activité", '/administration/journal', ScrollText, 'audit:read'),
+    { id: 'admin.audit', label: "Journal d'activité", href: '/espace/journal', icon: ScrollText, permission: 'audit:read', availability: 'ready' },
     soon('admin.settings', 'Paramètres', '/administration/parametres', SlidersHorizontal, 'settings:read'),
     { id: 'admin.system', label: 'Système', href: '/espace/systeme', icon: Activity, permission: 'system:manage', availability: 'ready', scope: 'global' },
   ] },

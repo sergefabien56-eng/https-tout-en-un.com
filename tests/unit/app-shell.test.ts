@@ -18,7 +18,10 @@ describe('coquille UI — état prêt et états indisponibles', () => {
   it('montre la page réelle et désactive les entrées non prêtes', () => {
     mount();
     expect(screen.getByRole('link', { name: /vue d'ensemble/i }).getAttribute('href')).toBe('/espace');
-    const soon = within(screen.getByRole('navigation', { name: 'Modules' })).getByText('Toutes les boutiques');
+    const nav = within(screen.getByRole('navigation', { name: 'Modules' }));
+    fireEvent.click(nav.getByRole('button', { name: 'Boutiques & Plateformes' }));
+    expect(nav.getByRole('link', { name: 'Toutes les boutiques' }).getAttribute('href')).toBe('/espace/boutiques');
+    const soon = nav.getByText('Connexions Jumia');
     expect(soon.closest('[aria-disabled]')?.getAttribute('aria-disabled')).toBe('true');
     expect(soon.closest('a')).toBeNull();
     expect(screen.getByText('Compte réel')).toBeTruthy();

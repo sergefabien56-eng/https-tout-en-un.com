@@ -24,6 +24,7 @@ vi.mock('@/core/db/client', () => ({
 }));
 
 const { withAuthorizedShopTransaction, withAuditedShopMutation } = await import('@/core/auth/authorize-shop');
+const { listShopAudit } = await import('@/modules/audit/list-audit');
 const owner = createSessionToken();
 const manager = createSessionToken();
 const assistant = createSessionToken();
@@ -111,4 +112,22 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     ).rejects.toThrow(/audit_log_action_nonvide_ck/);
     expect(await name(owner.token, shop1, 'shops:read')).toBe('Boutique renommée');
   });
+  it('lecture du journal : filtre boutique + RLS et permissions, aucun avant/après exposé', async () => {
+    await db.query("INSERT INTO audit_log (shop_id, module, action, before) VALUES ($1, 'shops', 'test.b', '{\"secret\":\"non exposer\"}')", [shop2]);
+    await db.query("INSERT INTO audit_log (shop_id, module, action) VALUES (NULL, 'system', 'global')");
+    const a = await listShopAudit({ token: owner.token, shopId: shop1, page: 1 });
+    expect(a.events.some((entry) => entry.action === 'shops.rename')).toBe(true);
+    expect(a.events.every((entry) => entry.shopId === shop1)).toBe(true);
+    expect(JSON.stringify(a)).not.toContain('non exposer');
+    expect(a.events.map((entry) => entry.action)).not.toContain('global');
+    expect(a.events.map((entry) => entry.action)).not.toContain('test.b');
+    expect((await listShopAudit({ token: owner.token, shopId: shop2, page: 1 })).events.map((entry) => entry.action)).toContain('test.b');
+    expect((await listShopAudit({ token: manager.token, shopId: shop1, page: 1, module: 'shops' })).events.length).toBeGreaterThan(0);
+    await expect(listShopAudit({ token: manager.token, shopId: shop2, page: 1 })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(listShopAudit({ token: assistant.token, shopId: shop2, page: 1 })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(listShopAudit({ token: undefined, shopId: shop1, page: 1 })).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 0 })).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 1, module: "x' OR 1=1 --" })).rejects.toMatchObject({ httpStatus: 400 });
+  });
+
 });

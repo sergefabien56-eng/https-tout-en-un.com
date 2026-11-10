@@ -28,6 +28,12 @@ try {
   const fixtureUser = await db.query(`INSERT INTO users (email, password_hash, display_name)
     VALUES ('fixture-rls@ci.invalid', 'fixture-only-no-login', 'Fixture CI') RETURNING id`);
   const userId = fixtureUser.rows[0]?.id;
+  const limitedUser = await db.query(`INSERT INTO users (email, password_hash, display_name)
+    VALUES ('fixture-limited@ci.invalid', 'fixture-only-no-login', 'Fixture limitée') RETURNING id`);
+  const limitedId = limitedUser.rows[0]?.id;
+  await db.query(`INSERT INTO user_roles (user_id, role_code, shop_id) VALUES
+    ($1, 'owner', NULL), ($2, 'manager', $3)`, [userId, limitedId, a]);
+  await db.query('INSERT INTO user_shop_access (user_id, shop_id) VALUES ($1, $2)', [limitedId, a]);
   await db.query(`INSERT INTO audit_log (shop_id, module, action) VALUES
     ($1, 'ci', 'rls-a'), ($2, 'ci', 'rls-b'), (NULL, 'ci', 'rls-global')`, [a, b]);
   const bypass = await db.query("SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = 'toutenun_app'");
@@ -40,6 +46,14 @@ try {
   assert.deepEqual((await read()).rows, [], 'Aucune boutique visible sans contexte RLS');
   const readAudit = () => db.query("SELECT action FROM audit_log WHERE module = 'ci' ORDER BY action");
   assert.deepEqual((await readAudit()).rows, [], 'Aucun audit sans contexte RLS');
+  // Le nouveau contexte de catalogue n'ouvre QUE shops/access et ne révèle pas audit_log.
+  await db.query("SELECT set_config('app.list_user_id', $1, true)", [String(userId)]);
+  assert.deepEqual((await read()).rows.map((row) => row.id), [a, b], 'Catalogue propriétaire limité par rôle réel');
+  assert.deepEqual((await readAudit()).rows, [], 'Catalogue sans shop_id ne donne pas accès audit');
+  await db.query("SELECT set_config('app.list_user_id', $1, true)", [String(limitedId)]);
+  assert.deepEqual((await read()).rows.map((row) => row.id), [a], 'Catalogue rôle boutique et accès limité');
+  await db.query("SELECT set_config('app.list_user_id', '', true)");
+  assert.deepEqual((await read()).rows, [], 'Catalogue effacé : aucune boutique visible');
   await db.query("SELECT set_config('app.shop_id', $1, true)", [a]);
   assert.deepEqual((await read()).rows.map((row) => row.id), [a], 'Boutique B invisible sous contexte A');
   assert.deepEqual((await readAudit()).rows.map((row) => row.action), ['rls-a', 'rls-global']);
