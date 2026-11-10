@@ -31,7 +31,7 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(response.status()).toBe(200);
   const result = await response.json() as { users: { id: string; email: string }[] };
   expect(result.users[0]?.email).toBe('proprietaire@ci.invalid');
-  await page.getByRole('link', { name: 'Propriétaire CI' }).click();
+  await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible();
   await expect(page.getByText('Global (toutes les boutiques)')).toBeVisible();
   // Les séquences PostgreSQL ne sont PAS rembobinées par ROLLBACK : la fixture RLS
