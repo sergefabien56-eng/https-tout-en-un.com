@@ -19,6 +19,7 @@ const { getNavigationPermissions } = await import('@/ui/navigation-permissions')
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
+const { refreshSession } = await import('@/core/auth/refresh-session');
 const owner = createSessionToken(); const scoped = createSessionToken(); const globalManager = createSessionToken();
 
 beforeAll(async () => {
@@ -110,6 +111,22 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(JSON.stringify(ownerSessions)).not.toMatch(/token_hash|Hostile-UA|script|user_agent|ip_hash/);
     await expect(listOwnSessions(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnSessions(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
+  });
+  it('expiration glissante : prolonge active, refuse expirée et révoquée', async () => {
+    await db.exec("UPDATE sessions SET last_seen_at = now() - interval '15 minutes' WHERE user_id = 1;");
+    const before = await db.query<{ expires_at: Date }>('SELECT expires_at FROM sessions WHERE token_hash = $1', [owner.hash]);
+    const expires = await refreshSession(owner.token);
+    expect(expires.getTime()).toBeGreaterThan(new Date(before.rows[0]!.expires_at).getTime());
+    const current = await db.query<{ last_seen_at: Date }>('SELECT last_seen_at FROM sessions WHERE token_hash = $1', [owner.hash]);
+    const again = await refreshSession(owner.token);
+    expect(again.getTime()).toBe(expires.getTime());
+    expect(current.rows).toHaveLength(1);
+    const expired = createSessionToken(); const revoked = createSessionToken();
+    await db.query("INSERT INTO sessions (user_id, token_hash, created_at, expires_at) VALUES (1, $1, now() - interval '1 day', now() - interval '1 minute')", [expired.hash]);
+    await db.query("INSERT INTO sessions (user_id, token_hash, expires_at, revoked_at) VALUES (1, $1, now() + interval '1 hour', now())", [revoked.hash]);
+    await expect(refreshSession(expired.token)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(refreshSession(revoked.token)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(refreshSession(undefined)).rejects.toMatchObject({ httpStatus: 401 });
   });
   it('pagination contrôlée et aucun accès à une page malformée', async () => {
     expect((await listAuthorizedUsers(owner.token, 2)).users).toEqual([]);

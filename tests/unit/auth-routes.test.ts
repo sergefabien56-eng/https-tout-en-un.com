@@ -10,6 +10,7 @@ import { GET as adminUserDetailGet } from '@/app/api/admin/users/[id]/route';
 import { GET as adminRolesGet } from '@/app/api/admin/roles/route';
 import { GET as deepHealthGet } from '@/app/api/health/deep/route';
 import { GET as sessionsGet } from '@/app/api/auth/sessions/route';
+import { POST as refreshPost } from '@/app/api/auth/refresh/route';
 import { nextLock } from '@/core/auth/service';
 
 const oldAppUrl = process.env.APP_URL;
@@ -74,6 +75,15 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
   it('GET sessions sans cookie refuse les détails de compte', async () => {
     const request = new NextRequest('https://app.example.com/api/auth/sessions');
     expect((await sessionsGet(request)).status).toBe(401);
+  });
+  it('POST refresh exige Origin, CSRF et session valide', async () => {
+    process.env.APP_URL = 'https://app.example.com';
+    const request = new NextRequest('https://app.example.com/api/auth/refresh', { method: 'POST' });
+    expect((await refreshPost(request)).status).toBe(403);
+    const token = csrfGet().cookies.get('toutenun_csrf')!.value;
+    const csrfOnly = new NextRequest('https://app.example.com/api/auth/refresh', { method: 'POST',
+      headers: { origin: 'https://app.example.com', cookie: `toutenun_csrf=${token}`, 'x-csrf-token': token } });
+    expect((await refreshPost(csrfOnly)).status).toBe(401);
   });
   it('verrouillage progressif, plafonné', () => {
     const now = new Date('2026-11-10T00:00:00Z');

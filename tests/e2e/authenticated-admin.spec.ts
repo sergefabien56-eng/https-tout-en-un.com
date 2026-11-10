@@ -67,4 +67,14 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   const payload = await sessionResponse.json() as { sessions: { current: boolean }[] };
   expect(payload.sessions.some((entry) => entry.current)).toBe(true);
   expect(JSON.stringify(payload)).not.toMatch(/token_hash|user_agent|ip_hash/);
+  const csrf = await page.request.get('/api/auth/csrf');
+  expect(csrf.status()).toBe(200);
+  const csrfToken = (await page.context().cookies()).find((cookie) => cookie.name === 'toutenun_csrf')?.value;
+  expect(csrfToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  const refresh = await page.request.post('/api/auth/refresh', {
+    headers: { origin: 'http://127.0.0.1:3100', 'x-csrf-token': csrfToken! },
+  });
+  expect(refresh.status()).toBe(200);
+  expect(new Date((await refresh.json() as { expiresAt: string }).expiresAt).getTime()).toBeGreaterThan(Date.now());
+  expect((await page.request.get('/api/auth/me')).status()).toBe(200);
 });
