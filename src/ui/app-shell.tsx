@@ -20,11 +20,11 @@ function readIds(): string[] {
   } catch { return ['dashboard']; }
 }
 
-export function AppShell({ userName, permissions, children }: {
-  userName: string; permissions: readonly string[]; children: ReactNode;
+export function AppShell({ userName, permissions, globalPermissions, children }: {
+  userName: string; permissions: readonly string[]; globalPermissions?: readonly string[]; children: ReactNode;
 }) {
   const pathname = usePathname();
-  const groups = visibleNavigation(new Set(permissions));
+  const groups = visibleNavigation(new Set(permissions), new Set(globalPermissions ?? permissions));
   const active = groups.find((g) => g.children.some((c) => c.availability === 'ready' && c.href === pathname));
   const [open, setOpen] = useState<string[]>(active ? [active.id] : []);
   const [drawer, setDrawer] = useState(false);

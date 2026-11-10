@@ -14,7 +14,7 @@ env:
   APP_ENV: staging
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/tout_en_un_test
   SESSION_SECRET: dGVzdC1zZXNzaW9uLXNlY3JldC0zMi1vY3RldHMtZmFrZQ==
-  APP_ENC_KEYS: 1:dGVzdC1rZXktMzItb2N0ZXRzLXBvdXItbGEtY2ktZmFrZQ==
+  APP_ENC_KEYS: 1:Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0M=
   APP_ENC_ACTIVE: '1'
 
 jobs:
@@ -86,6 +86,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [quality, migrations]
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tout_en_un_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -93,10 +102,34 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Préparer la base et le rôle applicatif sans BYPASSRLS
+        run: |
+          npm run db:migrate
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -v app_password='ci-app-password' -f scripts/db-roles.sql
+          psql "$DATABASE_URL" -Atc "SELECT rolbypassrls FROM pg_roles WHERE rolname = 'toutenun_app'" | grep -qx 'f'
+      - name: Créer un propriétaire CI fictif avec TOTP et codes de secours
+        env:
+          DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
+          OWNER_EMAIL: proprietaire@ci.invalid
+          OWNER_NAME: Propriétaire CI
+          OWNER_PASSWORD_FILE: /tmp/ci-owner-password
+          TOTP_QR_FILE: /tmp/ci-owner-qr.png
+          TOTP_RECOVERY_FILE: /tmp/ci-recovery-codes
+        run: |
+          printf 'MotDePasseCI!2026\n' > /tmp/ci-owner-password
+          chmod 600 /tmp/ci-owner-password
+          npm run auth:bootstrap
+          rm -f /tmp/ci-owner-password /tmp/ci-owner-qr.png
       - name: Installer Chromium et dépendances système
         run: npx playwright install --with-deps chromium
-      - name: Trois parcours × deux tailles d’écran
+      - name: Parcours publics et authentifiés sur PostgreSQL 16
+        env:
+          DATABASE_URL: postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test
+          E2E_RECOVERY_FILE: /tmp/ci-recovery-codes
         run: npm run test:e2e
+      - name: Nettoyer les codes de secours CI
+        if: always()
+        run: rm -f /tmp/ci-owner-password /tmp/ci-owner-qr.png /tmp/ci-recovery-codes
       - name: Traces en cas d’échec
         if: failure()
         uses: actions/upload-artifact@v4

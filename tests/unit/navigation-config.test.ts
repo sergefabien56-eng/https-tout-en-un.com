@@ -19,13 +19,17 @@ describe('configuration unique de navigation', () => {
       }
     }
     expect(navigation.flatMap((g) => g.children).filter((l) => l.availability === 'ready').map((l) => l.href))
-      .toEqual(['/espace']);
+      .toEqual(['/espace', '/espace/utilisateurs']);
   });
   it('aucun accès non autorisé ne reste visible, même comme « bientôt »', () => {
     expect(visibleNavigation(new Set())).toEqual([]);
     const onlyDashboard = visibleNavigation(new Set(['dashboard:read']));
     expect(onlyDashboard.map((g) => g.id)).toEqual(['dashboard', 'automation']);
     expect(onlyDashboard.flatMap((g) => g.children).some((c) => c.permission !== 'dashboard:read')).toBe(false);
+    expect(visibleNavigation(new Set(['users:read']), new Set()).flatMap((g) => g.children)
+      .some((c) => c.id === 'admin.users')).toBe(false);
+    expect(visibleNavigation(new Set(['users:read']), new Set(['users:read'])).flatMap((g) => g.children)
+      .some((c) => c.id === 'admin.users')).toBe(true);
     expect(visibleNavigation(new Set(['system:manage'])).flatMap((g) => g.children)
       .every((c) => c.permission === 'system:manage')).toBe(true);
   });

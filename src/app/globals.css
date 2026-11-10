@@ -164,3 +164,10 @@ button:disabled { opacity: .6; cursor: not-allowed; }
   .workspace-main { padding-top: 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .workspace-sidebar, .nav-chevron { transition: none; } }
+.users-list { overflow-x: auto; }
+.users-list table { width: 100%; border-collapse: collapse; text-align: left; }
+.users-list caption { text-align: left; color: var(--text-muted); margin-bottom: 12px; }
+.users-list th, .users-list td { padding: 12px; border-bottom: 1px solid var(--border-subtle); }
+.users-list th { color: var(--text-secondary); font-size: 12px; }
+.pagination { display: flex; gap: 20px; min-height: 44px; align-items: center; }
+@media (max-width: 600px) { .users-list table { min-width: 520px; } }

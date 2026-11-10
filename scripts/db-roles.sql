@@ -8,7 +8,9 @@ SELECT format('CREATE ROLE toutenun_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRL
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'toutenun_app')
 \gexec
 
-GRANT CONNECT ON DATABASE tout_en_un TO toutenun_app;
+-- Nom de base dynamique : dev, staging et CI ont des noms différents.
+SELECT format('GRANT CONNECT ON DATABASE %I TO toutenun_app', current_database())
+\gexec
 GRANT USAGE ON SCHEMA public TO toutenun_app;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO toutenun_app;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO toutenun_app;

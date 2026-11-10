@@ -5,6 +5,7 @@ import { POST as loginPost } from '@/app/api/auth/login/route';
 import { POST as logoutPost } from '@/app/api/auth/logout/route';
 import { GET as meGet } from '@/app/api/auth/me/route';
 import { GET as shopGet } from '@/app/api/shops/[shopId]/route';
+import { GET as adminUsersGet } from '@/app/api/admin/users/route';
 import { nextLock } from '@/core/auth/service';
 
 const oldAppUrl = process.env.APP_URL;
@@ -48,6 +49,10 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
     const request = new NextRequest('https://app.example.com/api/shops/1');
     const result = await shopGet(request, { params: Promise.resolve({ shopId: '1' }) });
     expect(result.status).toBe(401);
+  });
+  it('GET utilisateurs sans session est refusé avant la lecture des données', async () => {
+    const request = new NextRequest('https://app.example.com/api/admin/users');
+    expect((await adminUsersGet(request)).status).toBe(401);
   });
   it('verrouillage progressif, plafonné', () => {
     const now = new Date('2026-11-10T00:00:00Z');

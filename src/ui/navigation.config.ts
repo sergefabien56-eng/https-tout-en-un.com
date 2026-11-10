@@ -15,6 +15,7 @@ export type NavLeaf = {
   icon: LucideIcon;
   permission: string;
   availability: 'ready' | 'soon';
+  scope?: 'global';
   badgeKey?: 'orders_pending' | 'stock_alerts' | 'sync_errors' | 'notifications';
 };
 export type NavGroup = { id: string; label: string; icon: LucideIcon; children: readonly NavLeaf[] };
@@ -77,7 +78,7 @@ export const navigation: readonly NavGroup[] = [
     soon('automation.notifications', 'Notifications', '/notifications', Bell, 'dashboard:read'),
   ] },
   { id: 'admin', label: 'Administration', icon: Settings, children: [
-    soon('admin.users', 'Utilisateurs', '/administration/utilisateurs', Users, 'users:read'),
+    { id: 'admin.users', label: 'Utilisateurs', href: '/espace/utilisateurs', icon: Users, permission: 'users:read', availability: 'ready', scope: 'global' },
     soon('admin.roles', 'Rôles', '/administration/roles', ShieldCheck, 'roles:manage'),
     soon('admin.audit', "Journal d'activité", '/administration/journal', ScrollText, 'audit:read'),
     soon('admin.settings', 'Paramètres', '/administration/parametres', SlidersHorizontal, 'settings:read'),
@@ -85,8 +86,9 @@ export const navigation: readonly NavGroup[] = [
   ] },
 ] as const;
 
-export function visibleNavigation(permissions: ReadonlySet<string>): NavGroup[] {
+export function visibleNavigation(permissions: ReadonlySet<string>, globalPermissions: ReadonlySet<string> = permissions): NavGroup[] {
   return navigation.map((group) => ({ ...group,
-    children: group.children.filter((leaf) => permissions.has(leaf.permission)),
+    children: group.children.filter((leaf) => permissions.has(leaf.permission) &&
+      (leaf.scope !== 'global' || globalPermissions.has(leaf.permission))),
   })).filter((group) => group.children.length > 0);
 }
