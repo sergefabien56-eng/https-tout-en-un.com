@@ -67,9 +67,12 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(shopList.shops).toHaveLength(1);
   expect(shopList.shops[0]?.displayName).toBe('Boutique CI fictive');
   const shopId = shopList.shops[0]!.id;
-  // Vrai clic utilisateur, CSRF et permission contrôlés côté serveur.
-  await page.getByRole('button', { name: 'Sélectionner Boutique CI fictive' }).click();
-  await expect(page.getByRole('link', { name: 'Préférence : Boutique CI fictive' })).toBeVisible();
+  // Vrai clic dans le sélecteur de la barre, CSRF et permission contrôlés côté serveur.
+  await page.getByRole('button', { name: 'Choisir une boutique' }).click();
+  const picker = page.getByRole('dialog', { name: 'Choix de boutique' });
+  await expect(picker.getByRole('button', { name: /Boutique CI fictive/ })).toBeVisible();
+  await picker.getByRole('button', { name: /Boutique CI fictive/ }).click();
+  await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toContainText('Préférence : Boutique CI fictive');
   await page.goto('/espace/journal');
   await expect(page.getByRole('table')).toContainText('fixture.created');
   await page.goto('/espace/boutiques');

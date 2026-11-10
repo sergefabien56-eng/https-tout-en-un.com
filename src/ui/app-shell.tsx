@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Bell, ChevronDown, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Sun, X } from 'lucide-react';
+import { ShopSwitcher } from '@/ui/shop-switcher';
 import { appConfig } from '@/core/config/app.config';
 import { visibleNavigation } from '@/ui/navigation.config';
 import { Button } from '@/ui/components/button';
@@ -149,7 +150,7 @@ export function AppShell({ userName, selectedShop, permissions, globalPermission
             {rail ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </Button>
           <strong className="topbar-name">{appConfig.shortName}</strong>
-          <Link className="shop-context" href="/espace/boutiques" title="Préférence de boutique vérifiée côté serveur ; chaque page contrôle son propre périmètre">{selectedShop ? `Préférence : ${selectedShop}` : 'Choisir une boutique'}</Link>
+          <ShopSwitcher selectedShop={selectedShop ?? null} />
           <div className="topbar-spacer" />
           <button type="button" className="topbar-disabled" disabled title="Recherche bientôt disponible" aria-label="Recherche bientôt disponible"><Search size={18} /></button>
           <button type="button" className="topbar-disabled" disabled title="Notifications bientôt disponibles" aria-label="Notifications bientôt disponibles"><Bell size={18} /></button>

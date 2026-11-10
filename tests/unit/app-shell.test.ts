@@ -6,13 +6,13 @@ import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { AppShell } from '@/ui/app-shell';
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/espace' }));
+vi.mock('next/navigation', () => ({ usePathname: () => '/espace', useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
 
 const mount = (permissions = ['dashboard:read', 'system:manage', 'shops:read']) =>
   render(createElement(AppShell, { userName: 'Compte réel', permissions, children: createElement('p', {}, 'Contenu protégé') }));
 
 beforeEach(() => { localStorage.clear(); delete document.documentElement.dataset.theme; });
-afterEach(() => { cleanup(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe('coquille UI — état prêt et états indisponibles', () => {
   it('montre la page réelle et désactive les entrées non prêtes', () => {
@@ -40,6 +40,24 @@ describe('coquille UI — état prêt et états indisponibles', () => {
     await user.click(screen.getByRole('button', { name: 'Tout ouvrir' }));
     expect(screen.getByRole('button', { name: 'Tableau de bord' }).getAttribute('aria-expanded')).toBe('true');
     expect(screen.getByRole('button', { name: 'Boutiques & Plateformes' }).getAttribute('aria-expanded')).toBe('true');
+  });
+  it('sélecteur de barre : clavier, recherche filtrée et fermeture Échap', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({
+      shops: [{ id: '7', displayName: 'Boutique CI', countryCode: 'CI', status: 'connected' }], nextPage: null,
+    }) });
+    vi.stubGlobal('fetch', fetchMock);
+    mount();
+    const trigger = screen.getByRole('button', { name: 'Choisir une boutique' });
+    await userEvent.setup().click(trigger);
+    const dialog = screen.getByRole('dialog', { name: 'Choix de boutique' });
+    const search = within(dialog).getByRole('searchbox', { name: 'Rechercher parmi mes boutiques' });
+    expect(document.activeElement).toBe(search);
+    await userEvent.setup().type(search, 'CI');
+    expect(await within(dialog).findByRole('button', { name: /Boutique CI/ })).toBeTruthy();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('q=CI'))).toBe(true);
+    fireEvent.keyDown(search, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Choix de boutique' })).toBeNull();
+    expect(document.activeElement).toBe(trigger);
   });
   it('mémorise le thème choisi', async () => {
     mount();
