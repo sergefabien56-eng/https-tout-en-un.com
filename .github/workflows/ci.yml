@@ -107,6 +107,10 @@ jobs:
           npm run db:migrate
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -v app_password='ci-app-password' -f scripts/db-roles.sql
           psql "$DATABASE_URL" -Atc "SELECT rolbypassrls FROM pg_roles WHERE rolname = 'toutenun_app'" | grep -qx 'f'
+      - name: Vérifier la RLS avec le véritable rôle applicatif
+        env:
+          DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
+        run: node scripts/test-rls.mjs
       - name: Créer un propriétaire CI fictif avec TOTP et codes de secours
         env:
           DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
