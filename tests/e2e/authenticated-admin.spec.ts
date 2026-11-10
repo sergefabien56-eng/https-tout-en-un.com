@@ -64,6 +64,18 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   const shopsResponse = await page.request.get('/api/shops');
   expect(shopsResponse.status()).toBe(200);
   expect((await shopsResponse.json() as { shops: unknown[] }).shops).toEqual([]);
+  // Une sélection fabriquée par le navigateur doit échouer malgré une session owner.
+  await page.request.get('/api/auth/csrf');
+  const shopCsrf = (await page.context().cookies()).find((c) => c.name === 'toutenun_csrf')?.value;
+  expect(shopCsrf).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  const selectInvalid = await page.request.post('/api/preferences/shop', { headers: {
+    origin: 'http://127.0.0.1:3100', 'x-csrf-token': shopCsrf!,
+  }, data: { shopId: '999999' } });
+  expect(selectInvalid.status()).toBe(403);
+  const selectAll = await page.request.post('/api/preferences/shop', { headers: {
+    origin: 'http://127.0.0.1:3100', 'x-csrf-token': shopCsrf!,
+  }, data: { shopId: 'all' } });
+  expect(selectAll.status()).toBe(200);
   await page.goto('/espace/journal');
   await expect(page.getByRole('heading', { name: 'Choisissez une boutique' })).toBeVisible();
   // La CI ne relie pas une boutique Jumia fictive persistante au propriétaire.

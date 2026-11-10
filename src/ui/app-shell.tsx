@@ -20,8 +20,8 @@ function readIds(): string[] {
   } catch { return ['dashboard']; }
 }
 
-export function AppShell({ userName, permissions, globalPermissions, children }: {
-  userName: string; permissions: readonly string[]; globalPermissions?: readonly string[]; children: ReactNode;
+export function AppShell({ userName, selectedShop, permissions, globalPermissions, children }: {
+  userName: string; selectedShop?: string | null; permissions: readonly string[]; globalPermissions?: readonly string[]; children: ReactNode;
 }) {
   const pathname = usePathname();
   const groups = visibleNavigation(new Set(permissions), new Set(globalPermissions ?? permissions));
@@ -149,7 +149,7 @@ export function AppShell({ userName, permissions, globalPermissions, children }:
             {rail ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </Button>
           <strong className="topbar-name">{appConfig.shortName}</strong>
-          <Link className="shop-context" href="/espace/boutiques" title="Boutiques autorisées">Choisir une boutique</Link>
+          <Link className="shop-context" href="/espace/boutiques" title="Préférence de boutique vérifiée côté serveur ; chaque page contrôle son propre périmètre">{selectedShop ? `Préférence : ${selectedShop}` : 'Choisir une boutique'}</Link>
           <div className="topbar-spacer" />
           <button type="button" className="topbar-disabled" disabled title="Recherche bientôt disponible" aria-label="Recherche bientôt disponible"><Search size={18} /></button>
           <button type="button" className="topbar-disabled" disabled title="Notifications bientôt disponibles" aria-label="Notifications bientôt disponibles"><Bell size={18} /></button>

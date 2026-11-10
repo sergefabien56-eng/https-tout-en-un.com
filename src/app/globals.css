@@ -182,3 +182,6 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .detail-list { display: grid; grid-template-columns: minmax(100px, 170px) minmax(0, 1fr); gap: 12px; overflow-wrap: anywhere; }
 .detail-list dt { font-weight: 600; }
 .detail-list dd { margin: 0; }
+.shop-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 20px 0; }
+.shop-filters input, .shop-filters select { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px; min-height: 40px; }
+.shop-filters button { min-height: 40px; padding: 7px 12px; cursor: pointer; }

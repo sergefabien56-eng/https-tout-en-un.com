@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { PoolClient } from 'pg';
 import { createSessionToken } from '@/core/auth/primitives';
+import { NextRequest } from 'next/server';
 
 let db: PGlite;
 vi.mock('@/core/db/client', () => ({
@@ -25,6 +26,7 @@ vi.mock('@/core/db/client', () => ({
 
 const { withAuthorizedShopTransaction, withAuditedShopMutation } = await import('@/core/auth/authorize-shop');
 const { listShopAudit } = await import('@/modules/audit/list-audit');
+const { POST: selectShop } = await import('@/app/api/preferences/shop/route');
 const owner = createSessionToken();
 const manager = createSessionToken();
 const assistant = createSessionToken();
@@ -128,6 +130,25 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     await expect(listShopAudit({ token: undefined, shopId: shop1, page: 1 })).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 0 })).rejects.toMatchObject({ httpStatus: 400 });
     await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 1, module: "x' OR 1=1 --" })).rejects.toMatchObject({ httpStatus: 400 });
+  });
+
+  it('sélection par cookie : Origin/CSRF et droit boutique contrôlés avant écriture', async () => {
+    const previous = process.env.APP_URL; process.env.APP_URL = 'https://app.example.com';
+    try {
+      const csrf = createSessionToken().token;
+      const request = (token: string, shopId: string, origin = 'https://app.example.com', csrfHeader = csrf) =>
+        new NextRequest('https://app.example.com/api/preferences/shop', { method: 'POST',
+          headers: { origin, 'content-type': 'application/json',
+            cookie: `toutenun_session=${token}; toutenun_csrf=${csrf}`, 'x-csrf-token': csrfHeader },
+          body: JSON.stringify({ shopId }) });
+      expect((await selectShop(request(owner.token, shop1, 'https://evil.example'))).status).toBe(403);
+      expect((await selectShop(request(owner.token, shop1, 'https://app.example.com', 'bad'))).status).toBe(403);
+      expect((await selectShop(request(manager.token, shop2))).status).toBe(403);
+      const selected = await selectShop(request(manager.token, shop1));
+      expect(selected.status).toBe(200);
+      expect(selected.cookies.get('toutenun_shop')?.value).toBe(shop1);
+      expect(selected.cookies.get('toutenun_shop')?.httpOnly).toBe(true);
+    } finally { if (previous === undefined) delete process.env.APP_URL; else process.env.APP_URL = previous; }
   });
 
 });

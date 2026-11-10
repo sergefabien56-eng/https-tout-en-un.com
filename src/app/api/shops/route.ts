@@ -9,7 +9,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const headers = { 'Cache-Control': 'no-store' };
   if (!/^[1-9]\d{0,4}$/.test(raw)) return NextResponse.json({ error: 'Page invalide.' }, { status: 400, headers });
   try {
-    return NextResponse.json(await listOwnShops(request.cookies.get('toutenun_session')?.value, Number(raw)), { headers });
+    return NextResponse.json(await listOwnShops(request.cookies.get('toutenun_session')?.value, Number(raw),
+      { ...(request.nextUrl.searchParams.has('q') ? { q: request.nextUrl.searchParams.get('q')! } : {}),
+        ...(request.nextUrl.searchParams.has('status') ? { status: request.nextUrl.searchParams.get('status')! } : {}) }), { headers });
   } catch (error) {
     if (error instanceof AppError) return NextResponse.json({ error: error.userMessage },
       { status: error.httpStatus, headers });

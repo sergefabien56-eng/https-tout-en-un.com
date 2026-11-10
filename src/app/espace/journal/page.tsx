@@ -8,8 +8,10 @@ export const dynamic = 'force-dynamic';
 export default async function AuditPage({ searchParams }: {
   searchParams: Promise<{ shop?: string; page?: string }>;
 }) {
-  const { shop, page: raw = '1' } = await searchParams;
-  const token = (await cookies()).get('toutenun_session')?.value;
+  const { shop: requestedShop, page: raw = '1' } = await searchParams;
+  const cookieStore = await cookies();
+  const shop = requestedShop ?? cookieStore.get('toutenun_shop')?.value;
+  const token = cookieStore.get('toutenun_session')?.value;
   if (!shop) return <main className="workspace-main"><span className="tag">Journal d’activité</span>
     <h1>Choisissez une boutique</h1><p>Le journal exige une boutique autorisée. Aucun événement multi-boutiques n’est affiché sans périmètre vérifié.</p>
     <Link href="/espace/boutiques">Choisir dans mes boutiques</Link></main>;

@@ -52,9 +52,30 @@ describe('catalogue RLS', () => {
     await db.exec('UPDATE user_shop_access SET can_view = false WHERE user_id = 2;');
     expect((await listOwnShops(manager.token)).shops).toEqual([]);
   });
+  it('recherche et statut restent filtrés par droits, sans joker SQL', async () => {
+    expect((await listOwnShops(owner.token, 1, { q: ' B ' })).shops.map((s) => s.displayName)).toEqual(['B']);
+    expect((await listOwnShops(manager.token, 1, { q: 'B' })).shops).toEqual([]);
+    expect((await listOwnShops(owner.token, 1, { q: '%' })).shops).toEqual([]);
+    expect((await listOwnShops(owner.token, 1, { status: 'connected' })).shops).toHaveLength(2);
+    await expect(listOwnShops(owner.token, 1, { status: 'malicious' })).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(listOwnShops(owner.token, 1, { q: 'x'.repeat(81) })).rejects.toMatchObject({ httpStatus: 400 });
+  });
   it('absence de session et page invalide sont refusées', async () => {
     await expect(listOwnShops(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnShops(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnShops(owner.token, 0)).rejects.toMatchObject({ httpStatus: 400 });
   });
+  it('plus de 100 boutiques : pages bornées et sans doublon', async () => {
+    const values = Array.from({ length: 105 }, (_, i) =>
+      `(1, gen_random_uuid(), 'volume-${i}', 'CI', 'XOF', 'Volume ${i}')`).join(',');
+    await db.exec(`INSERT INTO shops (app_id, jumia_shop_sid, business_client_code, country_code, currency, display_name) VALUES ${values};`);
+    const first = await listOwnShops(owner.token, 1);
+    const second = await listOwnShops(owner.token, 2);
+    const third = await listOwnShops(owner.token, 3);
+    expect([first.shops.length, second.shops.length, third.shops.length]).toEqual([50, 50, 7]);
+    expect([first.nextPage, second.nextPage, third.nextPage]).toEqual([2, 3, null]);
+    expect(new Set([...first.shops, ...second.shops, ...third.shops].map((s) => s.id)).size).toBe(107);
+    expect((await listOwnShops(manager.token)).shops).toEqual([]);
+  });
+
 });

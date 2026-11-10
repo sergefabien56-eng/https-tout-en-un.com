@@ -12,6 +12,7 @@ import { GET as deepHealthGet } from '@/app/api/health/deep/route';
 import { GET as sessionsGet } from '@/app/api/auth/sessions/route';
 import { GET as shopAuditGet } from '@/app/api/shops/[shopId]/audit/route';
 import { GET as shopsGet } from '@/app/api/shops/route';
+import { POST as selectShopPost } from '@/app/api/preferences/shop/route';
 import { POST as refreshPost } from '@/app/api/auth/refresh/route';
 import { nextLock } from '@/core/auth/service';
 
@@ -94,6 +95,11 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
   it('GET catalogue sans session refuse les boutiques', async () => {
     const request = new NextRequest('https://app.example.com/api/shops');
     expect((await shopsGet(request)).status).toBe(401);
+  });
+  it('POST sélection sans Origin/CSRF est refusé sans accès DB', async () => {
+    const request = new NextRequest('https://app.example.com/api/preferences/shop', { method: 'POST',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify({ shopId: '1' }) });
+    expect((await selectShopPost(request)).status).toBe(403);
   });
   it('verrouillage progressif, plafonné', () => {
     const now = new Date('2026-11-10T00:00:00Z');
