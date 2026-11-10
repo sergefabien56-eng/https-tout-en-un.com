@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { appConfig } from '@/core/config/app.config';
 import { LogoutButton } from './logout-button';
 
@@ -12,6 +13,7 @@ export default function PrivateSpace() {
       <p>Aucune boutique Jumia n’est connectée. Les ventes, commandes et finances sont indisponibles — pas à zéro.</p>
       <span className="tag soon">Connexion Jumia · Phase 2</span>
     </div>
+    <p><Link href="/espace/sessions">Consulter mes sessions actives</Link></p>
     <LogoutButton />
   </main>;
 }

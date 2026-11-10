@@ -18,6 +18,7 @@ const { listAuthorizedUsers, getAuthorizedUser } = await import('@/modules/ident
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
+const { listOwnSessions } = await import('@/modules/identity/active-sessions');
 const owner = createSessionToken(); const scoped = createSessionToken(); const globalManager = createSessionToken();
 
 beforeAll(async () => {
@@ -96,6 +97,19 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(await getAuthorizedUser(owner.token, '999999')).toBeNull();
     await expect(getAuthorizedUser(scoped.token, '2')).rejects.toMatchObject({ httpStatus: 403 });
     await expect(getAuthorizedUser(undefined, '2')).rejects.toMatchObject({ httpStatus: 401 });
+  });
+  it('sessions : uniquement celles du compte, sans empreinte ni user-agent brut', async () => {
+    const more = createSessionToken();
+    await db.query("INSERT INTO sessions (user_id, token_hash, expires_at, user_agent) VALUES ($1,$2,now()+interval '1 hour',$3)",
+      [1, more.hash, 'Hostile-UA: <script>alert(1)</script>']);
+    const ownerSessions = await listOwnSessions(owner.token);
+    expect(ownerSessions).toHaveLength(2);
+    expect(ownerSessions.filter((session) => session.current)).toHaveLength(1);
+    expect(ownerSessions.find((session) => !session.current)?.device).toBe('Navigateur');
+    expect((await listOwnSessions(scoped.token))).toHaveLength(1);
+    expect(JSON.stringify(ownerSessions)).not.toMatch(/token_hash|Hostile-UA|script|user_agent|ip_hash/);
+    await expect(listOwnSessions(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(listOwnSessions(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
   });
   it('pagination contrôlée et aucun accès à une page malformée', async () => {
     expect((await listAuthorizedUsers(owner.token, 2)).users).toEqual([]);

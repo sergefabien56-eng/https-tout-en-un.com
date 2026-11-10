@@ -58,4 +58,13 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   const health = await deep.json() as { database: string; migrationsApplied: number };
   expect(health.database).toBe('ok');
   expect(health.migrationsApplied).toBe(7);
+  await page.goto('/espace');
+  await page.getByRole('link', { name: 'Consulter mes sessions actives' }).click();
+  await expect(page.getByRole('heading', { name: 'Mes sessions' })).toBeVisible();
+  await expect(page.getByRole('table')).toContainText('cette session');
+  const sessionResponse = await page.request.get('/api/auth/sessions');
+  expect(sessionResponse.status()).toBe(200);
+  const payload = await sessionResponse.json() as { sessions: { current: boolean }[] };
+  expect(payload.sessions.some((entry) => entry.current)).toBe(true);
+  expect(JSON.stringify(payload)).not.toMatch(/token_hash|user_agent|ip_hash/);
 });

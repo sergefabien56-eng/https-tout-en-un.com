@@ -156,7 +156,7 @@ export function AppShell({ userName, permissions, globalPermissions, children }:
           <Button variant="ghost" size="icon" aria-label={`Thème ${theme} : changer le thème`} onClick={changeTheme}>
             {theme === 'dark' ? <Moon size={19} /> : <Sun size={19} />}
           </Button>
-          <span className="topbar-user" title={userName}>{userName}</span>
+          <Link href="/espace/sessions" className="topbar-user" title="Mes sessions" aria-label={`${userName} — mes sessions`}>{userName}</Link>
         </header>
         <div className="workspace-content"><div className="workspace-inner">{children}</div></div>
       </div>
