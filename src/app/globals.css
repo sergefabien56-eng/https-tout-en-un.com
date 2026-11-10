@@ -1,0 +1,71 @@
+/* Jetons du design system — extrait de docs/design-system.md (socle, complété au lot L7). */
+:root {
+  --brand-navy: #101c39;
+  --brand-blue: #1765f5;
+  --brand-orange: #f57c1f;
+  --brand-green: #12855b;
+  --brand-red: #c4342b;
+  --bg-app: #f6f8fb;
+  --bg-surface: #ffffff;
+  --border-subtle: #e3e8f0;
+  --text-primary: #101c39;
+  --text-secondary: #4c5a75;
+  --text-muted: #6b7891;
+  --radius-md: 10px;
+  --shadow-sm: 0 1px 2px rgba(16, 28, 57, 0.06);
+  --sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: #0a1020;
+    --bg-surface: #131b2e;
+    --border-subtle: #243049;
+    --text-primary: #edf1f8;
+    --text-secondary: #a9b4c9;
+    --text-muted: #8593ad;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+main { max-width: 880px; margin: 0 auto; padding: 48px 24px 96px; }
+h1 { font-size: 24px; letter-spacing: -0.02em; margin: 0 0 8px; }
+h2 { font-size: 15px; margin: 32px 0 12px; }
+p { color: var(--text-secondary); margin: 0 0 12px; }
+ul { margin: 0; padding-left: 20px; color: var(--text-secondary); }
+li { margin: 6px 0; }
+code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; }
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 12px;
+}
+.tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+.tag.ok { color: var(--brand-green); border-color: rgba(18, 133, 91, 0.35); }
+.tag.soon { color: var(--brand-orange); border-color: rgba(245, 124, 31, 0.35); }
+.muted { color: var(--text-muted); font-size: 12.5px; }
+a { color: var(--brand-blue); }

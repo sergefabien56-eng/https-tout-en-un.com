@@ -1,0 +1,21 @@
+# Développement local uniquement. La production a son propre fichier (lot L11).
+services:
+  postgres:
+    image: postgres:16
+    container_name: toutenun-dev-db
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: tout_en_un
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d tout_en_un']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

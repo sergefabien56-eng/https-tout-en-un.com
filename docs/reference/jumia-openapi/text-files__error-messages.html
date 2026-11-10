@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Table Example</title>
+    <script src="scripts/error-message-filter.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #myTable {
+            border-collapse: collapse;
+            width: 100%;
+            text-align: left;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        #myTable th {
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        #myTable td, #myTable th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        #myTable tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        #myTable tr:hover {
+            background-color: #ddd;
+        }
+        #myInput {
+            margin-bottom: 12px;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <span>
+        Whenever the Seller creates a Product or a set of Products and for some reason the creation fails, the Seller will have access to an error message
+        detailing the reason(s) that provoked the failure.
+        <p>The following table contains the majority of the error messages that a Seller can encounter.</p>
+        <p>Please feel free to contact the support if you encounter an error message not mentioned below.</p>
+    </span>
+    <p></p>
+    <input type="text" id="myInput" onkeyup="filterErrorMessage()" placeholder="Filter by keyword">
+    <table id="myTable">
+        <tr class="header">
+            <th style="width:60%;">Error Message</th>
+        </tr>
+        <tr>
+            <td>Product name or translations [ ] contains Brand name [ ].</td>
+        </tr>
+        <tr>
+            <td>Product name or translations [ ] contains Seller name [ ] or Company name [ ].</td>
+        </tr>
+        <tr>
+            <td>The column [ ] is missing from the file.</td>
+        </tr>
+        <tr>
+            <td>Attribute [ ] with invalid value [ ].</td>
+        </tr>
+        <tr>
+            <td>The Global Sale Price StartAt and Sale Price EndAt must be bigger than the current date.</td>
+        </tr>
+        <tr>
+            <td>A product with the Barcode EAN [ ] already exists.</td>
+        </tr>
+        <tr>
+            <td>Product Main Image [https://...] download or storage failed.</td>
+        </tr>
+        <tr>
+            <td>Category not found by Code [ ]</td>
+        </tr>
+        <tr>
+            <td>Failed to run quality check on your product. Please reach out to Support</td>
+        </tr>
+        <tr>
+            <td>Product with variation [ ] already exists in parent sku [ ], Please create the product with a different parent SKU</td>
+        </tr>
+        <tr>
+            <td>The submitted currency [ ] is different from the shop default currency [ ]</td>
+        </tr>
+        <tr>
+            <td>You have referred to a trademark that is protected, but you have not accurately specified the corresponding brand of the product.</td>
+        </tr>
+        <tr>
+            <td>Global Sale Price discount [{0}%] must be equal or less than [{1}%]</td>
+        </tr>
+        <tr>
+            <td>Selected primary category [ ] has a different attribute list than Category [ ]. Please use the same category as the Product Set.</td>
+        </tr>
+        <tr>
+            <td>The Global Sale Price StartAt is after than Sale Price EndAt.</td>
+        </tr>
+        <tr>
+            <td>The Global Sale Price should not be zero.</td>
+        </tr>
+        <tr>
+            <td>The Global Sale Price should not be greater than or equal Price.</td>
+        </tr>
+        <tr>
+            <td>Product Name [ ] has prohibited characters [ ]</td>
+        </tr>
+        <tr>
+            <td>Product Name [ ] has prohibited characters [ ] not allowed for language [ ].</td>
+        </tr>
+        <tr>
+            <td>Duplicate Variation on Product with seller sku [ ] and Product set parent sku [ ]</td>
+        </tr>
+        <tr>
+            <td>An error occurred while processing the current product creation request. Please contact the support team.</td>
+        </tr>
+        <tr>
+            <td>Connection timeout while connecting to specified Image URL [http://...].</td>
+        </tr>
+        <tr>
+            <td>Image [ ] should be a link.</td>
+        </tr>
+        <tr>
+            <td>Product Image [ ] extension [gif] is not allowed. The available image extension list are [[JPEG, JPG, PNG]].</td>
+        </tr>
+        <tr>
+            <td>Product Image [ ] Dimensions Height X should be between 200 and 3000 and Width Y should be between 200 and 3000.</td>
+        </tr>
+        <tr>
+            <td>The Product with seller sku [ ] already exists for seller [ ]</td>
+        </tr>
+        <tr>
+            <td>Attribute [ ] with the value [ ] should be a number number without decimals.</td>
+        </tr>
+        <tr>
+            <td>Attribute [ ] should have between [X] to [Y] characters.</td>
+        </tr>
+        <tr>
+            <td>Image has invalid link [http://...].</td>
+        </tr>
+        <tr>
+            <td>The [ ] cannot be updated since the product has been already approved in at least one country.</td>
+        </tr>
+        <tr>
+            <td>The product [ ] does not have defined a valid variation.</td>
+        </tr>
+        <tr>
+            <td>The user does not have permissions to the provided shop.</td>
+        </tr>
+        <tr>
+            <td>The Attribute [ ] contains the restricted words : [ ];</td>
+        </tr>
+        <tr>
+            <td>EndAt is mandatory when Sale Price is filled.</td>
+        </tr>
+        <tr>
+            <td>StartAt is mandatory when Sale Price is filled.</td>
+        </tr>
+        <tr>
+            <td>The [MainImage] is mandatory and cannot be empty.</td>
+        </tr>
+        <tr>
+            <td>The initial Stock is mandatory in order to create a Product.</td>
+        </tr>
+        <tr>
+            <td>Column [ ] is missing.</td>
+        </tr>
+        <tr>
+            <td>Column [ ] has invalid value [ ].</td>
+        </tr>
+        <tr>
+            <td>File contains duplicate columns [[ ]].</td>
+        </tr>
+        <tr>
+            <td>The Global Sale Price cannot have more than two decimal places.</td>
+        </tr>
+        <tr>
+            <td>Required field [Product.Brand.Code] is missing or null.</td>
+        </tr>
+        <tr>
+            <td>Additional Category &ltcategory> is not related to Primary Category</td>
+        </tr>
+        <tr>
+            <td>Additional Category is the same as Primary Category</td>
+        </tr>
+        <tr>
+            <td>Category Attribute Set not found using Category code &ltcode> and name &ltname></td>
+        </tr>
+        <tr>
+            <td>Attribute [{0}] not found on payload</td>
+        </tr>
+        <tr>
+            <td>The attribute [{0}] is missing validations associated. Please contact the support</td>
+        </tr>
+        <tr>
+            <td>The attribute [{0}] with the value [{1}] is a not valid number.</td>
+        </tr>
+        <tr>
+            <td>The attribute [{0}] with the value [{1}] is a not valid number with decimal [{2}]</td>
+        </tr>
+        <tr>
+            <td>The attribute [{0}] with the value [{1}] is a not valid number without decimals</td>
+        </tr>
+        <tr>
+            <td>The attribute [{0}] with the value [{1}] should not be null or a negative value</td>
+        </tr>
+        <tr>
+            <td>Attribute [{0}] should have a value with a length between [{1}] and [{2}].</td>
+        </tr>
+        <tr>
+            <td>Attribute [{0}] with language [{1}] should have a value with a length between [{2}] and [{3}].</td>
+        </tr>
+        <tr>
+            <td>The attribute [{0}] with value [{1}] should be in accordance to the format [{2}]</td>
+        </tr>
+        <tr>
+            <td>Attribute [{0}] with value [{1}] should be a boolean.</td>
+        </tr>
+        <tr>
+            <td>Global Sale Price discount [{0}%] must be equal or bigger than [{1}%]</td>
+        </tr>
+        <tr>
+            <td>The Global Price [{0}] must be equal or more than [{1}].</td>
+        </tr>
+        <tr>
+            <td>The Global Price [{0}] must be equal or less than [{1}].</td>
+        </tr>
+        <tr>
+            <td>The Global Price cannot have more than two decimal places.</td>
+        </tr>
+        <tr>
+            <td>The Global Price should not be a negative value.</td>
+        </tr>
+        <tr>
+            <td>The Global Price should not be zero.</td>
+        </tr>
+        <tr>
+            <td>The Global Price is mandatory in order to create a Product.</td>
+        </tr>
+        <tr>
+            <td>The Global Sale Price should not be a negative value.</td>
+        </tr>
+        <tr>
+            <td>The Global StartAt and EndAt are mandatory when Sale Price is filled.</td>
+        </tr>                               
+    </table> 
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a58683a6cec5fbb4',t:'MTc5NDMyODk4Ng=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a58683a6cec5fbb4',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

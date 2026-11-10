@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquettes — TOUT EN UN BUSINESS MANAGER</title>
+<style>
+  /* ============================================================
+     JETONS — reproduits à l'identique de docs/design-system.md
+     Aucune ressource externe : la maquette doit s'afficher hors ligne.
+     ============================================================ */
+  :root{
+    --navy:#101C39; --navy-deep:#0B142B;
+    --blue:#1765F5; --blue-hover:#1154D4; --blue-soft:#E8F0FE;
+    --orange:#F57C1F; --orange-soft:#FDF0E4;
+    --green:#12855B; --green-soft:#E4F4EE;
+    --red:#C4342B; --red-soft:#FBEAE8;
+    --bg-app:#F6F8FB; --surface:#FFFFFF; --surface-2:#F1F4F9;
+    --border:#E3E8F0; --border-strong:#C9D2E0;
+    --text:#101C39; --text-2:#4C5A75; --muted:#6B7891;
+    --inverse:#FFFFFF;
+    --shadow-sm:0 1px 2px rgba(16,28,57,.06);
+    --shadow-md:0 4px 16px rgba(16,28,57,.08);
+    --shadow-lg:0 12px 32px rgba(16,28,57,.14);
+    --r-sm:6px; --r-md:10px; --r-lg:14px;
+    --sans: "Inter","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  }
+  html[data-theme="dark"], .theme-dark{
+    --navy:#0B142B; --navy-deep:#070E1F;
+    --blue:#4C86FF; --blue-hover:#6B9CFF; --blue-soft:#16243F;
+    --orange:#FF9445; --orange-soft:#2C1E12;
+    --green:#2FB37E; --green-soft:#10281F;
+    --red:#F26B62; --red-soft:#2A1414;
+    --bg-app:#0A1020; --surface:#131B2E; --surface-2:#1A2338;
+    --border:#243049; --border-strong:#33415E;
+    --text:#EDF1F8; --text-2:#A9B4C9; --muted:#8593AD;
+    --inverse:#0A1020;
+    --shadow-sm:none; --shadow-md:none; --shadow-lg:0 12px 32px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg-app); color:var(--text); font-family:var(--sans);
+    font-size:14px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{margin:0; font-weight:650; letter-spacing:-.01em}
+  a{color:var(--blue); text-decoration:none}
+  .money{font-variant-numeric:tabular-nums; font-weight:650}
+  .muted{color:var(--muted)}
+  .small{font-size:12.5px}
+
+  /* ---------- coquille du document de maquettes ---------- */
+  .doc{padding:40px 24px 96px; max-width:1360px; margin:0 auto}
+  .doc-head{margin-bottom:32px}
+  .doc-head .kicker{
+    font-size:11.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--muted); font-weight:700;
+  }
+  .doc-head h1{font-size:28px; line-height:1.2; margin:8px 0 10px}
+  .doc-head p{max-width:820px; color:var(--text-2); margin:0}
+  .warn{
+    display:flex; gap:10px; align-items:flex-start; margin:20px 0 40px;
+    background:var(--orange-soft); border:1px solid rgba(245,124,31,.35);
+    border-radius:var(--r-md); padding:12px 14px; font-size:13px; color:var(--text);
+  }
+  .warn b{color:var(--orange)}
+  .sec{margin:0 0 56px}
+  .sec > header{display:flex; align-items:baseline; gap:12px; margin-bottom:16px; flex-wrap:wrap}
+  .sec > header h2{font-size:19px}
+  .sec > header .tag{
+    font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--border-strong); border-radius:999px; padding:2px 8px;
+  }
+  .sec > p{color:var(--text-2); margin:0 0 16px; max-width:880px; font-size:13.5px}
+
+  /* ---------- cadre d'écran ---------- */
+  .frame{
+    border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden;
+    background:var(--bg-app); box-shadow:var(--shadow-md);
+  }
+  .frame-label{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:9px 14px; font-size:12px; color:var(--muted);
+  }
+  .dots{display:flex; gap:6px}
+  .dots i{width:9px; height:9px; border-radius:50%; background:var(--border-strong); display:block}
+
+  /* ---------- APP SHELL ---------- */
+  .app{display:grid; grid-template-columns:264px 1fr; min-height:660px}
+  .sidebar{
+    background:var(--navy); color:#C9D3E6; padding:16px 12px 20px;
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .theme-dark .sidebar{background:var(--navy-deep)}
+  .brand{display:flex; align-items:center; gap:10px; padding:4px 8px 12px}
+.logo{
+    width:32px; height:32px; border-radius:9px; background:var(--blue);
+    display:grid; place-items:center; color:#fff; font-weight:800; font-size:13px; flex:none;
+    box-shadow:0 2px 8px rgba(23,101,245,.4);
+  }
+  .brand-txt{line-height:1.15}
+  .brand-txt b{display:block; color:#fff; font-size:13px; letter-spacing:.02em}
+  .brand-txt span{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:#8FA0C0}
+  .nav-tools{display:flex; gap:6px; padding:0 4px 8px}
+  .nav-tools button{
+    flex:1; background:rgba(255,255,255,.06); color:#B9C6DE; border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--r-sm); font:inherit; font-size:11.5px; padding:6px 4px; cursor:default;
+  }
+  .nav{display:flex; flex-direction:column; gap:2px; overflow:auto}
+  .nav-group > .row{
+    display:flex; align-items:center; gap:9px; padding:8px 9px; border-radius:8px;
+    color:#D3DDEE; font-size:13px; font-weight:520; cursor:default;
+  }
+  .nav-group > .row:hover{background:rgba(255,255,255,.05)}
+  .nav-group.active > .row{background:rgba(23,101,245,.18); color:#fff; font-weight:650}
+  .nav .ic{width:17px; height:17px; flex:none; opacity:.9}
+  .nav .chev{margin-left:auto; opacity:.6; transition:transform .18s}
+  .nav-group.active .chev{transform:rotate(90deg)}
+  .nav .badge-n{
+    margin-left:auto; background:var(--orange); color:#101C39; font-size:10.5px; font-weight:800;
+    border-radius:999px; padding:1px 6px;
+  }
+  .sub{display:none; flex-direction:column; gap:1px; margin:2px 0 6px 26px}
+  .nav-group.active .sub{display:flex}
+  .sub a{
+    color:#A9B8D4; font-size:12.5px; padding:6px 9px; border-radius:7px; display:flex; align-items:center; gap:8px;
+  }
+  .sub a:hover{background:rgba(255,255,255,.05); color:#fff}
+  .sub a[aria-current="page"]{background:#fff; color:var(--navy); font-weight:650}
+  .theme-dark .sub a[aria-current="page"]{background:var(--blue); color:#fff}
+  .sub .soon{margin-left:auto; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:#8FA0C0; border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:0 5px}
+  .side-foot{
+    margin-top:auto; border-top:1px solid rgba(255,255,255,.1); padding:12px 9px 0;
+    font-size:11.5px; color:#8FA0C0; display:flex; align-items:center; gap:8px;
+  }
+  .side-foot .dot{width:7px;height:7px;border-radius:50%;background:#2FB37E}
+
+  /* ---------- TOPBAR ---------- */
+  .main{background:var(--bg-app); display:flex; flex-direction:column; min-width:0}
+  .topbar{
+    display:flex; align-items:center; gap:12px; padding:0 20px; height:64px;
+    background:var(--surface); border-bottom:1px solid var(--border);
+  }
+  .shop-select{
+    display:flex; align-items:center; gap:8px; border:1px solid var(--border-strong);
+    border-radius:var(--r-md); padding:7px 10px; background:var(--surface); font-size:13px; min-width:0;
+  }
+  .shop-select .avatar{
+    width:22px;height:22px;border-radius:6px;background:var(--navy); color:#fff;
+    display:grid;place-items:center; font-size:10px; font-weight:800; flex:none;
+  }
+  .shop-select b{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .shop-select .flag{font-size:11px; color:var(--muted); border-left:1px solid var(--border); padding-left:8px; margin-left:2px}
+  .search{
+    flex:1; max-width:420px; display:flex; align-items:center; gap:8px;
+    border:1px solid var(--border); border-radius:var(--r-md); padding:8px 10px;
+    color:var(--muted); font-size:13px; background:var(--surface-2);
+  }
+  .kbd{
+    margin-left:auto; font-size:10.5px; border:1px solid var(--border-strong); border-radius:5px;
+    padding:1px 5px; color:var(--muted); background:var(--surface);
+  }
+  .top-actions{margin-left:auto; display:flex; align-items:center; gap:6px}
+  .icon-btn{
+    width:36px; height:36px; border-radius:9px; border:1px solid transparent; display:grid; place-items:center;
+    color:var(--text-2); position:relative;
+  }
+  .icon-btn:hover{background:var(--surface-2); border-color:var(--border)}
+  .icon-btn .n{
+    position:absolute; top:2px; right:2px; background:var(--red); color:#fff; font-size:9.5px; font-weight:800;
+    min-width:15px; height:15px; border-radius:999px; display:grid; place-items:center; padding:0 3px;
+  }
+  .me{display:flex; align-items:center; gap:8px; padding:4px 8px 4px 4px; border-radius:999px; border:1px solid var(--border)}
+  .me .ava{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#1765F5,#0B142B);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+  .me span{font-size:12.5px; color:var(--text-2)}
+
+  .content{padding:20px; display:flex; flex-direction:column; gap:16px; min-width:0}
+  .crumbs{font-size:12px; color:var(--muted); display:flex; gap:6px; align-items:center}
+  .page-head{display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap}
+  .page-head h1{font-size:22px; line-height:1.2}
+  .page-head .sub{display:none}
+  .page-head p{margin:3px 0 0; color:var(--muted); font-size:12.5px}
+  .page-head .actions{margin-left:auto; display:flex; gap:8px}
+  .btn{
+    display:inline-flex; align-items:center; gap:7px; border-radius:var(--r-md); padding:8px 13px;
+    font-size:13px; font-weight:600; border:1px solid var(--border-strong); background:var(--surface); color:var(--text);
+    cursor:default;
+  }
+  .btn.primary{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 2px 8px rgba(23,101,245,.25)}
+  .btn.accent{background:var(--orange); border-color:var(--orange); color:#101C39}
+  .btn.ghost{border-color:transparent; background:transparent; color:var(--text-2)}
+  .btn.sm{padding:5px 9px; font-size:12px; border-radius:8px}
+
+  .banner{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-md);
+    background:var(--orange-soft); border:1px solid rgba(245,124,31,.35); font-size:12.5px;
+  }
+  .banner .ac{margin-left:auto; font-weight:650; color:var(--orange); white-space:nowrap}
+
+  .grid-4{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px}
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+    box-shadow:var(--shadow-sm); padding:14px; min-width:0;
+  }
+  .card h3{font-size:13px; color:var(--text-2); font-weight:600; letter-spacing:0}
+  .stat .val{font-size:23px; letter-spacing:-.02em; margin:6px 0 2px; font-variant-numeric:tabular-nums; font-weight:700}
+  .stat .val small{font-size:12px; font-weight:600; color:var(--muted); margin-left:4px}
+  .stat .delta{font-size:11.5px; display:flex; align-items:center; gap:5px; color:var(--green); font-weight:600}
+  .stat .delta.down{color:var(--red)}
+  .stat .foot{display:flex; align-items:center; gap:6px; margin-top:9px; padding-top:9px; border-top:1px dashed var(--border); font-size:11px; color:var(--muted)}
+  .tagprov{
+    font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+    padding:1.5px 6px; border-radius:999px; border:1px solid;
+  }
+  .tagprov.real{color:var(--green); border-color:rgba(18,133,91,.3); background:var(--green-soft)}
+  .tagprov.est{color:var(--orange); border-color:rgba(245,124,31,.35); background:var(--orange-soft)}
+  .tagprov.na{color:var(--muted); border-color:var(--border-strong); background:var(--surface-2)}
+
+  .grid-2{display:grid; grid-template-columns:1.45fr 1fr; gap:12px}
+  .card-head{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+  .card-head h3{font-size:14px; color:var(--text); font-weight:650}
+  .card-head .right{margin-left:auto; font-size:11.5px; color:var(--muted); display:flex; gap:8px; align-items:center}
+
+  .legend{display:flex; gap:14px; font-size:11.5px; color:var(--text-2); margin-top:8px; flex-wrap:wrap}
+  .legend i{display:inline-block; width:16px; height:2px; vertical-align:middle; margin-right:5px; border-radius:2px}
+
+  table{width:100%; border-collapse:collapse}
+  th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+    font-weight:700; padding:8px 6px; border-bottom:1px solid var(--border);
+  }
+  td{padding:9px 6px; border-bottom:1px solid var(--border); font-size:12.5px; vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  td.num{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+  th.num{text-align:right}
+  .rank{width:18px;height:18px;border-radius:5px;background:var(--surface-2);color:var(--text-2);display:inline-grid;place-items:center;font-size:10.5px;font-weight:700}
+
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:650;
+    padding:2.5px 8px; border-radius:999px; border:1px solid var(--border-strong); color:var(--text-2); background:var(--surface);
+  }
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .pill.ok{color:var(--green); border-color:rgba(18,133,91,.3); background:var(--green-soft)}
+  .pill.warn{color:var(--orange); border-color:rgba(245,124,31,.35); background:var(--orange-soft)}
+  .pill.err{color:var(--red); border-color:rgba(196,52,43,.3); background:var(--red-soft)}
+  .pill.info{color:var(--blue); border-color:rgba(23,101,245,.25); background:var(--blue-soft)}
+
+  .shop-card{border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); box-shadow:var(--shadow-sm)}
+  .shop-card .head{display:flex; align-items:center; gap:10px; padding:12px 14px}
+  .shop-card .head .name{font-weight:650; font-size:13.5px}
+  .shop-card .head .meta{font-size:11.5px; color:var(--muted)}
+  .shop-card .head .kpi{margin-left:auto; text-align:right; font-size:12px; color:var(--text-2)}
+  .shop-card .head .kpi b{display:block; font-size:14px; color:var(--text); font-variant-numeric:tabular-nums}
+  .shop-card .body{border-top:1px solid var(--border); padding:12px 14px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px 14px; background:var(--surface-2); border-radius:0 0 var(--r-md) var(--r-md)}
+  .kv{font-size:11.5px; color:var(--muted)}
+  .kv b{display:block; font-size:13px; color:var(--text); font-variant-numeric:tabular-nums; font-weight:650; margin-top:1px}
+  .links{grid-column:1/-1; display:flex; gap:14px; flex-wrap:wrap; border-top:1px dashed var(--border-strong); padding-top:10px; font-size:12px; font-weight:600}
+  .chev{transition:transform .18s}
+  .shop-card.closed .chev{transform:rotate(-90deg)}
+  .shop-card.closed .body{display:none}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:11.5px}
+
+  /* ---------- mobile ---------- */
+  .mobile-wrap{display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start}
+  .phone{
+    width:375px; height:720px; border-radius:34px; border:9px solid #16203a; background:var(--bg-app);
+    overflow:hidden; position:relative; box-shadow:var(--shadow-lg); flex:none;
+  }
+  .phone .mtop{display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--surface); border-bottom:1px solid var(--border)}
+  .phone .mtop .shop-select{flex:1; min-width:0; font-size:12px; padding:6px 8px}
+  .phone .mbody{padding:12px; display:flex; flex-direction:column; gap:10px}
+  .drawer{
+    position:absolute; inset:0; background:var(--navy); color:#C9D3E6; padding:16px 12px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .theme-dark .drawer{background:var(--navy-deep)}
+  .drawer .close{margin-left:auto}
+  .drawer .row{display:flex; align-items:center; gap:10px; padding:11px 10px; border-radius:9px; font-size:14px; min-height:44px}
+  .drawer .row.active{background:rgba(23,101,245,.2); color:#fff; font-weight:650}
+  .drawer .sub2{padding-left:36px; font-size:13px; color:#A9B8D4; min-height:40px; display:flex; align-items:center; border-radius:8px}
+  .drawer .sub2[aria-current="page"]{background:#fff; color:var(--navy); font-weight:650}
+
+  /* ---------- jetons visuels ---------- */
+  .swatches{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px}
+  .sw{border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; background:var(--surface)}
+  .sw .chip{height:52px}
+  .sw .lbl{padding:7px 9px; font-size:11px}
+  .sw .lbl b{display:block; font-size:11.5px}
+  .sw .lbl span{color:var(--muted); font-family:ui-monospace,monospace; font-size:10.5px}
+  .type-row{display:flex; align-items:baseline; gap:14px; padding:7px 0; border-bottom:1px dashed var(--border)}
+  .type-row .k{width:96px; font-size:11px; color:var(--muted); font-family:ui-monospace,monospace}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .sk{background:var(--surface-2); border-radius:5px; height:11px; display:block; margin:6px 0}
+  .empty{
+    border:1px dashed var(--border-strong); border-radius:var(--r-md); padding:26px; text-align:center;
+    background:var(--surface); color:var(--text-2);
+  }
+  .empty .ico{width:38px;height:38px;border-radius:11px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;margin:0 auto 10px}
+  .empty h4{font-size:14px; margin-bottom:4px; color:var(--text)}
+  .grid-states{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px}
+  .footnote{font-size:12px; color:var(--muted); margin-top:10px}
+
+  /* ---------- VUE ORDINATEUR : rail d'icônes, outils, données denses ---------- */
+  .app.railmode{grid-template-columns:72px 1fr}
+  .rail-side{
+    background:var(--navy); display:flex; flex-direction:column; align-items:center;
+    gap:4px; padding:14px 0 12px;
+  }
+  .theme-dark .rail-side{background:var(--navy-deep)}
+  .rail-side .rb{
+    width:42px; height:42px; border-radius:11px; display:grid; place-items:center;
+    color:#B9C6DE; position:relative; cursor:default;
+  }
+  .rail-side .rb:hover{background:rgba(255,255,255,.07); color:#fff}
+  .rail-side .rb.active{background:rgba(23,101,245,.22); color:#fff}
+  .rail-side .rb.active::before{
+    content:""; position:absolute; left:-15px; top:11px; bottom:11px; width:3px;
+    border-radius:0 3px 3px 0; background:var(--orange);
+  }
+  .rail-side .rb .dotn{
+    position:absolute; top:3px; right:2px; background:var(--orange); color:#101C39;
+    font-size:9px; font-weight:800; border-radius:999px; padding:0 4px; line-height:14px;
+  }
+  .rail-side .rb[data-soon]::after{
+    content:""; position:absolute; bottom:6px; width:4px; height:4px; border-radius:50%;
+    background:#8FA0C0;
+  }
+  .rail-sep{width:32px; height:1px; background:rgba(255,255,255,.12); margin:6px 0}
+  .rail-side .foot{margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:8px}
+  .rail-side .ava2{
+    width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#1765F5,#0B142B);
+    color:#fff; display:grid; place-items:center; font-size:11px; font-weight:700;
+  }
+  .tip{
+    position:absolute; left:54px; top:50%; transform:translateY(-50%); z-index:6;
+    background:#0B142B; color:#fff; font-size:12px; padding:6px 9px; border-radius:7px;
+    white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.14);
+    display:flex; align-items:center; gap:7px;
+  }
+  .tip::before{
+    content:""; position:absolute; left:-5px; top:50%; width:9px; height:9px;
+    transform:translateY(-50%) rotate(45deg); background:#0B142B;
+    border-left:1px solid rgba(255,255,255,.14); border-bottom:1px solid rgba(255,255,255,.14);
+  }
+  .tip .n{background:var(--orange); color:#101C39; font-size:9.5px; font-weight:800; border-radius:999px; padding:1px 5px}
+
+  .grid-3{display:grid; grid-template-columns:1.6fr 1fr; gap:12px}
+  .split{display:grid; grid-template-columns:minmax(0,1fr) 372px; gap:12px; align-items:start}
+
+  .toolbar{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+    padding:8px; box-shadow:var(--shadow-sm);
+  }
+  .toolbar .field{
+    display:flex; align-items:center; gap:7px; border:1px solid var(--border); background:var(--surface-2);
+    border-radius:8px; padding:6px 9px; font-size:12.5px; color:var(--muted); min-height:32px;
+  }
+  .toolbar .field.grow{flex:1 1 220px}
+  .seg{display:flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; background:var(--surface)}
+  .seg > span{
+    padding:6px 10px; font-size:12px; color:var(--text-2); border-right:1px solid var(--border);
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .seg > span:last-child{border-right:0}
+  .seg > span.on{background:var(--blue); color:#fff; font-weight:600}
+  .seg > span .c{font-size:10.5px; background:rgba(0,0,0,.08); border-radius:999px; padding:0 5px}
+  .seg > span.on .c{background:rgba(255,255,255,.24)}
+  .density{display:flex; gap:2px; border:1px solid var(--border); border-radius:7px; padding:2px; background:var(--surface)}
+  .density span{width:27px; height:22px; display:grid; place-items:center; border-radius:5px; color:var(--muted)}
+  .density span.on{background:var(--surface-2); color:var(--text); box-shadow:inset 0 0 0 1px var(--border)}
+
+  .bulkbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:var(--blue-soft); border:1px solid rgba(23,101,245,.25);
+    border-radius:var(--r-md); padding:8px 12px; font-size:12.5px;
+  }
+  .bulkbar b{font-weight:650}
+  .bulkbar .right{margin-left:auto; display:flex; gap:6px}
+
+  table.dense td{padding:6px 7px}
+  table.dense th{padding:7px 7px}
+  table.dense tr.sel td{background:var(--blue-soft)}
+  table.dense tbody tr:hover td{background:var(--surface-2)}
+  .ck{width:15px; height:15px; border-radius:4px; border:1.5px solid var(--border-strong); display:inline-block; vertical-align:middle; position:relative; flex:none}
+  .ck.on{background:var(--blue); border-color:var(--blue)}
+  .ck.on::after{content:""; position:absolute; left:4px; top:1px; width:4px; height:8px; border-right:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(40deg)}
+  .onum{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:11.5px; font-weight:600}
+  .pager{display:flex; align-items:center; gap:10px; padding:10px 12px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); flex-wrap:wrap}
+  .pager .pg{margin-left:auto; display:flex; gap:4px; align-items:center}
+  .pager .pg span{min-width:26px; height:26px; padding:0 7px; border:1px solid var(--border); border-radius:6px; display:grid; place-items:center; font-size:12px; color:var(--text-2)}
+  .pager .pg span.on{background:var(--blue); border-color:var(--blue); color:#fff; font-weight:600}
+
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-md); display:flex; flex-direction:column; overflow:hidden}
+  .panel .phead{display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border)}
+  .panel .phead .t{font-size:13.5px; font-weight:650}
+  .panel .pbody{padding:14px; display:flex; flex-direction:column; gap:12px}
+  .panel .pfoot{margin-top:auto; padding:12px 14px; border-top:1px solid var(--border); display:flex; gap:8px; background:var(--surface)}
+  .sect-t{font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:6px}
+  .tl{display:flex; gap:9px; font-size:12px}
+  .tl .dotc{width:8px; height:8px; border-radius:50%; background:var(--blue); margin-top:4px; flex:none; box-shadow:0 0 0 3px var(--blue-soft)}
+  .tl .dotc.g{background:var(--green); box-shadow:0 0 0 3px var(--green-soft)}
+  .tl .dotc.o{background:var(--orange); box-shadow:0 0 0 3px var(--orange-soft)}
+  .lineitem{display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px}
+  .lineitem:last-child{border-bottom:0}
+  .thumb{width:34px; height:34px; border-radius:7px; background:var(--surface-2); border:1px solid var(--border); display:grid; place-items:center; color:var(--muted); flex:none}
+  .kbdbar{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--muted); padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); align-items:center}
+  .kbdbar kbd{font-family:inherit; font-size:10.5px; border:1px solid var(--border-strong); border-bottom-width:2px; border-radius:4px; padding:1px 5px; color:var(--text-2); background:var(--surface-2)}
+  .bp-table{width:100%; font-size:12px; border-collapse:collapse}
+  .bp-table td{padding:6px 4px; border-bottom:1px solid var(--border)}
+  .bp-table td:first-child{font-family:ui-monospace,monospace; font-size:11px; color:var(--text-2); white-space:nowrap; width:132px}
+  .bp-table tr:last-child td{border-bottom:0}
+  @media (max-width:1180px){
+    .split{grid-template-columns:1fr}
+    .grid-3{grid-template-columns:1fr}
+  }
+
+  @media (max-width:1000px){
+    .grid-4{grid-template-columns:repeat(2,1fr)}
+    .grid-2{grid-template-columns:1fr}
+    .app{grid-template-columns:1fr}
+    .sidebar{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <div class="doc-head">
+    <div class="kicker">TOUT EN UN BUSINESS MANAGER · Phase 0</div>
+    <h1>Maquettes et design system</h1>
+    <p>Direction visuelle proposée avant toute écriture de composant. Thèmes clair et sombre, coquille de navigation, tableau de bord, cartes de boutiques, écran Jumia Connect, vue mobile et états d'interface.</p>
+    <div class="warn">
+      <span aria-hidden="true">⚠</span>
+      <div><b>Maquette statique.</b> Tous les chiffres, boutiques et noms affichés ci-dessous sont <b>fictifs</b> et servent uniquement à valider la mise en page. Rien n'est cliquable, rien n'est branché. Dans l'application, une donnée absente s'affiche « — » et jamais « 0 ». Voir <span class="mono">docs/design-system.md</span>.</div>
+    </div>
+  </div>
+
+  <!-- ============ 1. JETONS ============ -->
+  <section class="sec">
+    <header><h2>1 · Jetons de design</h2><span class="tag">thèmes clair / sombre</span></header>
+    <p>Couleurs de marque, surfaces, pastilles de provenance (« Réelle », « Estimée », « Indisponible »), typographie chiffrée tabulaire. Toutes les valeurs sont exposées en variables CSS : aucune couleur en dur dans un composant.</p>
+
+    <div class="swatches" style="margin-bottom:18px">
+      <div class="sw"><div class="chip" style="background:#101C39"></div><div class="lbl"><b>Bleu nuit</b><span>#101C39</span></div></div>
+      <div class="sw"><div class="chip" style="background:#1765F5"></div><div class="lbl"><b>Bleu principal</b><span>#1765F5</span></div></div>
+      <div class="sw"><div class="chip" style="background:#F57C1F"></div><div class="lbl"><b>Orange action</b><span>#F57C1F</span></div></div>
+      <div class="sw"><div class="chip" style="background:#12855B"></div><div class="lbl"><b>Vert positif</b><span>#12855B</span></div></div>
+      <div class="sw"><div class="chip" style="background:#C4342B"></div><div class="lbl"><b>Rouge erreur</b><span>#C4342B</span></div></div>
+      <div class="sw"><div class="chip" style="background:#F6F8FB;border-bottom:1px solid #E3E8F0"></div><div class="lbl"><b>Fond application</b><span>#F6F8FB</span></div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="chips" style="margin-bottom:10px">
+        <span class="tagprov real">Réelle</span>
+        <span class="tagprov est">Estimée</span>
+        <span class="tagprov na">Indisponible</span>
+        <span class="pill ok"><i class="dot"></i>Synchronisé</span>
+        <span class="pill warn"><i class="dot"></i>Sync. partielle</span>
+        <span class="pill err"><i class="dot"></i>Reconnexion nécessaire</span>
+        <span class="pill info"><i class="dot"></i>En cours</span>
+        <span class="pill">Bientôt</span>
+      </div>
+      <div class="type-row"><span class="k">display 28/34</span><span style="font-size:28px;font-weight:700;letter-spacing:-.02em">25 000 XOF</span></div>
+      <div class="type-row"><span class="k">h1 22/28</span><span style="font-size:22px;font-weight:650">Tableau de bord</span></div>
+      <div class="type-row"><span class="k">body 14/20</span><span>Chaque montant porte sa provenance et sa fraîcheur.</span></div>
+      <div class="type-row"><span class="k">small 13/18</span><span class="small muted">Dernière synchronisation réussie il y a 4 min.</span></div>
+      <div class="type-row" style="border:0"><span class="k">montants</span><span class="money">1 234 567 XOF · 12 450,50 NGN · −3 200 XOF</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 2. ECRAN DESKTOP ============ -->
+  <section class="sec">
+    <header><h2>2 · Vue ordinateur — tableau de bord, thème clair</h2><span class="tag">1440 px · menu complet</span></header>
+    <p>Sidebar complète à deux niveaux (un module ouvert, plusieurs possibles), barre supérieure avec périmètre de boutique toujours visible, indicateurs avec provenance, bandeau « totaux incomplets ». Les entrées non livrées sont désactivées avec la mention <b>Bientôt</b>. Les sections 3 et 4 montrent les deux autres états du bureau : menu réduit et écran de données dense.</p>
+
+    <div class="frame">
+      <div class="frame-label"><span>Maquette · app.toutenun-business.com/tableau-de-bord?shop=toutes</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <div class="app">
+        <!-- sidebar -->
+        <aside class="sidebar">
+          <div class="brand">
+            <div class="logo">T1</div>
+            <div class="brand-txt"><b>TOUT EN UN</b><span>Business Manager</span></div>
+          </div>
+          <div class="nav-tools"><button>Tout ouvrir</button><button>Tout fermer</button></div>
+          <nav class="nav" aria-label="Navigation principale">
+            <div class="nav-group active">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Tableau de bord
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+              <div class="sub">
+                <a href="#" aria-current="page">Vue d'ensemble</a>
+                <a href="#">Indicateurs financiers</a>
+                <a href="#">Performances globales</a>
+                <a href="#">Activités récentes</a>
+                <a href="#">Alertes importantes</a>
+              </div>
+            </div>
+            <div class="nav-group">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M6 6 5 2H2"/></svg>Ventes & Commandes
+                <span class="badge-n">37</span>
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            </div>
+            <div class="nav-group">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg>Boutiques & Plateformes
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            </div>
+            <div class="nav-group">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16v13H4z"/><path d="M4 7 7 3h10l3 4"/><path d="M9 12h6"/></svg>Catalogue & Stocks
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            </div>
+            <div class="nav-group">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20"/><path d="M17 6.5C17 4.6 14.8 3 12 3S7 4.6 7 6.5 9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5"/></svg>Finances & Comptabilité
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            </div>
+            <div class="nav-group">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analyses & Rapports
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            </div>
+            <div class="nav-group">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.4"/></svg>Automatisation & IA
+                <span class="pill" style="margin-left:auto;border:none;background:transparent;color:#8FA0C0;font-size:9.5px">Bientôt</span>
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            </div>
+            <div class="nav-group">
+              <div class="row"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.4-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4z"/></svg>Administration
+                <svg class="chev ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            </div>
+          </nav>
+          <div class="side-foot"><span class="dot"></span>3 boutiques connectées · 1 à intervenir</div>
+        </aside>
+
+        <!-- main -->
+        <div class="main">
+          <div class="topbar">
+            <div class="shop-select">
+              <span class="avatar">⌂</span>
+              <b>Toutes les boutiques</b>
+              <span class="flag">4 boutiques</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.6"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <div class="search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              Rechercher commandes, produits, boutiques…
+              <span class="kbd">Ctrl K</span>
+            </div>
+            <div class="top-actions">
+              <div class="icon-btn" title="Actions rapides">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+              <div class="icon-btn" title="Notifications">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+                <span class="n">5</span>
+              </div>
+              <div class="me"><span class="ava">KA</span><span>Konan A.</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="crumbs">Accueil <span>/</span> Tableau de bord <span>/</span> <span style="color:var(--text)">Vue d'ensemble</span></div>
+            <div class="page-head">
+              <div>
+                <h1>Vue d'ensemble</h1>
+                <p>Toutes les boutiques · 30 derniers jours · actualisé il y a 4 min</p>
+              </div>
+              <div class="actions">
+                <span class="btn ghost">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+                  30 derniers jours
+                </span>
+                <span class="btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></svg>Exporter</span>
+              </div>
+            </div>
+
+            <div class="banner">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F57C1F" stroke-width="2"><path d="M12 9v5M12 17.5v.5"/><path d="M10.3 3.9 2.5 17.4A1.9 1.9 0 0 0 4.2 20h15.6a1.9 1.9 0 0 0 1.7-2.6L13.7 3.9a1.9 1.9 0 0 0-3.4 0Z"/></svg>
+              <span><b>2 boutiques en synchronisation partielle</b> — les totaux ci-dessous sont incomplets (Jumia CI, Jumia SN).</span>
+              <span class="ac">Voir le détail →</span>
+            </div>
+
+            <div class="grid-4">
+              <div class="card stat">
+                <h3>Chiffre d'affaires livré</h3>
+                <div class="val">12 480 500<small>XOF</small></div>
+                <div class="delta">▲ 8,4 % <span class="muted" style="font-weight:500">vs 30 j préc.</span></div>
+                <div class="foot"><span class="tagprov real">Réelle</span> Jumia · il y a 4 min</div>
+              </div>
+              <div class="card stat">
+                <h3>Commandes livrées</h3>
+                <div class="val">418</div>
+                <div class="delta">▲ 12 <span class="muted" style="font-weight:500">vs 30 j préc.</span></div>
+                <div class="foot"><span class="tagprov real">Réelle</span> 37 à traiter</div>
+              </div>
+              <div class="card stat">
+                <h3>Marge nette estimée</h3>
+                <div class="val">2 643 200<small>XOF</small></div>
+                <div class="delta down">▼ 1,1 pt <span class="muted" style="font-weight:500">taux 21,2 %</span></div>
+                <div class="foot"><span class="tagprov est">Estimée</span> commissions paramétrées</div>
+              </div>
+              <div class="card stat">
+                <h3>Bénéfice confirmé</h3>
+                <div class="val muted">—</div>
+                <div class="delta" style="color:var(--muted)">Relevé de septembre non reçu</div>
+                <div class="foot"><span class="tagprov na">Indisponible</span> aucun relevé sur la période</div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-head">
+                  <h3>Chiffre d'affaires livré par jour</h3>
+                  <div class="right"><span class="tagprov real">Réelle</span></div>
+                </div>
+                <svg viewBox="0 0 620 190" width="100%" height="190" role="img" aria-label="Courbe du chiffre d'affaires livré sur 30 jours">
+                  <g stroke="#E3E8F0" stroke-width="1">
+                    <line x1="0" y1="20" x2="620" y2="20"/><line x1="0" y1="70" x2="620" y2="70"/>
+                    <line x1="0" y1="120" x2="620" y2="120"/><line x1="0" y1="170" x2="620" y2="170"/>
+                  </g>
+                  <g font-size="9.5" fill="#8593AD">
+                    <text x="0" y="14">600 k</text><text x="0" y="64">400 k</text><text x="0" y="114">200 k</text><text x="0" y="164">0</text>
+                  </g>
+                  <line x1="46" y1="20" x2="46" y2="170" stroke="#E3E8F0"/>
+                  <polyline fill="none" stroke="#1765F5" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"
+                    points="46,150 82,142 118,146 154,128 190,133 226,116 262,120 298,98 334,104 370,86 406,92 442,74 478,80 514,58 550,63 586,44"/>
+                  <g fill="#fff" stroke="#1765F5" stroke-width="2">
+                    <circle cx="46" cy="150" r="2.6"/><circle cx="226" cy="116" r="2.6"/><circle cx="406" cy="92" r="2.6"/><circle cx="586" cy="44" r="2.6"/>
+                  </g>
+                  <g font-size="9.5" fill="#8593AD">
+                    <text x="36" y="184">12 oct.</text><text x="212" y="184">22 oct.</text><text x="392" y="184">1 nov.</text><text x="560" y="184">9 nov.</text>
+                  </g>
+                </svg>
+                <div class="legend">
+                  <span><i style="background:#1765F5"></i>CA livré (données Jumia)</span>
+                  <span class="muted">Période du 11 oct. au 9 nov. · valeurs en XOF</span>
+                </div>
+                <div class="footnote">Une zone non disponible n'est jamais dessinée à zéro : la courbe s'interrompt et un repère « donnée indisponible » s'affiche.</div>
+              </div>
+
+              <div class="card">
+                <div class="card-head"><h3>Produits les plus vendus</h3><div class="right">30 j</div></div>
+                <table>
+                  <thead><tr><th>Produit</th><th class="num">Unités</th><th class="num">CA</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="rank">1</span> Écouteurs sans fil Pro</td><td class="num">184</td><td class="num">2 208 000</td></tr>
+                    <tr><td><span class="rank">2</span> Chargeur rapide 65 W</td><td class="num">142</td><td class="num">1 136 000</td></tr>
+                    <tr><td><span class="rank">3</span> Montre connectée S2</td><td class="num">96</td><td class="num">2 880 000</td></tr>
+                    <tr><td><span class="rank">4</span> Coque antichoc iPhone</td><td class="num">88</td><td class="num">352 000</td></tr>
+                    <tr><td><span class="rank">5</span> Enceinte Bluetooth Mini</td><td class="num">61</td><td class="num">915 000</td></tr>
+                  </tbody>
+                </table>
+                <div class="footnote"><span class="tagprov real">Réelle</span> quantités issues des commandes livrées · montants en XOF.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>Boutiques</h3>
+                <div class="right">
+                  <span class="btn sm ghost">Tout déplier</span>
+                  <span class="btn sm ghost">Tout replier</span>
+                </div>
+              </div>
+              <div style="display:grid;gap:10px">
+                <div class="shop-card closed">
+                  <div class="head">
+                    <div class="logo" style="width:26px;height:26px;border-radius:7px;font-size:10px">JM</div>
+                    <div>
+                      <div class="name">Jumia CI — Électronique <span class="pill ok" style="margin-left:6px"><i class="dot"></i>Synchronisé</span></div>
+                      <div class="meta">Jumia · Côte d'Ivoire · XOF · il y a 4 min</div>
+                    </div>
+                    <div class="kpi">CA livré 30 j<b>6 240 000 XOF</b></div>
+                    <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m6 9 6 6 6-6"/></svg>
+                  </div>
+                </div>
+                <div class="shop-card">
+                  <div class="head">
+                    <div class="logo" style="width:26px;height:26px;border-radius:7px;font-size:10px;background:#12855B">JS</div>
+                    <div>
+                      <div class="name">Jumia SN — Maison <span class="pill warn" style="margin-left:6px"><i class="dot"></i>Sync. partielle</span></div>
+                      <div class="meta">Jumia · Sénégal · XOF · 2 pages en échec sur 14</div>
+                    </div>
+                    <div class="kpi">CA livré 30 j<b>3 180 500 XOF</b></div>
+                    <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m6 9 6 6 6-6"/></svg>
+                  </div>
+                  <div class="body">
+                    <div class="kv">Marge nette estimée<b>612 400 XOF<span class="tagprov est" style="margin-left:6px">Estimée</span></b></div>
+                    <div class="kv">Commandes livrées<b>96</b></div>
+                    <div class="kv">Produits en stock<b>312</b></div>
+                    <div class="kv">Valeur du stock<b>— <span class="tagprov na">Indisponible</span></b></div>
+                    <div class="kv">Coûts d'achat manquants<b>14 produits</b></div>
+                    <div class="kv">Dernière sync. réussie<b>il y a 22 min</b></div>
+                    <div class="links">
+                      <a href="#">Commandes →</a><a href="#">Produits →</a><a href="#">Factures →</a><a href="#">Paramètres →</a>
+                      <span class="pill err" style="margin-left:auto"><i class="dot"></i>Relancer la synchronisation</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="shop-card closed">
+                  <div class="head">
+                    <div class="logo" style="width:26px;height:26px;border-radius:7px;font-size:10px;background:#C4342B">JN</div>
+                    <div>
+                      <div class="name">Jumia NG — Accessoires <span class="pill err" style="margin-left:6px"><i class="dot"></i>Reconnexion nécessaire</span></div>
+                      <div class="meta">Jumia · Nigeria · NGN · jeton expiré le 8 nov.</div>
+                    </div>
+                    <div class="kpi">CA livré 30 j<b>—</b></div>
+                    <span class="btn sm accent">Reconnecter</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 3. VUE ORDINATEUR : MENU REDUIT ============ -->
+  <section class="sec">
+    <header><h2>3 · Vue ordinateur — menu réduit en mode icônes</h2><span class="tag">1440 px · infobulles</span></header>
+    <p>Le mode « rail » libère 192 px de largeur tout en gardant tous les modules accessibles. Chaque icône porte une infobulle (jamais la seule source d'information : le libellé réapparaît dans le fil d'Ariane et le titre de page). L'état est mémorisé et suit l'utilisateur d'une session à l'autre.</p>
+
+    <div class="frame">
+      <div class="frame-label"><span>Maquette · 1440 px · menu réduit (72 px)</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <div class="app railmode">
+        <aside class="rail-side">
+          <div class="logo" style="margin-bottom:8px">T1</div>
+          <div class="rb" title="Développer le menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </div>
+          <div class="rail-sep"></div>
+          <div class="rb active" title="Tableau de bord">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          </div>
+          <div class="rb" title="Ventes & Commandes">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M6 6 5 2H2"/></svg>
+            <span class="dotn">37</span>
+          </div>
+          <div class="rb" title="Boutiques & Plateformes">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg>
+          </div>
+          <div class="rb" title="Catalogue & Stocks">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16v13H4z"/><path d="M4 7 7 3h10l3 4"/><path d="M9 12h6"/></svg>
+            <span class="dotn">8</span>
+            <span class="tip">Catalogue & Stocks <span class="n">8</span></span>
+          </div>
+          <div class="rb" title="Finances & Comptabilité">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20"/><path d="M17 6.5C17 4.6 14.8 3 12 3S7 4.6 7 6.5 9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5"/></svg>
+          </div>
+          <div class="rb" title="Analyses & Rapports">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          </div>
+          <div class="rb" data-soon title="Automatisation & IA — Bientôt">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:.55"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="3.4"/></svg>
+          </div>
+          <div class="rail-sep"></div>
+          <div class="rb" title="Administration">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>
+          </div>
+          <div class="foot">
+            <div class="rb" title="Notifications">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+              <span class="dotn">5</span>
+            </div>
+            <div class="ava2">KA</div>
+          </div>
+        </aside>
+
+        <div class="main">
+          <div class="topbar">
+            <div class="shop-select">
+              <span class="avatar">JM</span>
+              <b>Jumia CI — Électronique</b>
+              <span class="flag">CI · XOF</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.6"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <div class="search" style="flex:1;max-width:520px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              Rechercher commandes, produits, boutiques…
+              <span class="kbd">Ctrl K</span>
+            </div>
+            <div class="top-actions">
+              <span class="btn sm accent">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Action rapide
+              </span>
+              <div class="me"><span class="ava">KA</span><span>Konan A. · Propriétaire</span></div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="crumbs">Accueil <span>/</span> Tableau de bord <span>/</span> <span style="color:var(--text)">Vue d'ensemble</span></div>
+            <div class="page-head">
+              <div>
+                <h1>Vue d'ensemble</h1>
+                <p>Jumia CI — Électronique · 30 derniers jours · actualisé il y a 4 min</p>
+              </div>
+              <div class="actions">
+                <span class="btn ghost">30 derniers jours</span>
+                <span class="btn">Exporter</span>
+                <span class="btn">Actualiser</span>
+              </div>
+            </div>
+
+            <div class="grid-4">
+              <div class="card stat">
+                <h3>Chiffre d'affaires livré</h3>
+                <div class="val">6 240 000<small>XOF</small></div>
+                <div class="delta">▲ 8,4 % <span class="muted" style="font-weight:500">vs 30 j préc.</span></div>
+                <div class="foot"><span class="tagprov real">Réelle</span> il y a 4 min</div>
+              </div>
+              <div class="card stat">
+                <h3>Commandes livrées</h3>
+                <div class="val">214</div>
+                <div class="delta">▲ 9 <span class="muted" style="font-weight:500">vs 30 j préc.</span></div>
+                <div class="foot"><span class="tagprov real">Réelle</span> 18 à traiter</div>
+              </div>
+              <div class="card stat">
+                <h3>Marge nette estimée</h3>
+                <div class="val">1 312 400<small>XOF</small></div>
+                <div class="delta down">▼ 0,6 pt <span class="muted" style="font-weight:500">taux 21,0 %</span></div>
+                <div class="foot"><span class="tagprov est">Estimée</span> commission 12 %</div>
+              </div>
+              <div class="card stat">
+                <h3>Bénéfice confirmé</h3>
+                <div class="val muted">—</div>
+                <div class="delta" style="color:var(--muted)">relevé d'octobre non reçu</div>
+                <div class="foot"><span class="tagprov na">Indisponible</span> aucun relevé</div>
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <div class="card">
+                <div class="card-head"><h3>Chiffre d'affaires livré par jour</h3><div class="right"><span class="tagprov real">Réelle</span></div></div>
+                <svg viewBox="0 0 560 180" width="100%" height="180" role="img" aria-label="Courbe du chiffre d'affaires livré sur 30 jours">
+                  <g stroke="#E3E8F0"><line x1="0" y1="20" x2="560" y2="20"/><line x1="0" y1="70" x2="560" y2="70"/><line x1="0" y1="120" x2="560" y2="120"/><line x1="0" y1="160" x2="560" y2="160"/></g>
+                  <g font-size="9.5" fill="#8593AD"><text x="0" y="14">300 k</text><text x="0" y="64">200 k</text><text x="0" y="114">100 k</text><text x="0" y="156">0</text></g>
+                  <line x1="40" y1="20" x2="40" y2="160" stroke="#E3E8F0"/>
+                  <polyline fill="none" stroke="#1765F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+                    points="40,142 76,134 112,138 148,120 184,126 220,110 256,114 292,92 328,98 364,80 400,86 436,68 472,74 508,54 544,58"/>
+                  <g fill="#fff" stroke="#1765F5" stroke-width="2"><circle cx="40" cy="142" r="2.6"/><circle cx="220" cy="110" r="2.6"/><circle cx="400" cy="86" r="2.6"/><circle cx="544" cy="58" r="2.6"/></g>
+                  <g font-size="9.5" fill="#8593AD"><text x="30" y="174">12 oct.</text><text x="206" y="174">22 oct.</text><text x="386" y="174">1 nov.</text><text x="522" y="174">9 nov.</text></g>
+                </svg>
+                <div class="legend"><span><i style="background:#1765F5"></i>CA livré</span><span class="muted">XOF · 30 jours</span></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head"><h3>Alertes importantes</h3><div class="right">4 non lues</div></div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;gap:9px;align-items:flex-start;font-size:12.5px">
+                    <span class="pill err" style="flex:none"><i class="dot"></i>Rupture</span>
+                    <div>3 SKU en rupture<div class="muted small">Écouteurs Pro · Chargeur 65 W · Coque iPhone</div></div>
+                  </div>
+                  <div style="display:flex;gap:9px;align-items:flex-start;font-size:12.5px">
+                    <span class="pill warn" style="flex:none"><i class="dot"></i>Retard</span>
+                    <div>7 commandes à traiter depuis plus de 48 h<div class="muted small">Délai Jumia : 72 h</div></div>
+                  </div>
+                  <div style="display:flex;gap:9px;align-items:flex-start;font-size:12.5px">
+                    <span class="pill warn" style="flex:none"><i class="dot"></i>Marge</span>
+                    <div>2 produits sous le seuil de 10 %<div class="muted small">Montre S2 · Enceinte Mini</div></div>
+                  </div>
+                  <div style="display:flex;gap:9px;align-items:flex-start;font-size:12.5px">
+                    <span class="pill info" style="flex:none"><i class="dot"></i>Relevé</span>
+                    <div>Relevé Jumia d'octobre attendu<div class="muted small">publié d'habitude le 5 du mois</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="padding:0">
+              <div class="card-head" style="padding:14px 14px 0"><h3>Dernières commandes</h3><div class="right"><a href="#">Toutes les commandes →</a></div></div>
+              <table class="dense" style="margin-top:8px">
+                <thead>
+                  <tr>
+                    <th style="padding-left:14px">Commande</th><th>Date</th><th>Client</th><th class="num">Articles</th>
+                    <th>Statut</th><th class="num">PV client</th><th class="num">Marge est.</th><th style="width:34px"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="padding-left:14px"><span class="onum">338 997 922</span></td>
+                    <td class="muted">09/11 18:42</td><td>K. Adjo · Abidjan</td><td class="num">2</td>
+                    <td><span class="pill ok"><i class="dot"></i>Livrée</span></td>
+                    <td class="num">52 000</td><td class="num">11 200 <span class="tagprov est">E</span></td>
+                    <td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><path d="m9 6 6 6-6 6"/></svg></td>
+                  </tr>
+                  <tr>
+                    <td style="padding-left:14px"><span class="onum">338 997 918</span></td>
+                    <td class="muted">09/11 17:10</td><td>M. Traoré · Bouaké</td><td class="num">1</td>
+                    <td><span class="pill info"><i class="dot"></i>À expédier</span></td>
+                    <td class="num">25 000</td><td class="num">5 060 <span class="tagprov est">E</span></td>
+                    <td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><path d="m9 6 6 6-6 6"/></svg></td>
+                  </tr>
+                  <tr>
+                    <td style="padding-left:14px"><span class="onum">338 997 904</span></td>
+                    <td class="muted">09/11 15:33</td><td>A. Kouassi · Yamoussoukro</td><td class="num">3</td>
+                    <td><span class="pill warn"><i class="dot"></i>En attente</span></td>
+                    <td class="num">74 500</td><td class="num muted">— <span class="tagprov na">I</span></td>
+                    <td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><path d="m9 6 6 6-6 6"/></svg></td>
+                  </tr>
+                  <tr>
+                    <td style="padding-left:14px"><span class="onum">338 997 890</span></td>
+                    <td class="muted">09/11 12:07</td><td>S. Diomandé · Abidjan</td><td class="num">1</td>
+                    <td><span class="pill err"><i class="dot"></i>Annulée</span></td>
+                    <td class="num">18 000</td><td class="num">0</td>
+                    <td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><path d="m9 6 6 6-6 6"/></svg></td>
+                  </tr>
+                  <tr>
+                    <td style="padding-left:14px"><span class="onum">338 997 881</span></td>
+                    <td class="muted">09/11 09:20</td><td>F. Bamba · San-Pédro</td><td class="num">2</td>
+                    <td><span class="pill"><i class="dot"></i>Retour demandé</span></td>
+                    <td class="num">61 000</td><td class="num muted">— <span class="tagprov na">I</span></td>
+                    <td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><path d="m9 6 6 6-6 6"/></svg></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="pager"><span>5 dernières commandes sur 214</span><span class="pg"><span class="on">1</span><span>2</span><span>3</span><span>…</span><span>43</span></span></div>
+            </div>
+            <div class="footnote">Espacement, densité et nombre de colonnes s'adaptent à la largeur : 4 cartes au-dessus de 1280 px, 2 cartes entre 768 et 1279 px, 1 carte en dessous. Les colonnes secondaires (marge, frais) sont masquées avant les colonnes clés (commande, statut, montant).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. VUE ORDINATEUR : DONNEES DENSES ============ -->
+  <section class="sec">
+    <header><h2>4 · Vue ordinateur — écran de données dense (commandes)</h2><span class="tag">tableau + panneau de détail</span></header>
+    <p>C'est l'écran où l'on passe la journée : filtres au-dessus, tableau dense à en-tête collant, sélection multiple avec barre d'actions, et panneau de détail à droite sans perdre le contexte de la liste. Tout est navigable au clavier, et les raccourcis sont affichés en bas.</p>
+
+    <div class="frame">
+      <div class="frame-label"><span>Maquette · /ventes/commandes?shop=jumia-ci&amp;statut=a_traiter</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <div style="background:var(--bg-app);padding:18px;display:flex;flex-direction:column;gap:12px">
+
+        <div class="page-head">
+          <div>
+            <h1 style="font-size:20px">Toutes les commandes</h1>
+            <p>Jumia CI — Électronique · 1 284 commandes sur 30 jours · actualisé il y a 4 min</p>
+          </div>
+          <div class="actions">
+            <span class="btn">Importer</span>
+            <span class="btn">Exporter</span>
+            <span class="btn ghost">Synchroniser</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="field grow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            N° de commande, client, SKU…
+            <span class="kbd" style="margin-left:auto">/</span>
+          </div>
+          <div class="seg">
+            <span class="on">Toutes <span class="c">1284</span></span>
+            <span>À traiter <span class="c">37</span></span>
+            <span>Expédiées <span class="c">212</span></span>
+            <span>Livrées <span class="c">214</span></span>
+            <span>Annulées <span class="c">19</span></span>
+            <span>Retours <span class="c">6</span></span>
+          </div>
+          <div class="field">30 derniers jours
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="field">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/></svg>
+            Jumia CI — CI
+          </div>
+          <div class="density" title="Densité">
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span>
+            <span class="on"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h16M4 12h16M4 16h16"/></svg></span>
+          </div>
+          <div class="field">Colonnes
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+
+        <div class="bulkbar">
+          <span class="ck on"></span><b>2 commandes sélectionnées</b>
+          <span class="muted">Jumia CI — Électronique uniquement</span>
+          <div class="right">
+            <span class="btn sm">Marquer prêtes à expédier</span>
+            <span class="btn sm">Imprimer les étiquettes</span>
+            <span class="btn sm">Exporter la sélection</span>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="card" style="padding:0;overflow:hidden">
+            <table class="dense">
+              <thead>
+                <tr>
+                  <th style="width:34px;padding-left:12px"><span class="ck on"></span></th>
+                  <th>Commande</th><th>Date</th><th>Client</th><th class="num">Art.</th>
+                  <th>Statut</th><th class="num">PV client</th><th class="num">Marge est.</th><th class="num">Frais Jumia</th><th style="width:30px"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="sel">
+                  <td style="padding-left:12px"><span class="ck on"></span></td>
+                  <td><span class="onum">338 997 922</span></td><td class="muted">09/11 18:42</td>
+                  <td>K. Adjo<div class="muted small">Abidjan</div></td><td class="num">2</td>
+                  <td><span class="pill ok"><i class="dot"></i>Livrée</span></td>
+                  <td class="num">52 000</td><td class="num">11 200 <span class="tagprov est">E</span></td>
+                  <td class="num muted">6 240</td><td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m9 6 6 6-6 6"/></svg></td>
+                </tr>
+                <tr class="sel">
+                  <td style="padding-left:12px"><span class="ck on"></span></td>
+                  <td><span class="onum">338 997 918</span></td><td class="muted">09/11 17:10</td>
+                  <td>M. Traoré<div class="muted small">Bouaké</div></td><td class="num">1</td>
+                  <td><span class="pill info"><i class="dot"></i>À expédier</span></td>
+                  <td class="num">25 000</td><td class="num">5 060 <span class="tagprov est">E</span></td>
+                  <td class="num muted">3 000</td><td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m9 6 6 6-6 6"/></svg></td>
+                </tr>
+                <tr>
+                  <td style="padding-left:12px"><span class="ck"></span></td>
+                  <td><span class="onum">338 997 904</span></td><td class="muted">09/11 15:33</td>
+                  <td>A. Kouassi<div class="muted small">Yamoussoukro</div></td><td class="num">3</td>
+                  <td><span class="pill warn"><i class="dot"></i>En attente</span></td>
+                  <td class="num">74 500</td><td class="num muted">— <span class="tagprov na">I</span></td>
+                  <td class="num muted">—</td><td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m9 6 6 6-6 6"/></svg></td>
+                </tr>
+                <tr>
+                  <td style="padding-left:12px"><span class="ck"></span></td>
+                  <td><span class="onum">338 997 890</span></td><td class="muted">09/11 12:07</td>
+                  <td>S. Diomandé<div class="muted small">Abidjan</div></td><td class="num">1</td>
+                  <td><span class="pill err"><i class="dot"></i>Annulée</span></td>
+                  <td class="num">18 000</td><td class="num">0</td>
+                  <td class="num muted">0</td><td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m9 6 6 6-6 6"/></svg></td>
+                </tr>
+                <tr>
+                  <td style="padding-left:12px"><span class="ck"></span></td>
+                  <td><span class="onum">338 997 881</span></td><td class="muted">09/11 09:20</td>
+                  <td>F. Bamba<div class="muted small">San-Pédro</div></td><td class="num">2</td>
+                  <td><span class="pill"><i class="dot"></i>Retour demandé</span></td>
+                  <td class="num">61 000</td><td class="num muted">— <span class="tagprov na">I</span></td>
+                  <td class="num muted">—</td><td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m9 6 6 6-6 6"/></svg></td>
+                </tr>
+                <tr>
+                  <td style="padding-left:12px"><span class="ck"></span></td>
+                  <td><span class="onum">338 997 864</span></td><td class="muted">08/11 21:14</td>
+                  <td>Y. Gnahoré<div class="muted small">Abidjan</div></td><td class="num">1</td>
+                  <td><span class="pill ok"><i class="dot"></i>Livrée</span></td>
+                  <td class="num">32 000</td><td class="num">6 900 <span class="tagprov est">E</span></td>
+                  <td class="num muted">3 840</td><td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m9 6 6 6-6 6"/></svg></td>
+                </tr>
+                <tr>
+                  <td style="padding-left:12px"><span class="ck"></span></td>
+                  <td><span class="onum">338 997 851</span></td><td class="muted">08/11 16:02</td>
+                  <td>L. Ouattara<div class="muted small">Korhogo</div></td><td class="num">4</td>
+                  <td><span class="pill info"><i class="dot"></i>À expédier</span></td>
+                  <td class="num">128 000</td><td class="num">26 400 <span class="tagprov est">E</span></td>
+                  <td class="num muted">15 360</td><td><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5"><path d="m9 6 6 6-6 6"/></svg></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pager">
+              <span>1–25 sur 1 284 · 25 par page</span>
+              <div class="pg"><span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>…</span><span>52</span><span>›</span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="phead">
+              <div>
+                <div class="t">Commande 338 997 922</div>
+                <div class="muted small">09/11/2026 18:42 · Jumia CI</div>
+              </div>
+              <span class="pill ok" style="margin-left:auto"><i class="dot"></i>Livrée</span>
+              <div class="icon-btn" style="width:28px;height:28px">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg>
+              </div>
+            </div>
+            <div class="pbody">
+              <div>
+                <div class="sect-t">Montants</div>
+                <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span class="muted">PV client (2 articles)</span><span class="money">52 000 XOF</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span class="muted">Frais Jumia estimés</span><span class="money">−6 240 XOF <span class="tagprov est">E</span></span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span class="muted">Coût d'achat</span><span class="money">−34 560 XOF</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-top:1px solid var(--border);margin-top:4px"><b>Marge nette estimée</b><b class="money">11 200 XOF <span class="tagprov est">E</span></b></div>
+                <div class="muted" style="font-size:11px">Bénéfice confirmé : <b>—</b> (relevé d'octobre non reçu)</div>
+              </div>
+
+              <div>
+                <div class="sect-t">Articles</div>
+                <div class="lineitem"><div class="thumb">▣</div><div style="min-width:0"><div>Écouteurs sans fil Pro</div><div class="muted small">MIX-ELE-AUDI-0007 · ×1</div></div><span class="money" style="margin-left:auto">28 000</span></div>
+                <div class="lineitem"><div class="thumb">▣</div><div style="min-width:0"><div>Chargeur rapide 65 W</div><div class="muted small">MIX-ELE-CHAR-0012 · ×1</div></div><span class="money" style="margin-left:auto">24 000</span></div>
+              </div>
+
+              <div>
+                <div class="sect-t">Historique</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div class="tl"><span class="dotc"></span><div><b style="font-size:12px">Commande créée</b><div class="muted small">09/11 18:42 · source API Jumia</div></div></div>
+                  <div class="tl"><span class="dotc o"></span><div><b style="font-size:12px">Prête à expédier</b><div class="muted small">09/11 19:05 · action locale</div></div></div>
+                  <div class="tl"><span class="dotc g"></span><div><b style="font-size:12px">Livrée</b><div class="muted small">12/11 10:31 · source API Jumia</div></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="pfoot">
+              <span class="btn primary sm" style="flex:1;justify-content:center">Ouvrir la fiche</span>
+              <span class="btn sm">Synchroniser</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kbdbar">
+          <span><kbd>J</kbd><kbd>K</kbd> ligne suivante / précédente</span>
+          <span><kbd>Entrée</kbd> ouvrir</span>
+          <span><kbd>Espace</kbd> sélectionner</span>
+          <span><kbd>/</kbd> rechercher</span>
+          <span><kbd>Ctrl</kbd><kbd>K</kbd> palette</span>
+          <span><kbd>Échap</kbd> fermer le panneau</span>
+          <span style="margin-left:auto"><span class="tagprov real">Réelle</span> données issues de l'API Jumia</span>
+        </div>
+      </div>
+    </div>
+    <div class="footnote">Densité « compacte » sélectionnée : 36 px par ligne, 8 lignes visibles sans défilement à 1440 px. L'en-tête du tableau reste collant ; la sélection multiple est bornée au périmètre de boutique courant et ne peut pas s'étendre à une autre boutique.</div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="card-head"><h3>Règles de la vue bureau</h3><span class="pill" style="margin-left:auto">à valider</span></div>
+      <table class="bp-table">
+        <tr><td>≥ 1440 px</td><td>Sidebar 264 px (ou rail 72 px) · 4 cartes par ligne · tableau complet avec panneau de détail côte à côte · largeur de contenu maximale 1600 px centrée au-delà</td></tr>
+        <tr><td>1280–1439 px</td><td>4 cartes par ligne · panneau de détail en superposition (tiroir latéral de 400 px) au lieu du côte à côte</td></tr>
+        <tr><td>1024–1279 px</td><td>Rail d'icônes forcé · 2 cartes par ligne · colonnes secondaires du tableau masquées (marge, frais)</td></tr>
+        <tr><td>768–1023 px</td><td>Tablette : pas de sidebar, tiroir · 2 cartes · tableaux → cartes</td></tr>
+        <tr><td>&lt; 768 px</td><td>Mobile (voir section suivante) · 1 carte · tiroir plein écran</td></tr>
+      </table>
+      <div class="legend" style="margin-top:10px">
+        <span class="muted">Jamais de défilement horizontal de la page. Seuls les tableaux larges défilent, dans leur propre conteneur, avec la première colonne figée.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. ECRAN SOMBRE + JUMIA CONNECT ============ -->
+  <section class="sec">
+    <header><h2>5 · Thème sombre et écran Jumia Connect</h2><span class="tag">jetons inversés</span></header>
+    <p>Mêmes composants, jetons inversés : la sidebar reste plus sombre que le fond, les ombres deviennent des bordures. L'écran Jumia Connect est le poste de pilotage des synchronisations : états honnêtes, compteurs réels, actions correctives.</p>
+
+    <div class="frame theme-dark" id="darkframe">
+      <div class="frame-label"><span>Maquette · /boutiques/connexions-jumia</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <div style="background:var(--bg-app); padding:20px">
+        <div class="page-head" style="margin-bottom:14px">
+          <div><h1 style="font-size:20px">Connexions Jumia</h1><p>Vendor Center · OAuth 2.0 · renouvellement automatique sous verrou</p></div>
+          <div class="actions">
+            <span class="btn">Tester les connexions</span>
+            <span class="btn primary">+ Ajouter une boutique</span>
+          </div>
+        </div>
+
+        <div class="grid-4" style="margin-bottom:12px">
+          <div class="card stat"><h3>Boutiques connectées</h3><div class="val">3<small>/ 4</small></div><div class="foot"><span class="tagprov real">Réelle</span> Vendor Center</div></div>
+          <div class="card stat"><h3>À intervenir</h3><div class="val" style="color:var(--orange)">1</div><div class="foot">jeton expiré · reconnexion</div></div>
+          <div class="card stat"><h3>Dernière sync. complète</h3><div class="val" style="font-size:18px">9 nov. 18:42</div><div class="foot">toutes ressources · 3 boutiques</div></div>
+          <div class="card stat"><h3>Requêtes API (60 min)</h3><div class="val">148<small>/ 200</small></div><div class="foot">plafond Mastershop · 4 req/s</div></div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <table>
+            <thead>
+              <tr>
+                <th style="padding-left:14px">Boutique</th><th>Statut</th><th>Produits</th><th>Commandes</th><th>Stocks</th><th>Dernière sync.</th><th>Prochaine</th><th class="num" style="padding-right:14px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding-left:14px"><b>Jumia CI — Électronique</b><div class="muted small">CI · XOF · SID 41ea7c3b…</div></td>
+                <td><span class="pill ok"><i class="dot"></i>Synchronisé</span></td>
+                <td>412 lus · 0 err.</td><td>1 284 lus · 0 err.</td><td>1 284 lus · 0 err.</td>
+                <td>il y a 4 min<div class="muted small">durée 1 min 12</div></td>
+                <td class="muted">dans 11 min</td>
+                <td class="num" style="padding-right:14px"><span class="btn sm ghost">Relancer</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left:14px"><b>Jumia SN — Maison</b><div class="muted small">SN · XOF · SID 8c1f…</div></td>
+                <td><span class="pill warn"><i class="dot"></i>Partielle</span></td>
+                <td>308 lus · 0 err.</td><td>612 lus · 2 err.</td><td>308 lus · 0 err.</td>
+                <td>il y a 22 min<div class="muted small">2 pages en échec (429)</div></td>
+                <td class="muted">reprise planifiée</td>
+                <td class="num" style="padding-right:14px"><span class="btn sm">Reprendre</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left:14px"><b>Jumia NG — Accessoires</b><div class="muted small">NG · NGN · SID 2b77…</div></td>
+                <td><span class="pill err"><i class="dot"></i>Reconnexion</span></td>
+                <td class="muted">—</td><td class="muted">—</td><td class="muted">—</td>
+                <td>8 nov. 09:15<div class="muted small">invalid_grant</div></td>
+                <td class="muted">suspendue</td>
+                <td class="num" style="padding-right:14px"><span class="btn sm accent">Reconnecter</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left:14px"><b>Jumia GH — Quotidien</b><div class="muted small">GH · GHS · SID 9d02…</div></td>
+                <td><span class="pill info"><i class="dot"></i>En cours</span></td>
+                <td>142 lus</td><td>—</td><td>—</td>
+                <td>en cours · page 3/6</td>
+                <td class="muted">—</td>
+                <td class="num" style="padding-right:14px"><span class="btn sm ghost">Détails</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="footnote">Un statut « Synchronisé » n'est affiché que si toutes les pages ont été récupérées. Une erreur n'est jamais résumée par « échec » : cause (429, 401, curseur refusé), compteur et action corrective sont affichés.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. ETATS ============ -->
+  <section class="sec">
+    <header><h2>6 · États d'interface</h2><span class="tag">exigence R1</span></header>
+    <p>Chaque écran gère chargement, vide, erreur, indisponible et « bientôt ». Aucun de ces états n'est décoratif : chacun dit la vérité sur l'état du système.</p>
+    <div class="grid-states">
+      <div class="empty">
+        <div class="ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/></svg></div>
+        <h4>Aucune boutique connectée</h4>
+        <p class="small" style="margin:0 0 12px">Connectez votre première boutique Jumia pour voir apparaître vos commandes, produits et stocks.</p>
+        <span class="btn primary">Ajouter une boutique</span>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Chargement</h3></div>
+        <div class="sk" style="width:62%;height:22px"></div>
+        <div class="sk" style="width:88%"></div>
+        <div class="sk" style="width:74%"></div>
+        <div class="sk" style="width:52%"></div>
+        <div class="footnote">Squelette de contenu, jamais un spinner plein écran.</div>
+      </div>
+      <div class="card" style="border-color:rgba(196,52,43,.35)">
+        <div class="card-head"><h3 style="color:var(--red)">Erreur de synchronisation</h3></div>
+        <p class="small" style="margin:0 0 8px">Jumia a refusé le jeton de cette boutique (<span class="mono">invalid_grant</span>). La synchronisation est arrêtée depuis le 8 nov. 09:15.</p>
+        <p class="small muted" style="margin:0 0 10px">Les montants de cette boutique sont exclus des totaux.</p>
+        <span class="btn accent sm">Reconnecter la boutique</span>
+        <div class="footnote">Détails techniques repliés · référence <span class="mono">req_8f21c</span></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Fonctionnalité non livrée</h3><span class="pill" style="margin-left:auto">Bientôt</span></div>
+        <p class="small" style="margin:0 0 8px">MIMI — assistante commerciale</p>
+        <p class="small muted" style="margin:0">Disponible en Phase 5. L'entrée reste visible mais désactivée, sans bouton simulé.</p>
+        <div class="footnote">Aucune donnée de démonstration n'est affichée à sa place.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. MOBILE ============ -->
+  <section class="sec">
+    <header><h2>7 · Vue mobile 375 px</h2><span class="tag">tiroir · cibles 44 px</span></header>
+    <p>Tiroir plein écran, cibles tactiles d'au moins 44 px, aucune information tronquée sans accès au détail, aucun défilement horizontal. Les cartes d'indicateurs s'empilent en pleine largeur.</p>
+    <div class="mobile-wrap">
+      <div class="phone">
+        <div class="mtop">
+          <div class="icon-btn" style="width:32px;height:32px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div>
+          <div class="shop-select"><span class="avatar" style="width:18px;height:18px;font-size:8px">⌂</span><b>Toutes</b></div>
+          <div class="icon-btn" style="width:32px;height:32px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="n">5</span></div>
+        </div>
+        <div class="mbody">
+          <div>
+            <h1 style="font-size:18px">Vue d'ensemble</h1>
+            <p class="small muted" style="margin:2px 0 0">Toutes les boutiques · 30 j</p>
+          </div>
+          <div class="banner" style="font-size:11.5px;padding:8px 10px">
+            <span><b>2 boutiques</b> en sync. partielle<br><span class="muted">Totaux incomplets</span></span>
+            <span class="ac" style="font-size:11px">Détail →</span>
+          </div>
+          <div class="card stat">
+            <h3>CA livré</h3>
+            <div class="val" style="font-size:21px">12 480 500<small>XOF</small></div>
+            <div class="delta">▲ 8,4 %</div>
+            <div class="foot"><span class="tagprov real">Réelle</span> il y a 4 min</div>
+          </div>
+          <div class="card stat">
+            <h3>Marge nette estimée</h3>
+            <div class="val" style="font-size:21px">2 643 200<small>XOF</small></div>
+            <div class="foot"><span class="tagprov est">Estimée</span> taux 21,2 %</div>
+          </div>
+          <div class="card">
+            <div class="card-head" style="margin-bottom:6px"><h3 style="font-size:12.5px">Boutiques</h3><div class="right">4</div></div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)">
+              <div class="logo" style="width:24px;height:24px;font-size:9px;border-radius:6px">JM</div>
+              <div style="min-width:0"><div style="font-size:12.5px;font-weight:600">Jumia CI — Électronique</div><div class="muted" style="font-size:10.5px">Synchronisé · il y a 4 min</div></div>
+              <span class="money" style="margin-left:auto;font-size:12px">6 240 000</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)">
+              <div class="logo" style="width:24px;height:24px;font-size:9px;border-radius:6px;background:#12855B">JS</div>
+              <div style="min-width:0"><div style="font-size:12.5px;font-weight:600">Jumia SN — Maison</div><div class="muted" style="font-size:10.5px">Partielle · 2 pages</div></div>
+              <span class="money" style="margin-left:auto;font-size:12px">3 180 500</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)">
+              <div class="logo" style="width:24px;height:24px;font-size:9px;border-radius:6px;background:#C4342B">JN</div>
+              <div style="min-width:0"><div style="font-size:12.5px;font-weight:600">Jumia NG — Accessoires</div><div class="muted" style="font-size:10.5px">Reconnexion nécessaire</div></div>
+              <span class="money muted" style="margin-left:auto;font-size:12px">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone">
+        <div class="drawer">
+          <div style="display:flex;align-items:center;gap:10px;padding:4px 6px 10px">
+            <div class="logo" style="width:28px;height:28px;font-size:11px">T1</div>
+            <div class="brand-txt"><b>TOUT EN UN</b><span>Business Manager</span></div>
+            <div class="icon-btn close" style="color:#A9B8D4"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
+          </div>
+          <div class="row active"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Tableau de bord</div>
+          <div class="sub2" aria-current="page">Vue d'ensemble</div>
+          <div class="sub2">Indicateurs financiers</div>
+          <div class="sub2">Performances globales</div>
+          <div class="row"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>Ventes & Commandes<span class="badge-n" style="margin-left:auto">37</span></div>
+          <div class="row"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/></svg>Boutiques & Plateformes</div>
+          <div class="row"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16v13H4z"/><path d="M4 7 7 3h10l3 4"/></svg>Catalogue & Stocks</div>
+          <div class="row"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20"/><path d="M17 6.5C17 4.6 14.8 3 12 3S7 4.6 7 6.5 9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5"/></svg>Finances & Comptabilité</div>
+          <div class="row"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analyses & Rapports</div>
+          <div class="row" style="color:#7F8FAD"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="3.4"/></svg>Automatisation & IA<span style="margin-left:auto;font-size:9.5px;letter-spacing:.06em;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:0 5px">Bientôt</span></div>
+          <div class="row"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>Administration</div>
+          <div class="side-foot" style="margin-top:auto"><span class="dot"></span>3 connectées · 1 à intervenir</div>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:360px">
+        <div class="card-head"><h3>Règles mobiles</h3></div>
+        <ul class="small" style="margin:0;padding-left:18px;color:var(--text-2);display:grid;gap:7px">
+          <li>Cibles tactiles ≥ 44 px, espacement ≥ 8 px.</li>
+          <li>Le sélecteur de boutique reste dans la barre supérieure, jamais dans le tiroir.</li>
+          <li>Tableaux → listes de cartes : 2 informations par ligne, le reste derrière « Détails ».</li>
+          <li>Aucun défilement horizontal (test Playwright à 375 px).</li>
+          <li>Tiroir : fermeture par <span class="mono">Échap</span>, balayage ou bouton ; focus piégé puis rendu au déclencheur.</li>
+          <li>Montants jamais tronqués : la devise passe à la ligne, pas le nombre.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <p class="footnote">Document de conception — Phase 0. Aucun composant de cette page n'est du code de production ; l'implémentation (Tailwind + shadcn/ui + Lucide) est prévue en Phase 1, avec tests clavier et accessibilité pour chaque composant du socle.</p>
+</div>
+</body>
+</html>

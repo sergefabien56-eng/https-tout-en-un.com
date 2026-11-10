@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Valeurs FACTICES : la CI ne doit jamais disposer de vrais secrets.
+  APP_ENV: staging
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/tout_en_un_test
+  SESSION_SECRET: dGVzdC1zZXNzaW9uLXNlY3JldC0zMi1vY3RldHMtZmFrZQ==
+  APP_ENC_KEYS: 1:dGVzdC1rZXktMzItb2N0ZXRzLXBvdXItbGEtY2ktZmFrZQ==
+  APP_ENC_ACTIVE: '1'
+
+jobs:
+  quality:
+    name: Lint · types · tests · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Vérification TypeScript
+        run: npm run typecheck
+
+      - name: Tests unitaires et d'intégration
+        run: npm test
+
+      - name: Audit des dépendances (bloquant sur high/critical)
+        run: npm audit --audit-level=high
+
+      - name: Build
+        run: npm run build
+
+  migrations:
+    name: Migrations (PostgreSQL 16 réel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tout_en_un_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Appliquer les migrations
+        run: npm run db:migrate
+      - name: Vérifier les extensions attendues
+        run: |
+          psql "$DATABASE_URL" -Atc "SELECT extname FROM pg_extension WHERE extname IN ('pg_trgm','unaccent') ORDER BY extname" | grep -qx 'pg_trgm' || exit 1
+          psql "$DATABASE_URL" -Atc "SELECT extname FROM pg_extension WHERE extname IN ('pg_trgm','unaccent') ORDER BY extname" | grep -qx 'unaccent' || exit 1
+      - name: Rollback puis réapplication (réversibilité)
+        run: |
+          for i in 1 2 3 4 5 6 7; do npm run db:rollback || exit 1; done
+          psql "$DATABASE_URL" -Atc 'SELECT count(*) FROM schema_migrations' | grep -qx '0'
+          npm run db:migrate
+      - name: Contrôle final
+        run: psql "$DATABASE_URL" -c "\dt" && psql "$DATABASE_URL" -c "SELECT count(*) AS migrations FROM schema_migrations;"
