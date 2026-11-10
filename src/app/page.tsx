@@ -18,7 +18,7 @@ export default function BootstrapPage() {
       <div className="card">
         <ul>
           <li>
-            <span className="tag ok">Prêt</span> Migrations versionnées et réversibles (6 migrations, RLS comprise)
+            <span className="tag ok">Prêt</span> Migrations versionnées et réversibles (7 migrations, RLS comprise)
           </li>
           <li>
             <span className="tag ok">Prêt</span> Module argent : unités mineures, conversion depuis l’API, allocation au plus fort reste
@@ -42,7 +42,7 @@ export default function BootstrapPage() {
             <span className="tag soon">Bientôt</span> Connexion à Jumia, produits, commandes, stocks, finances : <strong>rien n’est simulé</strong>
           </li>
           <li>
-            <span className="tag soon">Bientôt</span> Interface de navigation, authentification, rôles (lots L5 à L8)
+            <span className="tag soon">Bientôt</span> Parcours de connexion entièrement validé et interface de navigation (lots L5 à L8)
           </li>
         </ul>
         <p className="muted" style={{ marginTop: 12 }}>

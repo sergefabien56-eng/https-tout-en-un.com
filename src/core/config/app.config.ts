@@ -12,6 +12,7 @@ export const APP_VERSION = '0.1.0' as const;
  */
 export const BRAND_COLORS = {
   navy: '#101C39',
+  white: '#FFFFFF',
   blue: '#1765F5',
   orange: '#F57C1F',
   green: '#12855B',

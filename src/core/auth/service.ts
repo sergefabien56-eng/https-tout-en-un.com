@@ -4,6 +4,7 @@ import type { PoolClient } from 'pg';
 import { withIdentityTransaction } from '@/core/db/client';
 import { openSecret, parseKeyRing } from '@/core/crypto/envelope';
 import { createSessionToken, hashSessionToken, SESSION_TTL_MS, verifyPassword, verifyTotp } from '@/core/auth/primitives';
+import { findRecoveryCodeHash } from '@/core/auth/recovery-codes';
 
 const GENERIC_ERROR = 'Identifiants ou code de vérification invalides.';
 const DUMMY_HASH_PROMISE = import('argon2').then((mod) => mod.hash('une-chaîne-aléatoire-jamais-valide', {
@@ -22,6 +23,7 @@ interface LoginUser {
   totp_key_version: number | null;
   totp_enabled_at: Date | null;
   totp_last_counter: string;
+  totp_recovery_codes_hash: string[];
 }
 
 export class InvalidCredentials extends Error {
@@ -69,7 +71,7 @@ export async function login(input: {
     const rows = await db.query<LoginUser>(
       `SELECT id, password_hash, status, failed_login_count, locked_until,
         totp_secret_ciphertext, totp_secret_iv, totp_secret_tag, totp_key_version,
-        totp_enabled_at, totp_last_counter
+        totp_enabled_at, totp_last_counter, totp_recovery_codes_hash
        FROM users WHERE lower(email) = lower($1) FOR UPDATE`, [input.email]);
     const user = rows.rows[0];
     if (!user) {
@@ -91,14 +93,22 @@ export async function login(input: {
     const ring = parseKeyRing(ringRaw, Number(process.env.APP_ENC_ACTIVE));
     const secret = Buffer.from(openSecret({ ciphertext, iv, tag, keyVersion }, ring, `user:${user.id}:totp`), 'base64');
     const counter = verifyTotp(secret, input.totp, now.getTime(), Number(user.totp_last_counter));
-    if (counter === null) {
+    const recoveryIndex = counter === null
+      ? findRecoveryCodeHash(input.totp, user.totp_recovery_codes_hash)
+      : -1;
+    if (counter === null && recoveryIndex < 0) {
       await failAttempt(db, user.id, user.failed_login_count, now);
       return null;
     }
+    // SELECT FOR UPDATE protège le tableau des codes et le compteur contre le rejeu
+    // concurrent. La consommation et la session sont dans la même transaction.
+    const remaining = recoveryIndex < 0 ? user.totp_recovery_codes_hash
+      : user.totp_recovery_codes_hash.filter((_, index) => index !== recoveryIndex);
     const { token, hash } = createSessionToken();
     const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
     await db.query(`UPDATE users SET failed_login_count = 0, locked_until = NULL,
-      totp_last_counter = $2, last_login_at = $3 WHERE id = $1`, [user.id, counter, now]);
+      totp_last_counter = $2, last_login_at = $3, totp_recovery_codes_hash = $4
+      WHERE id = $1`, [user.id, counter ?? Number(user.totp_last_counter), now, remaining]);
     await db.query(`INSERT INTO sessions (user_id, token_hash, expires_at, user_agent)
       VALUES ($1, $2, $3, $4)`, [user.id, hash, expiresAt, input.userAgent?.slice(0, 256) ?? null]);
     return { token, expiresAt };
@@ -117,7 +127,7 @@ export async function getSession(token: string): Promise<{ userId: string; displ
        WHERE s.token_hash = $1 AND s.revoked_at IS NULL
          AND s.expires_at > now() AND u.status = 'active'`, [hashSessionToken(token)]);
     const row = rows.rows[0];
-    return row ? { userId: row.user_id, displayName: row.display_name } : null;
+    return row ? { userId: String(row.user_id), displayName: row.display_name } : null;
   });
 }
 

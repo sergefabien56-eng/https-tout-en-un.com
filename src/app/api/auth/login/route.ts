@@ -5,7 +5,7 @@ import { isAllowedOrigin } from '@/core/auth/primitives';
 import { z } from 'zod';
 
 export const runtime = 'nodejs';
-const loginSchema = credentialsSchema.extend({ totp: z.string().regex(/^\d{6}$/) });
+const loginSchema = credentialsSchema.extend({ totp: z.string().regex(/^(\d{6}|[A-Za-z0-9_-]{22})$/) });
 const badRequest = (): NextResponse => NextResponse.json(
   { error: 'Identifiants ou code de vérification invalides.' },
   { status: 401, headers: { 'Cache-Control': 'no-store' } },

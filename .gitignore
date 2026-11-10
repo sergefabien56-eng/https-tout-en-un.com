@@ -16,3 +16,8 @@ deploy/.env.staging
 .cache/
 
 *.bundle
+playwright-report/
+test-results/
+.local/
+uploads/
+tout-en-un-github-desktop*.zip

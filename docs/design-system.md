@@ -135,7 +135,9 @@ export const navigation: NavGroup[] = [
 4. Un test CI vérifie que **chaque route existante** de `src/app` est déclarée dans `navigation.config.ts` (et inversement) : aucune page orpheline, aucun lien mort.
 5. Le fil d'Ariane, la palette de commandes et la recherche de pages sont générés depuis l'arbre → cohérence garantie.
 
-Arborescence complète (44 entrées, 8 modules) : reprise exacte du prompt, avec `availability: 'soon'` pour tout ce qui n'est pas livré. En P1, seules sont `ready` : Tableau de bord › Vue d'ensemble, Boutiques & Plateformes › Toutes les boutiques / Ajouter une boutique / Connexions Jumia (coquille), Administration › Utilisateurs / Rôles / Journal d'activité / Paramètres. **Tout le reste est `soon`.**
+Arborescence complète (44 entrées, 8 modules) : reprise exacte du prompt, avec `availability: 'soon'` pour tout ce qui n'est pas livré.
+
+**Implémentation progressive (P1/L8 en cours) :** seul `/espace` est actuellement `ready`. Les autres liens restent `soon` jusqu’à l’existence de leur page, de leurs contrôles serveur et de leurs tests ; la liste « ready » ci-dessous décrit la **cible de fin de P1**, pas le présent. L’état du menu est mémorisé localement ; la synchronisation par cookie côté serveur reste à faire. En P1, seules sont `ready` : Tableau de bord › Vue d'ensemble, Boutiques & Plateformes › Toutes les boutiques / Ajouter une boutique / Connexions Jumia (coquille), Administration › Utilisateurs / Rôles / Journal d'activité / Paramètres. **Tout le reste est `soon`.**
 
 ### Comportement du menu (exigences respectées)
 - clic ouvre, clic referme ; chevron animé ; **plusieurs modules ouverts simultanément** ;
