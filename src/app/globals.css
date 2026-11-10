@@ -171,3 +171,14 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .users-list th { color: var(--text-secondary); font-size: 12px; }
 .pagination { display: flex; gap: 20px; min-height: 44px; align-items: center; }
 @media (max-width: 600px) { .users-list table { min-width: 520px; } }
+.role-matrix { overflow-x: auto; }
+.role-matrix table { width: 100%; border-collapse: collapse; min-width: 820px; }
+.role-matrix caption { text-align: left; color: var(--text-muted); margin-bottom: 12px; }
+.role-matrix td, .role-matrix th { padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); text-align: left; }
+.role-matrix thead th { font-size: 12px; color: var(--text-secondary); }
+.role-matrix tbody th { font-weight: 500; }
+.role-matrix tbody th small { display: block; color: var(--text-muted); font-size: 10px; }
+.role-matrix tbody td { text-align: center; }
+.detail-list { display: grid; grid-template-columns: minmax(100px, 170px) minmax(0, 1fr); gap: 12px; overflow-wrap: anywhere; }
+.detail-list dt { font-weight: 600; }
+.detail-list dd { margin: 0; }

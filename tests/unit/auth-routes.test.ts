@@ -6,6 +6,9 @@ import { POST as logoutPost } from '@/app/api/auth/logout/route';
 import { GET as meGet } from '@/app/api/auth/me/route';
 import { GET as shopGet } from '@/app/api/shops/[shopId]/route';
 import { GET as adminUsersGet } from '@/app/api/admin/users/route';
+import { GET as adminUserDetailGet } from '@/app/api/admin/users/[id]/route';
+import { GET as adminRolesGet } from '@/app/api/admin/roles/route';
+import { GET as deepHealthGet } from '@/app/api/health/deep/route';
 import { nextLock } from '@/core/auth/service';
 
 const oldAppUrl = process.env.APP_URL;
@@ -53,6 +56,19 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
   it('GET utilisateurs sans session est refusé avant la lecture des données', async () => {
     const request = new NextRequest('https://app.example.com/api/admin/users');
     expect((await adminUsersGet(request)).status).toBe(401);
+  });
+  it('GET matrice des rôles sans session est refusé', async () => {
+    const request = new NextRequest('https://app.example.com/api/admin/roles');
+    expect((await adminRolesGet(request)).status).toBe(401);
+  });
+  it('GET santé profonde sans session refuse les informations système', async () => {
+    const request = new NextRequest('https://app.example.com/api/health/deep');
+    expect((await deepHealthGet(request)).status).toBe(401);
+  });
+  it('fiche utilisateur API : refus sans session et identifiant invalide', async () => {
+    const request = new NextRequest('https://app.example.com/api/admin/users/1');
+    expect((await adminUserDetailGet(request, { params: Promise.resolve({ id: '1' }) })).status).toBe(401);
+    expect((await adminUserDetailGet(request, { params: Promise.resolve({ id: '1 OR 1=1' }) })).status).toBe(404);
   });
   it('verrouillage progressif, plafonné', () => {
     const now = new Date('2026-11-10T00:00:00Z');

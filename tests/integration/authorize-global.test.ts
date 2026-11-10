@@ -14,8 +14,10 @@ vi.mock('@/core/db/client', () => ({
     catch (error) { await db.exec('ROLLBACK;'); throw error; }
   },
 }));
-const { listAuthorizedUsers } = await import('@/modules/identity/user-list');
+const { listAuthorizedUsers, getAuthorizedUser } = await import('@/modules/identity/user-list');
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
+const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
+const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const owner = createSessionToken(); const scoped = createSessionToken(); const globalManager = createSessionToken();
 
 beforeAll(async () => {
@@ -65,6 +67,35 @@ describe('administration globale : utilisateurs réels uniquement', () => {
   it('absence de session ou jeton inventé : refus 401 avant requête utilisateur', async () => {
     await expect(listAuthorizedUsers(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listAuthorizedUsers(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
+  });
+  it('matrice 5 rôles × 31 permissions visible par owner, refusée au manager', async () => {
+    const matrix = await getRoleMatrix(owner.token);
+    expect(matrix.roles.map((r) => r.code)).toEqual(['accountant','assistant','manager','owner','stock_manager']);
+    expect(matrix.permissions).toHaveLength(31);
+    expect(matrix.grants['owner']).toHaveLength(31);
+    expect(matrix.grants['manager']).toHaveLength(29);
+    expect(matrix.grants['manager']).not.toContain('system:manage');
+    await expect(getRoleMatrix(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(getRoleMatrix(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+  });
+  it('santé profonde : propriétaire uniquement, nombre réel de migrations', async () => {
+    // Le runner crée schema_migrations, le test PGlite applique directement les fichiers.
+    await db.exec('CREATE TABLE schema_migrations (version text PRIMARY KEY);');
+    await db.exec("INSERT INTO schema_migrations VALUES ('0001'), ('0002');");
+    const health = await getDeepHealth(owner.token);
+    expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, queue: 'indisponible' });
+    await expect(getDeepHealth(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(getDeepHealth(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+  });
+  it('fiche utilisateur : rôles réels global/boutique, pas de secrets', async () => {
+    const scopedUser = await getAuthorizedUser(owner.token, '2');
+    expect(scopedUser).toMatchObject({ email: 'scoped@test.invalid',
+      roles: [{ code: 'manager', label: 'Gestionnaire', shopId: '1' }] });
+    expect((await getAuthorizedUser(owner.token, '1'))?.roles[0]?.shopId).toBeNull();
+    expect(JSON.stringify(scopedUser)).not.toMatch(/password_hash|totp_secret|token_hash/);
+    expect(await getAuthorizedUser(owner.token, '999999')).toBeNull();
+    await expect(getAuthorizedUser(scoped.token, '2')).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(getAuthorizedUser(undefined, '2')).rejects.toMatchObject({ httpStatus: 401 });
   });
   it('pagination contrôlée et aucun accès à une page malformée', async () => {
     expect((await listAuthorizedUsers(owner.token, 2)).users).toEqual([]);

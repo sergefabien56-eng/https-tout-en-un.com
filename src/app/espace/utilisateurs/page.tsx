@@ -30,7 +30,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       <table><caption>Utilisateurs réels — page {page}</caption>
         <thead><tr><th scope="col">Nom</th><th scope="col">Adresse e-mail</th><th scope="col">Statut</th><th scope="col">Créé le</th></tr></thead>
         <tbody>{result.users.map((user) => <tr key={user.id}>
-          <td>{user.displayName}</td><td>{user.email}</td>
+          <td><Link href={`/espace/utilisateurs/${user.id}`}>{user.displayName}</Link></td><td>{user.email}</td>
           <td>{STATUS[user.status] ?? 'Indisponible'}</td>
           <td>{new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(user.createdAt))}</td>
         </tr>)}</tbody>

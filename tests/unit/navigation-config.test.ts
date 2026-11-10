@@ -19,7 +19,7 @@ describe('configuration unique de navigation', () => {
       }
     }
     expect(navigation.flatMap((g) => g.children).filter((l) => l.availability === 'ready').map((l) => l.href))
-      .toEqual(['/espace', '/espace/utilisateurs']);
+      .toEqual(['/espace', '/espace/utilisateurs', '/espace/roles', '/espace/systeme']);
   });
   it('aucun accès non autorisé ne reste visible, même comme « bientôt »', () => {
     expect(visibleNavigation(new Set())).toEqual([]);
