@@ -124,6 +124,10 @@ jobs:
           chmod 600 /tmp/ci-owner-password
           npm run auth:bootstrap
           rm -f /tmp/ci-owner-password /tmp/ci-owner-qr.png
+      - name: Préparer une boutique et un événement d’audit fictifs pour le navigateur
+        env:
+          DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
+        run: node scripts/seed-e2e-shop.mjs
       - name: Installer Chromium et dépendances système
         run: npx playwright install --with-deps chromium
       - name: Parcours publics et authentifiés sur PostgreSQL 16

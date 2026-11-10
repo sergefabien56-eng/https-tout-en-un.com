@@ -60,10 +60,19 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(health.migrationsApplied).toBe(8);
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
-  await expect(page.getByText('Aucune boutique accessible')).toBeVisible();
+  await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();
   const shopsResponse = await page.request.get('/api/shops');
   expect(shopsResponse.status()).toBe(200);
-  expect((await shopsResponse.json() as { shops: unknown[] }).shops).toEqual([]);
+  const shopList = await shopsResponse.json() as { shops: { id: string; displayName: string }[] };
+  expect(shopList.shops).toHaveLength(1);
+  expect(shopList.shops[0]?.displayName).toBe('Boutique CI fictive');
+  const shopId = shopList.shops[0]!.id;
+  // Vrai clic utilisateur, CSRF et permission contrôlés côté serveur.
+  await page.getByRole('button', { name: 'Sélectionner Boutique CI fictive' }).click();
+  await expect(page.getByRole('link', { name: 'Préférence : Boutique CI fictive' })).toBeVisible();
+  await page.goto('/espace/journal');
+  await expect(page.getByRole('table')).toContainText('fixture.created');
+  await page.goto('/espace/boutiques');
   // Une sélection fabriquée par le navigateur doit échouer malgré une session owner.
   await page.request.get('/api/auth/csrf');
   const shopCsrf = (await page.context().cookies()).find((c) => c.name === 'toutenun_csrf')?.value;
@@ -78,9 +87,9 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(selectAll.status()).toBe(200);
   await page.goto('/espace/journal');
   await expect(page.getByRole('heading', { name: 'Choisissez une boutique' })).toBeVisible();
-  // La CI ne relie pas une boutique Jumia fictive persistante au propriétaire.
   // Une boutique inexistante ne doit pas exposer de journal, même au propriétaire.
   expect((await page.request.get('/api/shops/999999/audit')).status()).toBe(403);
+  expect((await page.request.get(`/api/shops/${shopId}/audit`)).status()).toBe(200);
   await page.goto('/espace');
   await page.getByRole('link', { name: 'Consulter mes sessions actives' }).click();
   await expect(page.getByRole('heading', { name: 'Mes sessions' })).toBeVisible();
