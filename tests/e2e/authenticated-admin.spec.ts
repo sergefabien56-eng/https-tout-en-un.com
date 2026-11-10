@@ -6,7 +6,8 @@ import { expect, test } from '@playwright/test';
 test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async ({ page }, testInfo) => {
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   const codes = readFileSync(process.env.E2E_RECOVERY_FILE!, 'utf8').trim().split('\n');
-  const code = codes[testInfo.project.name === 'mobile-375' ? 1 : 0];
+  // Chaque tentative consomme un code de secours : retry et appareils distincts.
+  const code = codes[testInfo.retry * 2 + (testInfo.project.name === 'mobile-375' ? 1 : 0)];
   expect(code).toMatch(/^[A-Za-z0-9_-]{22}$/);
 
   await page.goto('/connexion');
@@ -28,12 +29,16 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
   const response = await page.request.get('/api/admin/users');
   expect(response.status()).toBe(200);
-  const result = await response.json() as { users: { email: string }[] };
+  const result = await response.json() as { users: { id: string; email: string }[] };
   expect(result.users[0]?.email).toBe('proprietaire@ci.invalid');
   await page.getByRole('link', { name: 'Propriétaire CI' }).click();
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible();
   await expect(page.getByText('Global (toutes les boutiques)')).toBeVisible();
-  const user = await page.request.get('/api/admin/users/1');
+  // Les séquences PostgreSQL ne sont PAS rembobinées par ROLLBACK : la fixture RLS
+  // peut consommer l'ID 1. Ne jamais supposer que le propriétaire porte cet ID.
+  const ownerId = result.users.find((entry) => entry.email === 'proprietaire@ci.invalid')?.id;
+  expect(ownerId).toMatch(/^[1-9]\d*$/);
+  const user = await page.request.get(`/api/admin/users/${ownerId}`);
   expect(user.status()).toBe(200);
   expect((await user.json() as { roles: { shopId: string | null }[] }).roles[0]?.shopId).toBeNull();
   // Permission owner vérifiée côté serveur, puis page réelle dans les deux tailles d'écran.
