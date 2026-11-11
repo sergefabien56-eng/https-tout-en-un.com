@@ -216,6 +216,12 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();
+  await page.getByRole('combobox', { name: 'Trier les boutiques' }).selectOption('name-asc');
+  await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
+  await expect(page).toHaveURL(/sort=name-asc/);
+  await expect(page.getByRole('table')).toContainText('Boutique CI fictive');
+  expect((await page.request.get('/api/shops?sort=name-asc')).status()).toBe(200);
+  expect((await page.request.get('/api/shops?sort=name%3BDELETE')).status()).toBe(400);
   await expectNoSeriousAccessibilityViolations(page);
   await page.getByRole('button', { name: 'Thème system : changer le thème' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');

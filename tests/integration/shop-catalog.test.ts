@@ -85,6 +85,11 @@ describe('catalogue RLS', () => {
     expect((await listOwnShops(manager.token, 1, { q: 'B' })).shops).toEqual([]);
     expect((await listOwnShops(owner.token, 1, { q: '%' })).shops).toEqual([]);
     expect((await listOwnShops(owner.token, 1, { status: 'connected' })).shops).toHaveLength(2);
+    expect((await listOwnShops(owner.token, 1, { sort: 'name-asc' })).shops.map((s) => s.displayName)).toEqual(['A', 'B']);
+    expect((await listOwnShops(owner.token, 1, { sort: 'name-desc' })).shops.map((s) => s.displayName)).toEqual(['B', 'A']);
+    expect((await listOwnShops(manager.token, 1, { sort: 'name-desc' })).shops).toEqual([]);
+    expect((await listOwnShops(limited.token, 1, { sort: 'name-asc' })).shops.map((s) => s.displayName)).toEqual(['B']);
+    await expect(listOwnShops(owner.token, 1, { sort: 'name; DROP TABLE shops' })).rejects.toMatchObject({ httpStatus: 400 });
     await expect(listOwnShops(owner.token, 1, { status: 'malicious' })).rejects.toMatchObject({ httpStatus: 400 });
     await expect(listOwnShops(owner.token, 1, { q: 'x'.repeat(81) })).rejects.toMatchObject({ httpStatus: 400 });
   });
@@ -103,6 +108,13 @@ describe('catalogue RLS', () => {
     expect([first.shops.length, second.shops.length, third.shops.length]).toEqual([50, 50, 7]);
     expect([first.nextPage, second.nextPage, third.nextPage]).toEqual([2, 3, null]);
     expect(new Set([...first.shops, ...second.shops, ...third.shops].map((s) => s.id)).size).toBe(107);
+    const sortedFirst = await listOwnShops(owner.token, 1, { q: 'Volume', sort: 'name-asc' });
+    const sortedSecond = await listOwnShops(owner.token, 2, { q: 'Volume', sort: 'name-asc' });
+    const sortedThird = await listOwnShops(owner.token, 3, { q: 'Volume', sort: 'name-asc' });
+    const sorted = [...sortedFirst.shops, ...sortedSecond.shops, ...sortedThird.shops];
+    expect(sorted).toHaveLength(105);
+    expect(new Set(sorted.map((shop) => shop.id)).size).toBe(105);
+    expect(sorted.map((shop) => shop.displayName)).toEqual([...sorted.map((shop) => shop.displayName)].sort());
     expect((await listOwnShops(manager.token)).shops).toEqual([]);
   });
 

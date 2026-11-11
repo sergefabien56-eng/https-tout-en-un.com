@@ -2,20 +2,21 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { ShopSelectButton } from '@/ui/shop-select-button';
-import { listOwnShops } from '@/modules/identity/shop-catalog';
+import { isShopSort, listOwnShops } from '@/modules/identity/shop-catalog';
 import { AppError } from '@/core/errors/app-error';
 
 export const dynamic = 'force-dynamic';
-export default async function ShopsPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string; status?: string }> }) {
+export default async function ShopsPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string; status?: string; sort?: string }> }) {
   const params = await searchParams;
   const raw = params.page ?? '1';
-  if (!/^[1-9]\d{0,4}$/.test(raw)) notFound();
+  const sort = params.sort ?? 'recent';
+  if (!/^[1-9]\d{0,4}$/.test(raw) || !isShopSort(sort)) notFound();
   const page = Number(raw);
   const activeId = (await cookies()).get('toutenun_shop')?.value;
   let result: Awaited<ReturnType<typeof listOwnShops>>;
   try { result = await listOwnShops((await cookies()).get('toutenun_session')?.value, page,
       { ...(params.q !== undefined ? { q: params.q } : {}),
-        ...(params.status !== undefined ? { status: params.status } : {}) }); }
+        ...(params.status !== undefined ? { status: params.status } : {}), sort }); }
   catch (error) {
     if (error instanceof AppError && error.httpStatus === 401) redirect('/connexion');
     if (error instanceof AppError && error.httpStatus === 400) notFound();
@@ -35,11 +36,17 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
         <option value="synced">Synchronisée</option><option value="partial">Partielle</option>
         <option value="error">Erreur</option><option value="reauth_required">Réauthentification requise</option>
         <option value="disabled">Désactivée</option>
+      </select>
+      <label htmlFor="shop-sort">Trier les boutiques</label>
+      <select id="shop-sort" name="sort" defaultValue={sort}>
+        <option value="recent">Plus récentes</option>
+        <option value="name-asc">Nom A à Z</option>
+        <option value="name-desc">Nom Z à A</option>
       </select><button type="submit">Filtrer</button>
     </form>
     {activeId && <p><ShopSelectButton shopId="all" label="toutes les boutiques autorisées" selected={false} /></p>}
     {result.shops.length === 0 ? <div className="card" role="status">
-      <h2>Aucune boutique accessible</h2><p>Aucune boutique n’est actuellement visible pour votre compte.</p>
+      <h2>Aucune boutique accessible</h2><p>{params.q || params.status ? 'Aucune boutique autorisée ne correspond à ces filtres.' : 'Aucune boutique n’est actuellement visible pour votre compte.'}</p>
     </div> : <div className="card users-list" role="region" aria-label="Tableau des boutiques défilant horizontalement" tabIndex={0}><table>
       <caption>Boutiques réelles — page {page}</caption>
       <thead><tr><th scope="col">Boutique</th><th scope="col">Pays</th><th scope="col">Devise</th><th scope="col">État</th><th scope="col">Sélection</th><th scope="col">Journal</th></tr></thead>
@@ -50,8 +57,8 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
       </tr>)}</tbody>
     </table></div>}
     <nav aria-label="Pagination des boutiques" className="pagination">
-      {page > 1 && <Link href={`/espace/boutiques?page=${page - 1}&q=${encodeURIComponent(params.q ?? '')}&status=${encodeURIComponent(params.status ?? '')}`}>Page précédente</Link>}
-      {result.nextPage !== null && <Link href={`/espace/boutiques?page=${result.nextPage}&q=${encodeURIComponent(params.q ?? '')}&status=${encodeURIComponent(params.status ?? '')}`}>Page suivante</Link>}
+      {page > 1 && <Link href={`/espace/boutiques?page=${page - 1}&q=${encodeURIComponent(params.q ?? '')}&status=${encodeURIComponent(params.status ?? '')}&sort=${sort}`}>Page précédente</Link>}
+      {result.nextPage !== null && <Link href={`/espace/boutiques?page=${result.nextPage}&q=${encodeURIComponent(params.q ?? '')}&status=${encodeURIComponent(params.status ?? '')}&sort=${sort}`}>Page suivante</Link>}
     </nav>
   </main>;
 }

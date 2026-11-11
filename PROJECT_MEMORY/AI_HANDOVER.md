@@ -106,3 +106,7 @@ Propriétaire ne veut plus de choix entre micro-améliorations : il veut termine
 ## Après validation Système — export des utilisateurs (L10)
 
 GitHub `main` `6013a16`, run `43117594559` quatre jobs success, preuve `/home/user/continuity-backups/verification-publication-6013a16.md`, artifact non restauré. Propriétaire a dit « on continue » sans revenir aux menus d'améliorations : sous-lot local CSV utilisateurs protégé (filtres liste partagés, droit global users:read + reports:export, max 10k, pas de secrets, CSV hostile neutralisé). Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md`, compte rendu ; tests PGlite et E2E ajoutés non exécutés localement. Windows toujours en pause, aucune vraie donnée ni production.
+
+## Après export utilisateurs validé — tri boutiques (L10)
+
+GitHub `main` `d721595`, run `43119275267` quatre jobs success, preuve `/home/user/continuity-backups/verification-publication-d721595.md`, artifact non restauré. Sous-lot local demandé dans continuité de L10 : tri catalogue boutiques plus récentes/nom A–Z/Z–A sur page et API, ORDER BY fixé par whitelist, filtres et RLS inchangés. Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md`, compte rendu ; PGlite/E2E ajoutés non exécutés localement. Windows toujours en pause, aucune vraie donnée ni production.

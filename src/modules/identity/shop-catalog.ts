@@ -8,15 +8,25 @@ export interface ShopSummary {
 }
 export type ShopStatus = 'connected' | 'syncing' | 'synced' | 'partial' | 'error' | 'reauth_required' | 'disabled';
 const statuses = new Set<ShopStatus>(['connected','syncing','synced','partial','error','reauth_required','disabled']);
+export type ShopSort = 'recent' | 'name-asc' | 'name-desc';
+const orderBy: Record<ShopSort, string> = {
+  recent: 'id DESC',
+  'name-asc': 'lower(display_name) ASC, id DESC',
+  'name-desc': 'lower(display_name) DESC, id DESC',
+};
+export function isShopSort(value: string): value is ShopSort {
+  return Object.hasOwn(orderBy, value);
+}
 
-export async function listOwnShops(token: string | undefined, page = 1, filters: { q?: string; status?: string } = {}): Promise<{
+export async function listOwnShops(token: string | undefined, page = 1, filters: { q?: string; status?: string; sort?: string } = {}): Promise<{
   shops: ShopSummary[]; nextPage: number | null;
 }> {
   if (!Number.isSafeInteger(page) || page < 1 || page > 10_000) throw new ValidationError('Page invalide.');
   if (filters.q !== undefined && typeof filters.q !== 'string') throw new ValidationError('Filtres invalides.');
   const q = filters.q?.trim() ?? '';
-  if (q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32) || (filters.status !== undefined && !statuses.has(filters.status as ShopStatus)))
-    throw new ValidationError('Filtres invalides.');
+  const sort = filters.sort ?? 'recent';
+  if (q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32) || (filters.status !== undefined && !statuses.has(filters.status as ShopStatus))
+    || !isShopSort(sort)) throw new ValidationError('Filtres invalides.');
   if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token))
     throw new AppError('UNAUTHENTICATED', { userMessage: 'Connexion nécessaire.' });
   return withIdentityTransaction(async (db) => {
@@ -36,7 +46,7 @@ export async function listOwnShops(token: string | undefined, page = 1, filters:
        WHERE deleted_at IS NULL
          AND ($3::text IS NULL OR position(lower($3) in lower(display_name)) > 0)
          AND ($4::text IS NULL OR status = $4)
-       ORDER BY id DESC LIMIT $1 OFFSET $2`, [51, (page - 1) * 50, q || null, filters.status ?? null]);
+       ORDER BY ${orderBy[sort]} LIMIT $1 OFFSET $2`, [51, (page - 1) * 50, q || null, filters.status ?? null]);
     return { shops: result.rows.slice(0, 50).map((r) => ({ id: String(r.id), displayName: r.display_name,
       countryCode: r.country_code, currency: r.currency, status: r.status })),
       nextPage: result.rows.length > 50 ? page + 1 : null };

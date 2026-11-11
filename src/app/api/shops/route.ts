@@ -11,7 +11,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     return NextResponse.json(await listOwnShops(request.cookies.get('toutenun_session')?.value, Number(raw),
       { ...(request.nextUrl.searchParams.has('q') ? { q: request.nextUrl.searchParams.get('q')! } : {}),
-        ...(request.nextUrl.searchParams.has('status') ? { status: request.nextUrl.searchParams.get('status')! } : {}) }), { headers });
+        ...(request.nextUrl.searchParams.has('status') ? { status: request.nextUrl.searchParams.get('status')! } : {}),
+        ...(request.nextUrl.searchParams.has('sort') ? { sort: request.nextUrl.searchParams.get('sort')! } : {}) }), { headers });
   } catch (error) {
     if (error instanceof AppError) return NextResponse.json({ error: error.userMessage },
       { status: error.httpStatus, headers });
