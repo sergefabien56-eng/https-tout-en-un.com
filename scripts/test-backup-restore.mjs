@@ -24,6 +24,19 @@ const dir = await mkdtemp(join(tmpdir(), 'toutenun-restore-'));
 const dump = join(dir, 'fixture.dump');
 const toolEnv = { ...process.env, PGPASSWORD: decodeURIComponent(url.password) };
 const common = ['--host', url.hostname, '--port', url.port || '5432', '--username', decodeURIComponent(url.username)];
+// La version des CLI DOIT correspondre au serveur (PostgreSQL 16). Le runner GitHub
+// peut installer une CLI plus récente qui émet SET transaction_timeout, invalide en 16.
+const pgTool = (binary, args) => {
+  try {
+    return execFileSync('docker', ['run', '--rm', '--network', 'host', '--user',
+      `${process.getuid()}:${process.getgid()}`, '--volume', `${dir}:${dir}`,
+      '--env', 'PGPASSWORD', '--entrypoint', binary, 'postgres:16', ...args],
+    { env: toolEnv, stdio: 'pipe' });
+  } catch (error) {
+    // Ne jamais publier le dump ou les commandes SQL du restore dans un log CI.
+    throw new Error(`${binary} PostgreSQL 16 échoué (code ${error?.status ?? 'inconnu'}).`);
+  }
+};
 let adminConnected = false;
 let restoredConnected = false;
 try {
@@ -47,16 +60,15 @@ try {
   const before = (await source.query(statsSql)).rows[0];
   assert.equal(before.migrations, 8); assert.equal(before.shops, 1);
   assert.equal(before.audit, 1); assert.equal(before.force_rls, true);
-  execFileSync('pg_dump', [...common, '--format=custom', '--file', dump, '--dbname', url.pathname.slice(1)],
-    { env: toolEnv, stdio: 'pipe' });
+  pgTool('pg_dump', [...common, '--format=custom', '--file', dump, '--dbname', url.pathname.slice(1)]);
   const archive = await readFile(dump);
   assert.equal(archive.subarray(0, 5).toString(), 'PGDMP', 'Archive pg_dump custom attendu.');
   const digest = createHash('sha256').update(archive).digest('hex');
-  execFileSync('pg_restore', ['--list', dump], { env: toolEnv, stdio: 'pipe' });
+  pgTool('pg_restore', ['--list', dump]);
   await admin.connect(); adminConnected = true;
   await admin.query('CREATE DATABASE toutenun_restore_ci');
-  execFileSync('pg_restore', [...common, '--exit-on-error', '--no-owner', '--no-acl', '--dbname',
-    restoredUrl.pathname.slice(1), dump], { env: toolEnv, stdio: 'pipe' });
+  pgTool('pg_restore', [...common, '--exit-on-error', '--no-owner', '--no-acl', '--dbname',
+    restoredUrl.pathname.slice(1), dump]);
   assert.equal(createHash('sha256').update(await readFile(dump)).digest('hex'), digest,
     'Archive inchangée pendant la restauration.');
   await restored.connect(); restoredConnected = true;

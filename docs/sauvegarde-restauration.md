@@ -8,8 +8,8 @@ Le job `Migrations (PostgreSQL 16 réel)` lance `scripts/test-backup-restore.mjs
 
 1. Vérifie que la base et l’environnement sont exactement ceux de la CI jetable (`CI=true`, `APP_ENV=staging`, base `tout_en_un_test` sur `localhost`, utilisateur `postgres`).
 2. Insère une application, une boutique et une ligne d’audit **fictives** dans cette base CI.
-3. Crée une archive locale temporaire `pg_dump --format=custom`, vérifie son format et son SHA-256.
-4. Restaure par `pg_restore --exit-on-error` dans une **autre base**, `toutenun_restore_ci`.
+3. Crée une archive temporaire `pg_dump --format=custom` avec la CLI de l’image `postgres:16`, vérifie son format et son SHA-256. Le premier essai utilisait une CLI plus récente du runner et a échoué avec `transaction_timeout` ; cette correction attend une nouvelle CI.
+4. Restaure avec `pg_restore --exit-on-error` de la **même image PostgreSQL 16** dans une autre base, `toutenun_restore_ci`.
 5. Compare la présence des 8 migrations, la boutique, l’audit, le nombre de politiques RLS et le `FORCE ROW LEVEL SECURITY` sur `shops` ; vérifie que l’archive n’a pas changé ; détruit la base restaurée et l’archive temporaire.
 
 L’étape est bloquante en CI. **Elle n’a pas encore été exécutée** au moment de rédiger ce document ; ne pas annoncer une restauration réussie avant son résultat GitHub.
