@@ -35,16 +35,20 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   const notices = await noticeResponse.json() as { notifications: { id: string; kind: string; message: string; readAt: string | null }[] };
   expect(notices.notifications.some((n) => n.kind === 'security_login')).toBe(true);
   expect(JSON.stringify(notices)).not.toMatch(/token_hash|totp_secret|user_agent/);
-  // Une mutation réelle est appliquée à la première notification, puis confirmée via l’API.
-  const firstNotice = notices.notifications[0];
-  expect(firstNotice?.id).toMatch(/^[1-9]\d*$/);
+  // La liste visible peut précéder la toute dernière notification API pendant une navigation
+  // App Router. Choisir la ligne réellement affichée et vérifier son appartenance au compte.
+  const firstVisibleNotice = page.locator('.notification-list > li').first();
+  const visibleId = await firstVisibleNotice.getAttribute('data-notification-id');
+  expect(visibleId).toMatch(/^[1-9]\d*$/);
+  const firstNotice = notices.notifications.find((notice) => notice.id === visibleId);
+  expect(firstNotice, 'La notification affichée doit appartenir au compte autorisé').toBeDefined();
   expect((await page.request.get('/api/notifications?filter=incorrect')).status()).toBe(400);
   const initialFilter = firstNotice?.readAt ? 'read' : 'unread';
   const initialFiltered = await page.request.get(`/api/notifications?filter=${initialFilter}`);
   expect(initialFiltered.status()).toBe(200);
   expect((await initialFiltered.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
-  // Le rendu peut évoluer pendant router.refresh() : cibler l'ID API, pas le premier li.
-  const action = page.locator(`.notification-list > li[data-notification-id="${firstNotice?.id}"]`).getByRole('button',
+  // Figée par ID si un rafraîchissement remplace entre-temps la première ligne.
+  const action = page.locator(`.notification-list > li[data-notification-id="${visibleId}"]`).getByRole('button',
     { name: firstNotice?.readAt ? 'Marquer comme non lue' : 'Marquer comme lue' });
   await expect(action).toBeEnabled();
   const [mutation] = await Promise.all([
