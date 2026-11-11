@@ -105,6 +105,12 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
     .toEqual(['proprietaire@ci.invalid']);
   expect((await page.request.get('/api/admin/users?status=invited')).status()).toBe(200);
   expect((await page.request.get('/api/admin/users?status=unexpected')).status()).toBe(400);
+  const ownerRole = await page.request.get('/api/admin/users?role=owner&status=active');
+  expect(ownerRole.status()).toBe(200);
+  expect((await ownerRole.json() as { users: { email: string }[] }).users.map((u) => u.email))
+    .toEqual(['proprietaire@ci.invalid']);
+  expect((await page.request.get('/api/admin/users?role=manager')).status()).toBe(200);
+  expect((await page.request.get('/api/admin/users?role=invalid')).status()).toBe(400);
   await page.getByRole('searchbox', { name: 'Rechercher un utilisateur' }).fill('proprietaire');
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page).toHaveURL(/q=proprietaire/);
@@ -116,6 +122,14 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await page.getByRole('combobox', { name: 'Statut du compte' }).selectOption('active');
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page).toHaveURL(/status=active/);
+  await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
+  await page.getByRole('combobox', { name: 'Rôle attribué' }).selectOption('manager');
+  await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
+  await expect(page).toHaveURL(/role=manager/);
+  await expect(page.getByRole('status')).toContainText('Aucun compte ne correspond à ces filtres.');
+  await page.getByRole('combobox', { name: 'Rôle attribué' }).selectOption('owner');
+  await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
+  await expect(page).toHaveURL(/status=active&role=owner/);
   await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
   await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible();

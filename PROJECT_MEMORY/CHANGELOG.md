@@ -1,3 +1,5 @@
+- **Phase 1 — filtre rôle utilisateurs** (présent lot, SHA à relever) : combiné à statut/recherche, pagination et droits globaux conservés ; check/lint/types/162 Vitest réussis localement ; build local non validé (dépendances/sandbox), CI et E2E du nouveau SHA à venir.
+- **Validation `d1d4088`** : run `43018013858` quatre jobs verts, artifact code présent ; archive GitHub non encore restaurée depuis le téléchargement.
 - **Phase 1 — correctif upload artifact** (SHA à relever) : échec CI `43016471668` isolé au dossier caché, archive créée et vérifiée mais non envoyée ; préparation dans dossier visible ; simulation locale en clone propre/empreintes/restauration OK, lint/types/161 Vitest OK ; nouveau run et téléchargement de l'artifact encore en attente. Aucun code métier ni migration modifiés.
 - **Phase 1 — filtre de statut utilisateurs** (présent lot, SHA à relever) : recherche combinée à statut, API et page, pagination conservée, tests PGlite et E2E ajoutés ; check/lint/types/161 Vitest/build locaux OK, E2E du nouveau SHA et CI distants en attente. Aucun schéma changé.
 # Journal des jalons

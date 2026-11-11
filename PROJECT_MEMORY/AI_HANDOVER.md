@@ -30,3 +30,7 @@ La liste utilisateurs ajoute `status` (`all/active/suspended/invited`) combiné 
 ## Incident upload artifact
 
 `43016471668` : 3 validations vertes, création/verify snapshot vert, upload échoué « No files were found ... .project-backups/* ». Le correctif staged `code-archive-upload/` demande une nouvelle CI + téléchargement/restauration avant de déclarer archive automatique fonctionnelle.
+
+## Lot P1 rôle des utilisateurs
+
+Lire `docs/comptes-rendus/phase1-filtre-role-utilisateurs.md`. Le `main` GitHub `d1d4088` a quatre jobs verts et artifact présent ; nouveau filtre rôle n'est pas encore validé en CI. Lint/types/162 Vitest locaux verts ; build local non validé après échec symlink Next et `npm ci` tué (137). Ne pas présenter le filtre terminé sans job qualité et E2E verts sur le nouveau SHA.

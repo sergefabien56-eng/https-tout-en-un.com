@@ -12,3 +12,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Lot P1 administration : ajouter un filtre de statut validé côté serveur aux comptes existants, combinable à la recherche, sans migration, sans changer l'autorisation globale ni divulguer de secrets. Le SQL est paramétré ; les E2E doivent encore confirmer le navigateur réel.
 
 - Après échec d'`upload-artifact@v4` sur `.project-backups/*` (`43016471668`), conserver le snapshot local ignoré par Git et copier uniquement les trois archives validées dans un dossier non caché pour l'upload ; ne pas activer l'option globale d'inclusion de fichiers cachés afin de ne pas élargir le périmètre par inadvertance.
+
+- Lot P1 filtre rôle : cinq rôles système fixés en 0003 ; `EXISTS` sur `user_roles` permet de retrouver une attribution globale ou boutique sans multiplier les utilisateurs. Le filtre ne confère aucun nouveau droit, les valeurs sont validées, la requête est paramétrée ; pas de migration.

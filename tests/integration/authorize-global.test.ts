@@ -90,18 +90,46 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       await db.exec("DELETE FROM users WHERE email LIKE 'status-%@fixture.invalid'");
     }
   });
+  it('filtre rôle : attributions globales et boutique, combinaison avec statut, droits conservés', async () => {
+    expect((await listAuthorizedUsers(owner.token, 1, '', 'all', 'owner')).users.map((u) => u.email))
+      .toEqual(['owner@test.invalid']);
+    expect((await listAuthorizedUsers(owner.token, 1, 'GESTIONNAIRE', 'active', 'manager')).users
+      .map((u) => u.email)).toEqual(['global@test.invalid', 'scoped@test.invalid']);
+    expect((await listAuthorizedUsers(owner.token, 1, '', 'all', 'assistant')).users).toEqual([]);
+    const fixture = await db.query<{ id: string }>(`INSERT INTO users (email,password_hash,display_name,status)
+      VALUES ('role-invited@fixture.invalid','hash','Rôle invité','invited') RETURNING id`);
+    try {
+      const id = fixture.rows[0]!.id;
+      // Plusieurs attributions d'un même rôle ne dupliquent jamais l'utilisateur dans la liste.
+      await db.query("INSERT INTO user_roles (user_id, role_code, shop_id) VALUES ($1, 'manager', NULL), ($1, 'manager', 1)", [id]);
+      const filtered = await listAuthorizedUsers(owner.token, 1, 'Rôle invité', 'invited', 'manager');
+      expect(filtered.users.map((u) => u.email)).toEqual(['role-invited@fixture.invalid']);
+      expect(filtered.nextPage).toBeNull();
+      expect(JSON.stringify(filtered)).not.toMatch(/password_hash|totp_secret|token_hash/);
+      expect((await listAuthorizedUsers(owner.token, 1, '', 'invited', 'owner')).users).toEqual([]);
+      await expect(listAuthorizedUsers(owner.token, 1, '', 'all', 'OWNER')).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(listAuthorizedUsers(owner.token, 1, '', 'all', 'manager OR true')).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(listAuthorizedUsers(scoped.token, 1, '', 'all', 'owner')).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(listAuthorizedUsers(undefined, 1, '', 'all', 'owner')).rejects.toMatchObject({ httpStatus: 401 });
+    } finally {
+      await db.query('DELETE FROM users WHERE id = $1', [fixture.rows[0]!.id]);
+    }
+  });
   it('pagination des résultats garde la combinaison recherche et statut côté serveur', async () => {
     await db.exec(`INSERT INTO users (email, password_hash, display_name, status)
       SELECT 'page-filter-' || n || '@fixture.invalid', 'hash', 'Pagination filtre', 'invited'
       FROM generate_series(1, 21) AS n`);
     try {
-      const first = await listAuthorizedUsers(owner.token, 1, 'Pagination filtre', 'invited');
-      const second = await listAuthorizedUsers(owner.token, 2, 'Pagination filtre', 'invited');
+      await db.exec(`INSERT INTO user_roles (user_id, role_code, shop_id)
+        SELECT id, 'manager', 1 FROM users WHERE email LIKE 'page-filter-%@fixture.invalid'`);
+      const first = await listAuthorizedUsers(owner.token, 1, 'Pagination filtre', 'invited', 'manager');
+      const second = await listAuthorizedUsers(owner.token, 2, 'Pagination filtre', 'invited', 'manager');
       expect(first.users).toHaveLength(20);
       expect(first.nextPage).toBe(2);
       expect(second.users).toHaveLength(1);
       expect(second.nextPage).toBeNull();
-      expect((await listAuthorizedUsers(owner.token, 2, 'Pagination filtre', 'active')).users).toEqual([]);
+      expect((await listAuthorizedUsers(owner.token, 2, 'Pagination filtre', 'active', 'manager')).users).toEqual([]);
+      expect((await listAuthorizedUsers(owner.token, 1, 'Pagination filtre', 'invited', 'owner')).users).toEqual([]);
     } finally {
       await db.exec("DELETE FROM users WHERE email LIKE 'page-filter-%@fixture.invalid'");
     }

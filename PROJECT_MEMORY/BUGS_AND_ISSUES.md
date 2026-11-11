@@ -12,3 +12,5 @@ Enregistrer ici tout bug reproductible avec SHA, environnement, résultat attend
 7. **Deux lots locaux non publiés** (`8833d4c` archive CI + filtre utilisateurs du présent lot) : ne pas attribuer leur validation au run de `bf706f1`; E2E filtre et job artifact restent à tester sur GitHub.
 
 8. **Run CI `43016471668` en échec (cause prouvée)** : GitHub `upload-artifact@v4` ne trouve pas `.project-backups/*` car le dossier est caché ; 3 jobs principaux verts, zéro artifact. Correctif : dossier visible ne contenant que bundle/ZIP/empreintes vérifiés ; à confirmer par nouveau run.
+
+9. **Build local du filtre rôle non validé** : build avec symlink de `node_modules` a échoué à résoudre des modules Next présents ; installation propre `npm ci` sur clone a expiré puis été tuée (137) par le sandbox. Lint/typage/162 Vitest réussis ; attendre une CI complète du nouveau commit avant validation.

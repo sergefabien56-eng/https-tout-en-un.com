@@ -1,12 +1,12 @@
-# État Phase 1 — incident archive CI corrigé localement
+# Phase 1 — état vérifié et lot rôle en attente de CI
 
-| Élément | Preuve / statut |
+| Élément | État et preuve |
 |---|---|
-| GitHub publié | `main` `c882cb4970eeaa35083ddf3a0d7a7f595adb8455` ; run `43016471668` **failure** à cause de l'upload artifact seul |
-| Fonction utilisateur | Filtre statut + recherche et pagination : job qualité + intégration et E2E bureau/mobile **success** sur ce SHA ; ne pas déclarer le run global vert |
-| Base CI | Migrations PostgreSQL 16, rollback, restauration de fixtures : job **success** |
-| Archive code | Création et vérification réussies dans le job CI, puis `actions/upload-artifact@v4` : **aucun fichier trouvé dans dossier caché `.project-backups/`** ; 0 artifact publié |
-| Correctif | dossier visible `code-archive-upload/` avec uniquement bundle, ZIP, SHA256 ; **nouveau run CI à vérifier après push** |
-| Données réelles | aucune sauvegarde PostgreSQL chiffrée hors serveur, aucun hébergement de production vérifié |
+| Publié | GitHub `main` `d1d40888c63100e2372c846f63b2e714ae839a53`, run `43018013858` terminé **success**, quatre jobs verts |
+| Archive code | Artifact `code-valide-d1d4088…` présent (expiration annoncée 2026-12-11 UTC) ; **non téléchargé/restauré depuis GitHub** ; temporaire et même hébergeur |
+| Filtre de rôle | Service SQL paramétré, API et page combinant rôle/statut/recherche, rôles globaux et par boutique ; **non publié, CI et E2E de ce lot en attente** |
+| Tests locaux du nouveau lot | contrôle mémoire, lint, typage, **162 Vitest** réussis. Build local non validé : résolution Next avec symlink ; `npm ci` expiré puis tué (137) faute de ressources. Le build du précédent SHA réussi ne valide pas ce lot. |
+| PostgreSQL | 10 migrations ; aucune migration ajoutée. Test CI de restauration de fixtures, pas backup de données réelles. |
+| Production | Aucun déploiement durable ni sauvegarde chiffrée hors serveur de la base vérifiés ; SMTP/Jumia/finance non livrés. |
 
-Tests locaux du correctif : YAML analysé, contrôle mémoire, lint, typage et **161/161 Vitest** OK ; simulation sur clone propre : création des archives, empreintes vérifiées, exactement 3 fichiers dans le dossier visible, bundle restauré et SHA comparé. L’envoi effectif via GitHub Actions **reste non testé**. Les 3 jobs verts du SHA `c882cb4` ne prouvent pas que le quatrième fonctionnera après correction. Secrets interdits dans archive/CI. Voir `NEXT_ACTIONS.md`.
+**À faire** : publier le nouveau commit descendant et vérifier qualité/build, migrations PG16, E2E et archive sur le nouveau SHA ; télécharger/restaurer l'artifact ; préciser hébergement et destination indépendante des données sans jamais partager de secrets.
