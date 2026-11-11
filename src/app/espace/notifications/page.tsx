@@ -29,7 +29,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
     {result.notifications.length === 0 ? <div className="card" role="status"><h2>Aucune notification</h2>
       <p>{filter === 'all' ? 'Aucun événement de sécurité n’a encore été enregistré pour ce compte.' :
         filter === 'unread' ? 'Aucune notification non lue.' : 'Aucune notification lue.'}</p></div>
-      : <ul className="notification-list">{result.notifications.map((n) => <li key={n.id} className="card">
+      : <ul className="notification-list">{result.notifications.map((n) => <li key={n.id} data-notification-id={n.id} className="card">
         <h2>{n.title}</h2><p>{n.message}</p><p>{n.readAt ? 'Lue' : 'Non lue'}</p>
         <small>{new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(n.createdAt))} UTC</small>
         <NotificationReadButton id={n.id} read={n.readAt !== null} />

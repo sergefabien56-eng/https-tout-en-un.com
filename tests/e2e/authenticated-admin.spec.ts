@@ -43,13 +43,17 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   const initialFiltered = await page.request.get(`/api/notifications?filter=${initialFilter}`);
   expect(initialFiltered.status()).toBe(200);
   expect((await initialFiltered.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
-  const action = page.locator('.notification-list > li').first().getByRole('button',
+  // Le rendu peut évoluer pendant router.refresh() : cibler l'ID API, pas le premier li.
+  const action = page.locator(`.notification-list > li[data-notification-id="${firstNotice?.id}"]`).getByRole('button',
     { name: firstNotice?.readAt ? 'Marquer comme non lue' : 'Marquer comme lue' });
   await expect(action).toBeEnabled();
-  const mutation = page.waitForResponse((response) => response.url().endsWith(`/api/notifications/${firstNotice?.id}/read`)
-    && response.request().method() === 'POST');
-  await action.click();
-  expect((await mutation).status()).toBe(200);
+  const [mutation] = await Promise.all([
+    page.waitForResponse((response) => response.url().includes('/api/notifications/')
+      && response.url().endsWith('/read') && response.request().method() === 'POST', { timeout: 15_000 }),
+    action.click(),
+  ]);
+  expect(mutation.url()).toContain(`/api/notifications/${firstNotice?.id}/read`);
+  expect(mutation.status()).toBe(200);
   await expect.poll(async () => {
     const result = await page.request.get('/api/notifications');
     const data = await result.json() as { notifications: { id: string; readAt: string | null }[] };
