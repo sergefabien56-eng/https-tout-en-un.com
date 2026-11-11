@@ -11,6 +11,10 @@ test('page connexion accessible et aucun débordement horizontal', async ({ page
   const sizes = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: window.innerWidth }));
   expect(sizes.content).toBeLessThanOrEqual(sizes.viewport);
   await expectNoSeriousAccessibilityViolations(page);
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect.poll(() => page.locator('.login-card').evaluate((card) => getComputedStyle(card).backgroundColor))
+    .toBe('rgb(19, 27, 46)');
+  await expectNoSeriousAccessibilityViolations(page);
 });
 
 test('espace privé inaccessible sans session, côté serveur', async ({ page }) => {
@@ -25,5 +29,9 @@ test('connexion sans vrai compte : aucune donnée métier inventée', async ({ p
   await page.goto('/');
   await expect(page.getByText(/aucun indicateur n’est affiché/i)).toBeVisible();
   await expect(page.getByText(/rien n’est simulé/i)).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect.poll(() => page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundColor))
+    .toBe('rgb(19, 27, 46)');
   await expectNoSeriousAccessibilityViolations(page);
 });

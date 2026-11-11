@@ -40,7 +40,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
     {activeId && <p><ShopSelectButton shopId="all" label="toutes les boutiques autorisées" selected={false} /></p>}
     {result.shops.length === 0 ? <div className="card" role="status">
       <h2>Aucune boutique accessible</h2><p>Aucune boutique n’est actuellement visible pour votre compte.</p>
-    </div> : <div className="card users-list"><table>
+    </div> : <div className="card users-list" role="region" aria-label="Tableau des boutiques défilant horizontalement" tabIndex={0}><table>
       <caption>Boutiques réelles — page {page}</caption>
       <thead><tr><th scope="col">Boutique</th><th scope="col">Pays</th><th scope="col">Devise</th><th scope="col">État</th><th scope="col">Sélection</th><th scope="col">Journal</th></tr></thead>
       <tbody>{result.shops.map((shop) => <tr key={shop.id}><th scope="row">{shop.displayName}</th>

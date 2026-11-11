@@ -16,7 +16,7 @@ export default async function SessionsPage() {
     <span className="tag">Sécurité du compte</span>
     <h1>Mes sessions</h1>
     <p>Connexions actives vérifiées dans la base. Heures affichées en UTC ; aucun jeton ou adresse IP n’est affiché.</p>
-    <div className="card users-list"><table><caption>Jusqu’à 100 sessions actives</caption>
+    <div className="card users-list" role="region" aria-label="Tableau des sessions défilant horizontalement" tabIndex={0}><table><caption>Jusqu’à 100 sessions actives</caption>
       <thead><tr><th scope="col">Appareil</th><th scope="col">Connecté le</th><th scope="col">Dernière activité</th><th scope="col">Expiration</th></tr></thead>
       <tbody>{sessions.map((session) => <tr key={session.id}>
         <th scope="row">{session.device}{session.current ? ' — cette session' : ''}</th>

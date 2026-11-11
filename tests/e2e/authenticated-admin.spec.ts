@@ -125,6 +125,17 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
+  await page.getByRole('button', { name: 'Thème system : changer le thème' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expectNoSeriousAccessibilityViolations(page);
+  if (testInfo.project.name === 'mobile-375') {
+    const menuTrigger = page.getByRole('button', { name: 'Ouvrir le menu' });
+    await menuTrigger.click();
+    await expect(page.locator('.workspace')).toHaveClass(/workspace-drawer-open/);
+    await expectNoSeriousAccessibilityViolations(page);
+    await page.keyboard.press('Escape');
+    await expect(menuTrigger).toBeFocused();
+  }
   const shopsResponse = await page.request.get('/api/shops');
   expect(shopsResponse.status()).toBe(200);
   const shopList = await shopsResponse.json() as { shops: { id: string; displayName: string }[] };
@@ -136,16 +147,32 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(quickSearch).toBeVisible();
   await quickSearch.getByRole('searchbox', { name: 'Rechercher parmi mes boutiques' }).fill('Boutique CI');
   await expect(quickSearch.getByRole('link', { name: /Boutique CI fictive/ })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
   await page.keyboard.press('Escape');
   await expect(quickSearch).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Rechercher une boutique' })).toBeFocused();
   // Vrai clic dans le sélecteur de la barre, CSRF et permission contrôlés côté serveur.
   await page.getByRole('button', { name: 'Choisir une boutique' }).click();
   const picker = page.getByRole('dialog', { name: 'Choix de boutique' });
   await expect(picker.getByRole('button', { name: /Boutique CI fictive/ })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+  await page.keyboard.press('Escape');
+  await expect(picker).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toBeFocused();
+  await page.getByRole('button', { name: 'Choisir une boutique' }).click();
   await picker.getByRole('button', { name: /Boutique CI fictive/ }).click();
   await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toContainText('Préférence : Boutique CI fictive');
   await page.goto('/espace/journal');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.getByRole('table')).toContainText('fixture.created');
+  await expectNoSeriousAccessibilityViolations(page);
+  if (testInfo.project.name === 'mobile-375') {
+    const scrollableJournal = page.getByRole('region', { name: 'Tableau du journal défilant horizontalement' });
+    await scrollableJournal.focus();
+    await expect(scrollableJournal).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(() => scrollableJournal.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  }
   const searchedAudit = await page.request.get(`/api/shops/${shopId}/audit?q=fixture.created`);
   expect(searchedAudit.status()).toBe(200);
   expect((await searchedAudit.json() as { events: { action: string }[] }).events.map((e) => e.action))

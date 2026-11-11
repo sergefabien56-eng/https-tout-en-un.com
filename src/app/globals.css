@@ -4,6 +4,7 @@
 :root {
   --brand-navy: #101c39;
   --brand-blue: #1765f5;
+  --link-color: #1765f5;
   --brand-orange: #f57c1f;
   --brand-green: #12855b;
   --ok-text: #12855b;
@@ -28,6 +29,7 @@
     --text-primary: #edf1f8;
     --text-secondary: #a9b4c9;
     --text-muted: #a2b0c8;
+    --link-color: #9ac1ff;
     --ok-text: #59c99a;
     --soon-text: #ffb064;
   }
@@ -74,7 +76,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px
 .tag.ok { color: var(--ok-text); border-color: rgba(18, 133, 91, 0.35); }
 .tag.soon { color: var(--soon-text); border-color: rgba(245, 124, 31, 0.35); }
 .muted { color: var(--text-muted); font-size: 12.5px; }
-a { color: var(--brand-blue); text-decoration: underline; text-underline-offset: 2px; }
+a { color: var(--link-color); text-decoration: underline; text-underline-offset: 2px; }
 
 /* Connexion : lisibilité et contrôles utilisables dès 375 px. */
 .login-page { max-width: 520px; min-height: 100svh; padding-top: clamp(28px, 8vh, 96px); }
@@ -95,12 +97,12 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 :root[data-theme="dark"] {
   --bg-app: #0a1020; --bg-surface: #131b2e; --border-subtle: #243049;
   --text-primary: #edf1f8; --text-secondary: #a9b4c9; --text-muted: #a2b0c8;
-  --ok-text: #59c99a; --soon-text: #ffb064;
+  --link-color: #9ac1ff; --ok-text: #59c99a; --soon-text: #ffb064;
 }
 :root[data-theme="light"] {
   --bg-app: #f6f8fb; --bg-surface: #ffffff; --border-subtle: #e3e8f0;
   --text-primary: #101c39; --text-secondary: #4c5a75; --text-muted: #58637b;
-  --ok-text: #12855b; --soon-text: #955009;
+  --link-color: #1765f5; --ok-text: #12855b; --soon-text: #955009;
 }
 .workspace { --sidebar-width: 264px; display: flex; min-height: 100svh; width: 100%; }
 .workspace-rail { --sidebar-width: 72px; }
@@ -180,6 +182,7 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 }
 @media (prefers-reduced-motion: reduce) { .workspace-sidebar, .nav-chevron { transition: none; } }
 .users-list { overflow-x: auto; }
+.users-list:focus-visible, .role-matrix:focus-visible { outline: 3px solid var(--brand-blue); outline-offset: 3px; }
 .users-list table { width: 100%; border-collapse: collapse; text-align: left; }
 .users-list caption { text-align: left; color: var(--text-muted); margin-bottom: 12px; }
 .users-list th, .users-list td { padding: 12px; border-bottom: 1px solid var(--border-subtle); }

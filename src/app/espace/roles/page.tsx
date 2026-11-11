@@ -20,7 +20,7 @@ export default async function RolesPage() {
     {matrix.roles.length === 0 || matrix.permissions.length === 0
       ? <div role="status" className="card"><h2>Rôles indisponibles</h2>
         <p>Aucun rôle ou permission n’a été configuré.</p></div>
-      : <div className="card role-matrix">
+      : <div className="card role-matrix" role="region" aria-label="Matrice des autorisations défilant horizontalement" tabIndex={0}>
         <table>
           <caption>Matrice des autorisations — {matrix.permissions.length} permissions réelles</caption>
           <thead><tr><th scope="col">Permission</th>{matrix.roles.map((r) => <th scope="col" key={r.code}>{r.label}</th>)}</tr></thead>

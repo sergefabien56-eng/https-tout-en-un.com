@@ -45,7 +45,7 @@ export default async function AuditPage({ searchParams }: {
     <p><a href={link(undefined, true)}>Exporter cette sélection en CSV</a></p>
     {result.events.length === 0 ? <div className="card" role="status"><h2>Aucun événement</h2>
       <p>Aucune entrée d’audit enregistrée pour cette boutique.</p></div>
-      : <div className="card users-list"><table><caption>Journal réel — page {raw}</caption>
+      : <div className="card users-list" role="region" aria-label="Tableau du journal défilant horizontalement" tabIndex={0}><table><caption>Journal réel — page {raw}</caption>
         <thead><tr><th scope="col">Date UTC</th><th scope="col">Module</th><th scope="col">Action</th><th scope="col">Résultat</th></tr></thead>
         <tbody>{result.events.map((event) => <tr key={event.id}><td>{new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(event.occurredAt))}</td>
           <td>{event.module}</td><td>{event.action}</td><td>{event.result === 'success' ? 'Succès' : 'Échec'}</td></tr>)}</tbody>

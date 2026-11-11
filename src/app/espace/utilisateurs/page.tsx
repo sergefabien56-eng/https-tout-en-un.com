@@ -34,7 +34,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     </form>
     {result.users.length === 0 ? <div className="card" role="status">
       <h2>Aucun utilisateur</h2><p>{q.trim() ? 'Aucun compte ne correspond à cette recherche.' : 'Aucun compte n’a encore été créé.'}</p>
-    </div> : <div className="card users-list">
+    </div> : <div className="card users-list" role="region" aria-label="Tableau des utilisateurs défilant horizontalement" tabIndex={0}>
       <table><caption>Utilisateurs réels — page {page}</caption>
         <thead><tr><th scope="col">Nom</th><th scope="col">Adresse e-mail</th><th scope="col">Statut</th><th scope="col">Créé le</th></tr></thead>
         <tbody>{result.users.map((user) => <tr key={user.id}>

@@ -56,7 +56,9 @@ export function ShopSwitcher({ selectedShop }: { selectedShop: string | null }) 
     if (event.key === 'Escape' && open) { event.preventDefault(); setOpen(false); trigger.current?.focus(); }
   }}>
     <button ref={trigger} className="shop-context" type="button" aria-expanded={open}
-      aria-controls="shop-switcher-panel" aria-label="Choisir une boutique" onClick={() => setOpen(!open)}>
+      aria-controls="shop-switcher-panel"
+      aria-label={selectedShop ? `Choisir une boutique — Préférence : ${selectedShop}` : 'Choisir une boutique'}
+      onClick={() => setOpen(!open)}>
       {selectedShop ? `Préférence : ${selectedShop}` : 'Choisir une boutique'}
     </button>
     {open && <div id="shop-switcher-panel" className="shop-switcher-panel" role="dialog" aria-label="Choix de boutique">
