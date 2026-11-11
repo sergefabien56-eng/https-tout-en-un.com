@@ -167,7 +167,12 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     await db.exec('CREATE TABLE schema_migrations (version text PRIMARY KEY);');
     await db.exec("INSERT INTO schema_migrations VALUES ('0001'), ('0002');");
     const health = await getDeepHealth(owner.token);
-    expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, queue: 'indisponible' });
+    expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, queue: 'indisponible', version: '0.1.0' });
+    expect(['development', 'staging', 'production']).toContain(health.environment);
+    expect(health.databaseQueryMs).toEqual(expect.any(Number));
+    expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
+    expect(Object.keys(health).sort()).toEqual(['checkedAt', 'database', 'databaseQueryMs', 'environment', 'migrationsApplied', 'queue', 'version']);
+    expect(JSON.stringify(health)).not.toMatch(/DATABASE_URL|postgres:\/\/|password|secret|token/i);
     await expect(getDeepHealth(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
     await expect(getDeepHealth(undefined)).rejects.toMatchObject({ httpStatus: 401 });
   });

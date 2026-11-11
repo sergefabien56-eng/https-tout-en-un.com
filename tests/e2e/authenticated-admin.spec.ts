@@ -192,9 +192,16 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expectNoSeriousAccessibilityViolations(page);
   const deep = await page.request.get('/api/health/deep');
   expect(deep.status()).toBe(200);
-  const health = await deep.json() as { database: string; migrationsApplied: number };
+  const health = await deep.json() as { database: string; migrationsApplied: number; version: string; environment: string; databaseQueryMs: number; queue: string };
   expect(health.database).toBe('ok');
   expect(health.migrationsApplied).toBe(10);
+  expect(health.queue).toBe('indisponible');
+  expect(health.environment).toBe('staging');
+  expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
+  await expect(page.getByText(health.version, { exact: true })).toBeVisible();
+  await expect(page.getByText('Préproduction', { exact: true })).toBeVisible();
+  await expect(page.getByText(String(health.migrationsApplied), { exact: true })).toBeVisible();
+  await expect(page.getByText('le worker n’est pas encore livré', { exact: false })).toBeVisible();
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();

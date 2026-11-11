@@ -98,3 +98,7 @@ SHA `bfe33db` publié ; PG16 success, qualité failure sur deux assertions `test
 ## Nouveau lot filtre résultat du journal
 
 Run `43112722746` du SHA `410d408` : quatre jobs verts validant **Apparence**, artifact code non restauré. Nouveau lot local « Tous/Succès/Échec » sur journal boutique, API et CSV, SQL paramétré sous RLS, valeurs invalides 400, fixture E2E fictive failure. Non publié/non validé par cet ancien run. PC Windows reste en pause explicite. Voir `RESUME_HERE.md`, `NEXT_ACTIONS.md` et `docs/comptes-rendus/phase1-filtre-resultat-journal.md`.
+
+## Chantier L10 interface et administration après filtre validé
+
+Propriétaire ne veut plus de choix entre micro-améliorations : il veut terminer le vrai chantier interface/administration P1. SHA base GitHub `075be6e`, run `43115169737` quatre jobs success, artifact non restauré ; preuve `/home/user/continuity-backups/verification-publication-075be6e.md`. Premier sous-lot local Système : API+page owner cohérentes (version, environnement déclaré, nombre de migrations, durée de requête ; file absente), sans secret ni changement de droits. Voir compte rendu, `RESUME_HERE.md`, `NEXT_ACTIONS.md`. Tests PGlite renforcés non exécutés localement ; CI du nouveau SHA obligatoire. Windows demeure en pause, aucune donnée réelle ou production.
