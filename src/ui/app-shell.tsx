@@ -21,8 +21,9 @@ function readIds(): string[] {
   } catch { return ['dashboard']; }
 }
 
-export function AppShell({ userName, selectedShop, permissions, globalPermissions, children }: {
-  userName: string; selectedShop?: string | null; permissions: readonly string[]; globalPermissions?: readonly string[]; children: ReactNode;
+export function AppShell({ userName, selectedShop, permissions, globalPermissions, unreadNotifications, children }: {
+  userName: string; selectedShop?: string | null; permissions: readonly string[];
+  globalPermissions?: readonly string[]; unreadNotifications: number; children: ReactNode;
 }) {
   const pathname = usePathname();
   const groups = visibleNavigation(new Set(permissions), new Set(globalPermissions ?? permissions));
@@ -153,7 +154,13 @@ export function AppShell({ userName, selectedShop, permissions, globalPermission
           <ShopSwitcher selectedShop={selectedShop ?? null} />
           <div className="topbar-spacer" />
           <button type="button" className="topbar-disabled" disabled title="Recherche bientôt disponible" aria-label="Recherche bientôt disponible"><Search size={18} /></button>
-          <Link href="/espace/notifications" className="topbar-notifications" title="Mes notifications" aria-label="Mes notifications"><Bell size={18} /></Link>
+          <Link href="/espace/notifications" className="topbar-notifications"
+            title="Mes notifications"
+            aria-label={`Mes notifications : ${unreadNotifications === 100 ? 'plus de 99' : unreadNotifications} non lue${unreadNotifications === 1 ? '' : 's'}`}>
+            <Bell size={18} aria-hidden="true" />
+            {unreadNotifications > 0 && <span className="notification-badge" aria-hidden="true">
+              {unreadNotifications === 100 ? '99+' : unreadNotifications}</span>}
+          </Link>
           <Button variant="ghost" size="icon" aria-label={`Thème ${theme} : changer le thème`} onClick={changeTheme}>
             {theme === 'dark' ? <Moon size={19} /> : <Sun size={19} />}
           </Button>

@@ -8,8 +8,9 @@ import { AppShell } from '@/ui/app-shell';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/espace', useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
 
-const mount = (permissions = ['dashboard:read', 'system:manage', 'shops:read']) =>
-  render(createElement(AppShell, { userName: 'Compte réel', permissions, children: createElement('p', {}, 'Contenu protégé') }));
+const mount = (permissions = ['dashboard:read', 'system:manage', 'shops:read'], unreadNotifications = 0) =>
+  render(createElement(AppShell, { userName: 'Compte réel', permissions, unreadNotifications,
+    children: createElement('p', {}, 'Contenu protégé') }));
 
 beforeEach(() => { localStorage.clear(); delete document.documentElement.dataset.theme; });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
@@ -26,6 +27,14 @@ describe('coquille UI — état prêt et états indisponibles', () => {
     expect(soon.closest('a')).toBeNull();
     expect(screen.getByText('Compte réel')).toBeTruthy();
     expect(screen.getByText('Contenu protégé')).toBeTruthy();
+  });
+  it('cloche : compteur réel plafonné et nom accessible sans divulgation', () => {
+    mount(undefined, 100);
+    expect(screen.getByRole('link', { name: 'Mes notifications : plus de 99 non lues' }).textContent).toContain('99+');
+    cleanup();
+    mount(undefined, 0);
+    expect(screen.getByRole('link', { name: 'Mes notifications : 0 non lues' })).toBeTruthy();
+    expect(screen.queryByText('99+')).toBeNull();
   });
   it('cache une entrée si la permission n’est pas accordée', () => {
     mount(['dashboard:read']);

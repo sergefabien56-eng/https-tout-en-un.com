@@ -19,7 +19,9 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   await page.getByRole('button', { name: 'Se connecter' }).click();
   await expect(page).toHaveURL(/\/espace$/);
   await expect(page.locator('.topbar-user')).toHaveText('Propriétaire CI');
-  await page.getByRole('link', { name: 'Mes notifications' }).click();
+  const notificationLink = page.getByRole('link', { name: /^Mes notifications : (?:plus de 99|\d+) non lues?$/ });
+  await expect(notificationLink).toBeVisible();
+  await notificationLink.click();
   await expect(page.getByRole('heading', { name: 'Mes notifications' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Nouvelle connexion' }).first()).toBeVisible();
   const noticeResponse = await page.request.get('/api/notifications');

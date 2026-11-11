@@ -6,6 +6,7 @@ import { withAuthorizedShopTransaction } from '@/core/auth/authorize-shop';
 import { AppError } from '@/core/errors/app-error';
 import { SessionHeartbeat } from '@/ui/session-heartbeat';
 import { getNavigationPermissions } from '@/ui/navigation-permissions';
+import { countOwnUnreadBadge } from '@/modules/notifications/unread-badge';
 
 /** Toutes les pages sous /espace partagent l'authentification et la coquille. */
 export default async function PrivateLayout({ children }: { children: React.ReactNode }) {
@@ -14,6 +15,12 @@ export default async function PrivateLayout({ children }: { children: React.Reac
   const session = await getSession(token);
   if (!session) redirect('/connexion');
   const grants = await getNavigationPermissions(session.userId);
+  let unreadNotifications: number;
+  try { unreadNotifications = await countOwnUnreadBadge(token); }
+  catch (error) {
+    if (error instanceof AppError && error.httpStatus === 401) redirect('/connexion');
+    throw error;
+  }
   const rawShop = (await cookies()).get('toutenun_shop')?.value;
   let selectedShop: string | null = null;
   if (rawShop && /^[1-9]\d{0,18}$/.test(rawShop)) {
@@ -30,5 +37,6 @@ export default async function PrivateLayout({ children }: { children: React.Reac
     }
   }
   return <AppShell userName={session.displayName} selectedShop={selectedShop} permissions={[...grants.permissions]}
-    globalPermissions={[...grants.globalPermissions]}><SessionHeartbeat />{children}</AppShell>;
+    globalPermissions={[...grants.globalPermissions]} unreadNotifications={unreadNotifications}>
+    <SessionHeartbeat />{children}</AppShell>;
 }

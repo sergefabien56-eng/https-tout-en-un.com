@@ -18,6 +18,7 @@ vi.mock('@/core/db/client', () => ({
 }));
 const { listOwnNotifications } = await import('@/modules/notifications/list-own');
 const { setOwnNotificationRead } = await import('@/modules/notifications/set-read');
+const { countOwnUnreadBadge } = await import('@/modules/notifications/unread-badge');
 const first = createSessionToken(), second = createSessionToken();
 beforeAll(async () => {
   db = await PGlite.create();
@@ -39,6 +40,8 @@ describe('notifications personnelles', () => {
   it('chaque compte voit uniquement les siennes', async () => {
     expect((await listOwnNotifications(first.token)).notifications.map((r) => r.message)).toEqual(['A']);
     expect((await listOwnNotifications(second.token)).notifications.map((r) => r.message)).toEqual(['B']);
+    expect(await countOwnUnreadBadge(first.token)).toBe(1);
+    expect(await countOwnUnreadBadge(second.token)).toBe(1);
   });
   it('RLS refuse les INSERT vers autrui et ne montre rien sans contexte', async () => {
     await db.exec('BEGIN; SET LOCAL ROLE app_user;');
@@ -58,10 +61,13 @@ describe('notifications personnelles', () => {
     expect(own?.id).toBeDefined(); expect(foreign?.id).toBeDefined();
     await expect(setOwnNotificationRead(first.token, foreign!.id, true)).rejects.toMatchObject({ httpStatus: 404 });
     expect((await setOwnNotificationRead(first.token, own!.id, true)).readAt).not.toBeNull();
+    expect(await countOwnUnreadBadge(first.token)).toBe(0);
+    expect(await countOwnUnreadBadge(second.token)).toBe(1);
     expect((await listOwnNotifications(first.token)).notifications[0]?.readAt).not.toBeNull();
     await setOwnNotificationRead(first.token, own!.id, true);
     expect((await db.query("SELECT action FROM audit_log WHERE module='notifications'")).rows).toHaveLength(1);
     expect((await setOwnNotificationRead(first.token, own!.id, false)).readAt).toBeNull();
+    expect(await countOwnUnreadBadge(first.token)).toBe(1);
     expect((await listOwnNotifications(first.token)).notifications[0]?.readAt).toBeNull();
     expect((await listOwnNotifications(second.token)).notifications[0]?.readAt).toBeNull();
     expect((await db.query("SELECT action FROM audit_log WHERE module='notifications' ORDER BY id")).rows)
@@ -83,10 +89,22 @@ describe('notifications personnelles', () => {
     expect((await listOwnNotifications(first.token, 2, 'read')).notifications).toEqual([]);
     await expect(listOwnNotifications(first.token, 1, 'autrui' as 'all')).rejects.toMatchObject({ httpStatus: 400 });
   });
+  it('le badge plafonne à 99+ sans compter les notifications d’autrui', async () => {
+    await db.exec(`INSERT INTO user_notifications (user_id,kind,title,message)
+      SELECT 1,'security_login','Fixture badge','badge fixture' FROM generate_series(1, 101)`);
+    try {
+      expect(await countOwnUnreadBadge(first.token)).toBe(100);
+      expect(await countOwnUnreadBadge(second.token)).toBe(1);
+    } finally {
+      await db.exec("DELETE FROM user_notifications WHERE message='badge fixture'");
+    }
+  });
   it('jeton absent ou périmé ne donne aucune donnée', async () => {
     await expect(setOwnNotificationRead(undefined, '1', true)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(setOwnNotificationRead(createSessionToken().token, '1', true)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(setOwnNotificationRead(first.token, '1 OR 1=1', true)).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(countOwnUnreadBadge(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(countOwnUnreadBadge(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnNotifications(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnNotifications(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnNotifications(first.token, 0)).rejects.toMatchObject({ httpStatus: 400 });
