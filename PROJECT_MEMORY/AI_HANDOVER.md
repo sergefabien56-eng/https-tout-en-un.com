@@ -78,3 +78,7 @@ Le run `43073364514` sur `ae540ec` est confirmé success (4 jobs) ; l'artifact G
 ## Run périodes rapides `43077689648` — flaky E2E
 
 Le SHA `f05f8b7` est publié ; qualité/PG16 success, navigateur 9 passés/1 flaky bureau, archive skipped. L'assertion `toHaveURL(/\/espace\/journal\?/)` était vraie sur l'ancienne URL après clic 30 jours : le test lisait encore l'intervalle 7 jours (6 jours d'écart). Correction locale attend `from`/`to` de la nouvelle destination avant assertions, sans toucher au métier. Voir `RESUME_HERE.md` et compte rendu ; le prochain SHA doit être publié et CI quatre jobs verts.
+
+## Run `43079138718` — autre flaky notifications
+
+Qualité/PG16 verts, navigateur 9 passés/1 flaky bureau dans scénario notifications, archive skipped. Lien rafraîchir `href=...filter=read&page=1` vérifié mais ancienne URL `filter=read` persiste à l'assertion de 5 s ; retry passe. Cause précise inconnue sans trace GitHub (non téléchargée). Diagnostic local attend navigation document et réponse 200 ; ne pas le présenter comme correction validée. Voir `RESUME_HERE.md`.

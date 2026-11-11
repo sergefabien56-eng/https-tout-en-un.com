@@ -77,7 +77,14 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.locator('.notification-list > li').first()).toBeVisible();
   const refreshFiltered = page.getByRole('link', { name: 'Actualiser les notifications' });
   await expect(refreshFiltered).toHaveAttribute('href', `/espace/notifications?filter=${targetFilter}&page=1`);
-  await refreshFiltered.click();
+  // <a href> impose une navigation document complète. Attendre son achèvement et
+  // sa réponse, pas seulement le retour de click() alors que l'ancienne URL demeure.
+  const [refreshedDocument] = await Promise.all([
+    page.waitForNavigation({ url: new RegExp(`/espace/notifications\\?filter=${targetFilter}&page=1$`),
+      waitUntil: 'domcontentloaded', timeout: 15_000 }),
+    refreshFiltered.click(),
+  ]);
+  expect(refreshedDocument?.status()).toBe(200);
   await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}&page=1$`));
   await expect(page.locator(`.notification-list > li[data-notification-id="${visibleId}"]`)).toBeVisible();
   const afterFilter = await page.request.get(`/api/notifications?filter=${targetFilter}`);
