@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 // Seulement en CI : utilisateur et codes FICTIFS créés dans une base PostgreSQL jetable.
 // Jamais exécuté contre une base réelle de production.
 test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async ({ page }, testInfo) => {
+  test.setTimeout(90_000); // Parcours connecté multi-pages sur PostgreSQL, bureau et mobile.
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   const codes = readFileSync(process.env.E2E_RECOVERY_FILE!, 'utf8').trim().split('\n');
   // Chaque tentative consomme un code de secours : retry et appareils distincts.
@@ -20,7 +21,7 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   await expect(page.locator('.topbar-user')).toHaveText('Propriétaire CI');
   await page.getByRole('link', { name: 'Mes notifications' }).click();
   await expect(page.getByRole('heading', { name: 'Mes notifications' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Nouvelle connexion' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nouvelle connexion' }).first()).toBeVisible();
   const noticeResponse = await page.request.get('/api/notifications');
   expect(noticeResponse.status()).toBe(200);
   const notices = await noticeResponse.json() as { notifications: { kind: string; message: string }[] };
