@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Bell, ChevronDown, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } from 'lucide-react';
 import { ShopSwitcher } from '@/ui/shop-switcher';
-import { ShopQuickSearch } from '@/ui/shop-quick-search';
+import { DirectoryQuickSearch } from '@/ui/directory-quick-search';
 import { appConfig } from '@/core/config/app.config';
 import { visibleNavigation } from '@/ui/navigation.config';
 import { Button } from '@/ui/components/button';
@@ -154,7 +154,7 @@ export function AppShell({ userName, selectedShop, permissions, globalPermission
           <strong className="topbar-name">{appConfig.shortName}</strong>
           <ShopSwitcher selectedShop={selectedShop ?? null} />
           <div className="topbar-spacer" />
-          {permissions.includes('shops:read') && <ShopQuickSearch />}
+          {(permissions.includes('shops:read') || globalPermissions?.includes('users:read')) && <DirectoryQuickSearch />}
           <Link href="/espace/notifications" className="topbar-notifications"
             title="Mes notifications"
             aria-label={`Mes notifications : ${unreadNotifications === 100 ? 'plus de 99' : unreadNotifications} non lue${unreadNotifications === 1 ? '' : 's'}`}>

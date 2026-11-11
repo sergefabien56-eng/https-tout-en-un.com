@@ -14,6 +14,7 @@ import { GET as notificationsGet } from '@/app/api/notifications/route';
 import { GET as shopAuditGet } from '@/app/api/shops/[shopId]/audit/route';
 import { GET as auditExportGet } from '@/app/api/shops/[shopId]/audit/export/route';
 import { GET as shopsGet } from '@/app/api/shops/route';
+import { GET as directorySearchGet } from '@/app/api/search/route';
 import { POST as selectShopPost } from '@/app/api/preferences/shop/route';
 import { POST as refreshPost } from '@/app/api/auth/refresh/route';
 import { nextLock } from '@/core/auth/service';
@@ -97,6 +98,13 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
   it('GET catalogue sans session refuse les boutiques', async () => {
     const request = new NextRequest('https://app.example.com/api/shops');
     expect((await shopsGet(request)).status).toBe(401);
+  });
+  it('GET recherche rapide : session obligatoire et requête bornée sans lecture anonyme', async () => {
+    const denied = await directorySearchGet(new NextRequest('https://app.example.com/api/search?q=CI'));
+    expect(denied.status).toBe(401);
+    expect(denied.headers.get('cache-control')).toContain('no-store');
+    expect(denied.headers.get('x-content-type-options')).toBe('nosniff');
+    expect((await directorySearchGet(new NextRequest('https://app.example.com/api/search?q=x'))).status).toBe(400);
   });
   it('POST sélection sans Origin/CSRF est refusé sans accès DB', async () => {
     const request = new NextRequest('https://app.example.com/api/preferences/shop', { method: 'POST',

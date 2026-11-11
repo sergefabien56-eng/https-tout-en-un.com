@@ -8,8 +8,10 @@ import { AppShell } from '@/ui/app-shell';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/espace', useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
 
-const mount = (permissions = ['dashboard:read', 'system:manage', 'shops:read'], unreadNotifications = 0) =>
-  render(createElement(AppShell, { userName: 'Compte réel', permissions, unreadNotifications,
+const mount = (permissions = ['dashboard:read', 'system:manage', 'shops:read'], unreadNotifications = 0,
+  globalPermissions?: string[]) =>
+  render(createElement(AppShell, { userName: 'Compte réel', permissions,
+    ...(globalPermissions === undefined ? {} : { globalPermissions }), unreadNotifications,
     children: createElement('p', {}, 'Contenu protégé') }));
 
 beforeEach(() => { localStorage.clear(); delete document.documentElement.dataset.theme; });
@@ -36,29 +38,38 @@ describe('coquille UI — état prêt et états indisponibles', () => {
     expect(screen.getByRole('link', { name: 'Mes notifications : 0 non lues' })).toBeTruthy();
     expect(screen.queryByText('99+')).toBeNull();
   });
-  it('Ctrl+K recherche seulement des boutiques autorisées via API et ferme avec Échap', async () => {
+  it('Ctrl+K recherche boutiques et comptes autorisés via une API protégée et ferme avec Échap', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ shops: [
       { id: '7', displayName: 'Boutique CI', countryCode: 'CI', status: 'connected' },
-    ] }) });
+    ], users: [{ id: '2', displayName: 'Utilisateur CI', email: 'user@ci.invalid' }] }) });
     vi.stubGlobal('fetch', fetchMock);
     mount();
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
-    const dialog = screen.getByRole('dialog', { name: 'Recherche rapide de boutiques' });
-    const field = within(dialog).getByRole('searchbox', { name: 'Rechercher parmi mes boutiques' });
+    const dialog = screen.getByRole('dialog', { name: 'Recherche rapide dans mon espace' });
+    const field = within(dialog).getByRole('searchbox', { name: 'Rechercher dans mon espace' });
     expect(document.activeElement).toBe(field);
     await userEvent.setup().type(field, 'CI');
     const hit = await within(dialog).findByRole('link', { name: /Boutique CI/ });
     expect(hit.getAttribute('href')).toBe('/espace/boutiques?q=Boutique%20CI');
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/shops?q=CI'))).toBe(true);
+    const userHit = await within(dialog).findByRole('link', { name: /Utilisateur CI/ });
+    expect(userHit.getAttribute('href')).toBe('/espace/utilisateurs/2');
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/search?q=CI'))).toBe(true);
     fireEvent.keyDown(field, { key: 'Escape' });
-    expect(screen.queryByRole('dialog', { name: 'Recherche rapide de boutiques' })).toBeNull();
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Rechercher une boutique' }));
+    expect(screen.queryByRole('dialog', { name: 'Recherche rapide dans mon espace' })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Rechercher dans mon espace' }));
   });
   it('cache une entrée si la permission n’est pas accordée', () => {
     mount(['dashboard:read']);
     expect(within(screen.getByRole('navigation', { name: 'Modules' })).queryByText('Toutes les boutiques')).toBeNull();
     expect(screen.queryByText('Système')).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Rechercher une boutique' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Rechercher dans mon espace' })).toBeNull();
+  });
+  it('montre la recherche aux lecteurs globaux de comptes, pas au rôle boutique seul', () => {
+    mount(['dashboard:read', 'users:read'], 0, ['users:read']);
+    expect(screen.getByRole('button', { name: 'Rechercher dans mon espace' })).toBeTruthy();
+    cleanup();
+    mount(['dashboard:read', 'users:read'], 0, []);
+    expect(screen.queryByRole('button', { name: 'Rechercher dans mon espace' })).toBeNull();
   });
   it('Tout fermer et Tout ouvrir agissent sur plusieurs sections', async () => {
     mount();

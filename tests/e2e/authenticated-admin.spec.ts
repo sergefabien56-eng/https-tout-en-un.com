@@ -200,14 +200,22 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(shopList.shops[0]?.displayName).toBe('Boutique CI fictive');
   const shopId = shopList.shops[0]!.id;
   await page.keyboard.press('ControlOrMeta+k');
-  const quickSearch = page.getByRole('dialog', { name: 'Recherche rapide de boutiques' });
+  const quickSearch = page.getByRole('dialog', { name: 'Recherche rapide dans mon espace' });
   await expect(quickSearch).toBeVisible();
-  await quickSearch.getByRole('searchbox', { name: 'Rechercher parmi mes boutiques' }).fill('Boutique CI');
+  await quickSearch.getByRole('searchbox', { name: 'Rechercher dans mon espace' }).fill('Boutique CI');
   await expect(quickSearch.getByRole('link', { name: /Boutique CI fictive/ })).toBeVisible();
+  const quickResults = await page.request.get('/api/search?q=proprietaire');
+  expect(quickResults.status()).toBe(200);
+  const directory = await quickResults.json() as { shops: unknown[]; users: { email: string }[] };
+  expect(directory.users.map((user) => user.email)).toContain('proprietaire@ci.invalid');
+  expect(JSON.stringify(directory)).not.toMatch(/password_hash|token_hash|totp_secret/);
+  expect((await page.request.get('/api/search?q=x')).status()).toBe(400);
+  await quickSearch.getByRole('searchbox', { name: 'Rechercher dans mon espace' }).fill('proprietaire');
+  await expect(quickSearch.getByRole('link', { name: /Propriétaire CI · proprietaire@ci.invalid/ })).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
   await page.keyboard.press('Escape');
   await expect(quickSearch).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Rechercher une boutique' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Rechercher dans mon espace' })).toBeFocused();
   // Vrai clic dans le sélecteur de la barre, CSRF et permission contrôlés côté serveur.
   await page.getByRole('button', { name: 'Choisir une boutique' }).click();
   const picker = page.getByRole('dialog', { name: 'Choix de boutique' });

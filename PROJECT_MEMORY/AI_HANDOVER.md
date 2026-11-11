@@ -29,12 +29,16 @@ La liste utilisateurs ajoute `status` (`all/active/suspended/invited`) combiné 
 
 ## Incident upload artifact
 
-`43016471668` : 3 validations vertes, création/verify snapshot vert, upload échoué « No files were found ... .project-backups/* ». Le correctif staged `code-archive-upload/` demande une nouvelle CI + téléchargement/restauration avant de déclarer archive automatique fonctionnelle.
+`43016471668` : 3 validations vertes, création/verify snapshot vert, upload échoué « No files were found ... .project-backups/* ». Correctif `code-archive-upload/` depuis validé par les runs suivants (dont `43024089653`) : artifact présent, téléchargement/restauration depuis GitHub **non vérifiés**.
 
 ## Lot P1 rôle des utilisateurs
 
-Lire `docs/comptes-rendus/phase1-filtre-role-utilisateurs.md`. Le `main` GitHub `d1d4088` a quatre jobs verts et artifact présent ; nouveau filtre rôle n'est pas encore validé en CI. Lint/types/162 Vitest locaux verts ; build local non validé après échec symlink Next et `npm ci` tué (137). Ne pas présenter le filtre terminé sans job qualité et E2E verts sur le nouveau SHA.
+Lire `docs/comptes-rendus/phase1-filtre-role-utilisateurs.md`. Historique : `d1d4088` était la base du filtre rôle ; `061a368` a depuis été publié et validé (run `43021881652`, quatre jobs verts). Lint/types/162 Vitest avaient réussi localement, build local non validé (symlink Next/`npm ci` tué 137).
 
 ## Lot P1 recherche limitée
 
-Le run `43021881652` de `061a368` est vert (4 jobs) ; nouveau lot non encore publié. Lire `docs/comptes-rendus/phase1-recherche-boutiques-comptes.md`. La suite complète locale a été interrompue par OOM (dmesg), ne jamais annoncer 163 tests verts ; ciblés 9/9, lint/types OK. Confirmer build/163 tests/E2E sur **nouveau** SHA en CI avant validation.
+Historique : `43021881652` de `061a368` est vert (4 jobs) ; le lot recherche a depuis été publié en `a64593b` et validé (`43024089653`, 4 jobs). Lire `docs/comptes-rendus/phase1-recherche-boutiques-comptes.md`. La suite complète locale a été interrompue par OOM (dmesg), ne jamais annoncer 163 tests verts ; ciblés 9/9, lint/types OK. Le build, la suite complète et les E2E du **SHA a64593b** ont été confirmés par sa CI, pas ceux du nouveau lot palette.
+
+## Lot palette Ctrl/Cmd+K enrichie
+
+Le run GitHub `43024089653` de `a64593b` est vert (4 jobs) ; la palette modifiée attend **son** run. Lire `docs/comptes-rendus/phase1-recherche-rapide-permissions.md`. Nouveau `/api/search` + `src/ui/directory-quick-search.tsx` remplace l'ancien fichier boutique sans supprimer la recherche boutique. Tests ciblés 35/35, lint/types OK, suite entière/build/E2E locaux non validés. Ne pas déclarer opérationnel avant CI du nouveau SHA.

@@ -9,10 +9,12 @@
 
 Enregistrer ici tout bug reproductible avec SHA, environnement, résultat attendu/observé et preuve de correction.
 
-7. **Deux lots locaux non publiés** (`8833d4c` archive CI + filtre utilisateurs du présent lot) : ne pas attribuer leur validation au run de `bf706f1`; E2E filtre et job artifact restent à tester sur GitHub.
+7. **Historique** : `8833d4c` et le filtre utilisateurs étaient alors non publiés ; les lots suivants ont depuis été publiés et validés. L’artifact GitHub reste non restauré depuis GitHub.
 
 8. **Run CI `43016471668` en échec (cause prouvée)** : GitHub `upload-artifact@v4` ne trouve pas `.project-backups/*` car le dossier est caché ; 3 jobs principaux verts, zéro artifact. Correctif : dossier visible ne contenant que bundle/ZIP/empreintes vérifiés ; à confirmer par nouveau run.
 
 9. **Build local du filtre rôle non validé** : build avec symlink de `node_modules` a échoué à résoudre des modules Next présents ; installation propre `npm ci` sur clone a expiré puis été tuée (137) par le sandbox. Lint/typage/162 Vitest réussis ; attendre une CI complète du nouveau commit avant validation.
 
 10. **Suite locale non verte sur nouveau lot recherche** : 2 workers Vitest (`auth-service`, `bootstrap-owner`) tués par dépassement mémoire (dmesg OOM), 18/20 fichiers et 153/163 tests passés ; bootstrap-owner isolé 3/3, auth-service isolé OOM. Tests ciblés du nouveau lot verts. Build non relancé localement. Ne conclure qu'après CI du nouveau SHA.
+
+11. **Nouveau lot palette** : tests ciblés 35/35, lint/types OK ; suite entière, build et E2E du nouveau SHA non validés localement sous contrainte mémoire du sandbox. Le run vert précédent `43024089653` n'est pas une preuve pour le nouveau code.

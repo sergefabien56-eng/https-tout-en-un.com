@@ -1,12 +1,11 @@
-# Phase 1 — lot recherche limitée en attente de CI
+# Phase 1 — palette enrichie en attente de CI
 
-| Élément | État vérifié |
+| Élément | Statut vérifiable |
 |---|---|
-| Base publiée | `061a368b08333ce8a0f0b88f5504aa26c0f19d6a` sur GitHub `main`, run `43021881652` : **4 jobs verts**, artifact code présent mais non restauré depuis GitHub. |
-| Nouveau lot recherche | Page `src/app/espace/recherche/page.tsx`, service `src/modules/identity/directory-search.ts`, entrée navigation : boutiques sous RLS + comptes si droit global ; **non encore publié**, CI/E2E du nouveau SHA en attente. |
-| Tests locaux ciblés | mémoire, lint, types, **9/9 tests ciblés** réussis ; build local non validé. |
-| Suite locale | **NON VERTE** : 18 fichiers/20, 153 tests passés/163 ; workers auth-service/bootstrap-owner tués par OOM (confirmé dmesg), même avec `--maxWorkers=1`; bootstrap-owner isolé 3/3 ; auth-service isolé tué. Aucune conclusion sur ce lot via un test complet local. |
-| Schéma / métier | 10 migrations inchangées ; aucune donnée Jumia réelle, module MIMI ni produit financier. |
-| Exploitation | archive code temporaire GitHub uniquement ; aucune sauvegarde chiffrée extérieure/restauration de données commerciales ni déploiement production validés. |
+| Base publiée | `a64593b08e1dbd0adf22c5381565fe0916a5ce73`, run `43024089653` : **4 jobs verts**, artifact code présent mais non restauré depuis GitHub. |
+| Présent lot | Palette `Ctrl/Cmd+K` garde les boutiques autorisées et ajoute les comptes visibles **seulement** avec `users:read` global ; API `/api/search` réutilise le service serveur/RLS de la page existante. **Non encore publié/validé en CI.** |
+| Tests locaux | Mémoire, lint, types, **35/35 tests ciblés** (UI, API refus, catalogue RLS) verts ; build/total Vitest/E2E du nouveau SHA non validés localement, vérifier la CI. |
+| Schéma | 10 migrations inchangées ; aucun SQL ou donnée Jumia/financière nouvelle. |
+| Production | Aucune sauvegarde PostgreSQL réelle chiffrée hors serveur ni déploiement de production validés. Artifact GitHub code temporaire uniquement. |
 
-**Validation attendue** : commit puis quatre jobs verts sur le **nouveau** SHA, y compris suite complète, build et E2E. Ne pas attribuer le succès de la CI précédente au présent lot.
+Le précédent run vert ne valide pas les modifications de la palette. La CI et l'artifact du nouveau SHA sont la prochaine preuve exigée ; voir `BUGS_AND_ISSUES.md` pour les limites mémoire locales.

@@ -1,6 +1,6 @@
 # Guide utilisateur — TOUT EN UN BUSINESS MANAGER
 
-> **État : guide de la version de développement, Phase 1 non terminée.** L'application n'est pas déployée ; le dépôt GitHub et sa CI ne sont pas une URL de production. Base publiée vérifiée : mémoire `bf706f1`, CI `43013341355` verte. Le filtre de statut des utilisateurs ci-dessous est testé localement mais attend la CI de son nouveau commit ; voir `docs/comptes-rendus/phase1-filtre-statut-utilisateurs.md`. Aucun compte, boutique ou chiffre Jumia n'est créé par défaut en production.
+> **État : guide de la version de développement, Phase 1 non terminée.** L'application n'est pas déployée ; le dépôt GitHub et sa CI ne sont pas une URL de production. Base publiée vérifiée : `a64593b`, CI `43024089653` quatre jobs verts. La recherche rapide enrichie décrite ci-dessous est testée localement de façon ciblée mais attend la CI de son nouveau commit ; voir `docs/comptes-rendus/phase1-recherche-rapide-permissions.md`. Aucun compte, boutique ou chiffre Jumia n'est créé par défaut en production.
 
 ## 1. Accéder à son espace
 
@@ -12,7 +12,7 @@ La page **Mes sessions** (`/espace/sessions`) montre les connexions actives de v
 
 Après connexion, utilisez le menu latéral à deux niveaux. Il peut rester ouvert sur plusieurs sections ; **Tout ouvrir** et **Tout fermer** sont disponibles. Sur téléphone, ouvrez puis fermez le tiroir avec les boutons dédiés ; `Échap` le ferme. Au clavier, les flèches haut/bas ainsi que Début/Fin aident à parcourir les entrées. Un élément marqué **Bientôt** n'est pas une fonction utilisable.
 
-La barre supérieure donne accès au choix de boutique, aux notifications, au thème et à **Mes sessions** via votre nom. La loupe lance une **recherche rapide de boutiques autorisées** ; `Ctrl/Cmd+K` l'ouvre au clavier et `Échap` la ferme. Saisissez au moins deux caractères, puis ouvrez le résultat dans la liste des boutiques. La page **Recherche dans mon espace** (`/espace/recherche`) propose séparément les boutiques autorisées et, si votre rôle global le permet, les comptes utilisateurs. La recherche `Ctrl/Cmd+K` reste limitée aux boutiques. Les commandes, produits, stocks et chiffres Jumia ne sont pas recherchables : ce n’est **pas** encore une recherche globale de tous les modules. Le thème peut suivre le système, être sombre ou clair ; la préférence est conservée localement dans le navigateur.
+La barre supérieure donne accès au choix de boutique, aux notifications, au thème et à **Mes sessions** via votre nom. La loupe lance une **recherche rapide dans votre espace** ; `Ctrl/Cmd+K` l'ouvre au clavier et `Échap` la ferme. Saisissez au moins deux caractères : elle montre les boutiques autorisées et, si votre rôle global le permet, les comptes utilisateurs. Les résultats et permissions sont vérifiés côté serveur. La page **Recherche dans mon espace** (`/espace/recherche`) offre les mêmes catégories avec des liens vers les listes complètes. Les commandes, produits, stocks et chiffres Jumia ne sont pas recherchables : ce n’est **pas** encore une recherche globale de tous les modules. Le thème peut suivre le système, être sombre ou clair ; la préférence est conservée localement dans le navigateur.
 
 ## 3. Voir et sélectionner ses boutiques
 
