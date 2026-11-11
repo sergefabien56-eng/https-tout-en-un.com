@@ -54,6 +54,19 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(JSON.stringify(result)).not.toMatch(/password_hash|totp_secret|token_hash/);
     expect(result.nextPage).toBeNull();
   });
+  it('recherche de comptes par nom/e-mail : serveur global, filtres validés et zéro secret', async () => {
+    const name = await listAuthorizedUsers(owner.token, 1, 'GESTIONNAIRE');
+    expect(name.users.map((u) => u.email)).toEqual(['global@test.invalid', 'scoped@test.invalid']);
+    expect((await listAuthorizedUsers(owner.token, 1, 'owner@test.invalid')).users.map((u) => u.displayName))
+      .toEqual(['Propriétaire']);
+    expect((await listAuthorizedUsers(owner.token, 1, 'introuvable')).users).toEqual([]);
+    expect((await listAuthorizedUsers(owner.token, 2, 'gestionnaire')).users).toEqual([]);
+    expect(JSON.stringify(name)).not.toMatch(/password_hash|totp_secret|token_hash/);
+    await expect(listAuthorizedUsers(scoped.token, 1, 'owner')).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(listAuthorizedUsers(undefined, 1, 'owner')).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(listAuthorizedUsers(owner.token, 1, 'a'.repeat(81))).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(listAuthorizedUsers(owner.token, 1, 'a\n')).rejects.toMatchObject({ httpStatus: 400 });
+  });
   it('manager limité à une boutique : refus global, même avec users:read', async () => {
     await expect(listAuthorizedUsers(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
     const grants = await getNavigationPermissions('2');

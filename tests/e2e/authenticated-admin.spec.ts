@@ -66,6 +66,15 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(response.status()).toBe(200);
   const result = await response.json() as { users: { id: string; email: string }[] };
   expect(result.users[0]?.email).toBe('proprietaire@ci.invalid');
+  const filteredUsers = await page.request.get('/api/admin/users?q=proprietaire');
+  expect(filteredUsers.status()).toBe(200);
+  expect((await filteredUsers.json() as { users: { email: string }[] }).users.map((u) => u.email))
+    .toEqual(['proprietaire@ci.invalid']);
+  expect((await page.request.get('/api/admin/users?q=%0A')).status()).toBe(400);
+  await page.getByRole('searchbox', { name: 'Rechercher un utilisateur' }).fill('proprietaire');
+  await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
+  await expect(page).toHaveURL(/q=proprietaire/);
+  await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
   await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible();
   await expect(page.getByText('Global (toutes les boutiques)')).toBeVisible();
