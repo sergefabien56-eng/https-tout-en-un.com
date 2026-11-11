@@ -12,7 +12,7 @@ La page **Mes sessions** (`/espace/sessions`) montre les connexions actives de v
 
 Après connexion, utilisez le menu latéral à deux niveaux. Il peut rester ouvert sur plusieurs sections ; **Tout ouvrir** et **Tout fermer** sont disponibles. Sur téléphone, ouvrez puis fermez le tiroir avec les boutons dédiés ; `Échap` le ferme. Au clavier, les flèches haut/bas ainsi que Début/Fin aident à parcourir les entrées. Un élément marqué **Bientôt** n'est pas une fonction utilisable.
 
-La barre supérieure donne accès au choix de boutique, aux notifications, au thème et à **Mes sessions** via votre nom. Le bouton Recherche est désactivé tant que la recherche globale n'est pas livrée. Le thème peut suivre le système, être sombre ou clair ; la préférence est conservée localement dans le navigateur.
+La barre supérieure donne accès au choix de boutique, aux notifications, au thème et à **Mes sessions** via votre nom. La loupe lance une **recherche rapide de boutiques autorisées** ; `Ctrl/Cmd+K` l'ouvre au clavier et `Échap` la ferme. Saisissez au moins deux caractères, puis ouvrez le résultat dans la liste des boutiques. La recherche globale de tous les modules n'est pas encore livrée. Le thème peut suivre le système, être sombre ou clair ; la préférence est conservée localement dans le navigateur.
 
 ## 3. Voir et sélectionner ses boutiques
 

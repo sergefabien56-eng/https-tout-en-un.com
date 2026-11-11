@@ -102,6 +102,13 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(shopList.shops).toHaveLength(1);
   expect(shopList.shops[0]?.displayName).toBe('Boutique CI fictive');
   const shopId = shopList.shops[0]!.id;
+  await page.keyboard.press('ControlOrMeta+k');
+  const quickSearch = page.getByRole('dialog', { name: 'Recherche rapide de boutiques' });
+  await expect(quickSearch).toBeVisible();
+  await quickSearch.getByRole('searchbox', { name: 'Rechercher parmi mes boutiques' }).fill('Boutique CI');
+  await expect(quickSearch.getByRole('link', { name: /Boutique CI fictive/ })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(quickSearch).toBeHidden();
   // Vrai clic dans le sélecteur de la barre, CSRF et permission contrôlés côté serveur.
   await page.getByRole('button', { name: 'Choisir une boutique' }).click();
   const picker = page.getByRole('dialog', { name: 'Choix de boutique' });

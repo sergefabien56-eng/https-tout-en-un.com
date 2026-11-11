@@ -36,10 +36,29 @@ describe('coquille UI — état prêt et états indisponibles', () => {
     expect(screen.getByRole('link', { name: 'Mes notifications : 0 non lues' })).toBeTruthy();
     expect(screen.queryByText('99+')).toBeNull();
   });
+  it('Ctrl+K recherche seulement des boutiques autorisées via API et ferme avec Échap', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ shops: [
+      { id: '7', displayName: 'Boutique CI', countryCode: 'CI', status: 'connected' },
+    ] }) });
+    vi.stubGlobal('fetch', fetchMock);
+    mount();
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+    const dialog = screen.getByRole('dialog', { name: 'Recherche rapide de boutiques' });
+    const field = within(dialog).getByRole('searchbox', { name: 'Rechercher parmi mes boutiques' });
+    expect(document.activeElement).toBe(field);
+    await userEvent.setup().type(field, 'CI');
+    const hit = await within(dialog).findByRole('link', { name: /Boutique CI/ });
+    expect(hit.getAttribute('href')).toBe('/espace/boutiques?q=Boutique%20CI');
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/shops?q=CI'))).toBe(true);
+    fireEvent.keyDown(field, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Recherche rapide de boutiques' })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Rechercher une boutique' }));
+  });
   it('cache une entrée si la permission n’est pas accordée', () => {
     mount(['dashboard:read']);
     expect(within(screen.getByRole('navigation', { name: 'Modules' })).queryByText('Toutes les boutiques')).toBeNull();
     expect(screen.queryByText('Système')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Rechercher une boutique' })).toBeNull();
   });
   it('Tout fermer et Tout ouvrir agissent sur plusieurs sections', async () => {
     mount();
