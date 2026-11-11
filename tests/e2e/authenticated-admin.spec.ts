@@ -45,7 +45,11 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect((await initialFiltered.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
   const action = page.locator('.notification-list > li').first().getByRole('button',
     { name: firstNotice?.readAt ? 'Marquer comme non lue' : 'Marquer comme lue' });
+  await expect(action).toBeEnabled();
+  const mutation = page.waitForResponse((response) => response.url().endsWith(`/api/notifications/${firstNotice?.id}/read`)
+    && response.request().method() === 'POST');
   await action.click();
+  expect((await mutation).status()).toBe(200);
   await expect.poll(async () => {
     const result = await page.request.get('/api/notifications');
     const data = await result.json() as { notifications: { id: string; readAt: string | null }[] };

@@ -1,12 +1,15 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /** Bouton accessible, état rafraîchi seulement après écriture serveur confirmée. */
 export function NotificationReadButton({ id, read }: { id: string; read: boolean }) {
+  const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const router = useRouter();
+  // Ne pas présenter un bouton cliquable avant l'attachement de son gestionnaire React.
+  useEffect(() => setReady(true), []);
   async function change() {
     setBusy(true); setError(false);
     try {
@@ -22,7 +25,7 @@ export function NotificationReadButton({ id, read }: { id: string; read: boolean
       router.refresh();
     } catch { setError(true); } finally { setBusy(false); }
   }
-  return <><button type="button" disabled={busy} onClick={() => void change()}>
+  return <><button type="button" disabled={!ready || busy} onClick={() => void change()}>
     {busy ? 'Enregistrement…' : read ? 'Marquer comme non lue' : 'Marquer comme lue'}
   </button>{error && <span role="alert">Modification impossible. Réessayez.</span>}</>;
 }

@@ -3,6 +3,10 @@ import { expect, type Page } from '@playwright/test';
 
 /** Axe dans Chromium réel (contraste inclus), sans réseau ni CDN. */
 export async function expectNoSeriousAccessibilityViolations(page: Page): Promise<void> {
+  // Le titre peut arriver après le contenu lors d'une navigation App Router en streaming.
+  // Auditer la page stabilisée, sans ignorer la règle document-title d'Axe.
+  // <title> n'est pas un élément rendu : toHaveText() lit une chaîne vide dans Chromium.
+  await expect.poll(() => page.title()).toMatch(/\S/);
   await page.addScriptTag({ path: resolve(process.cwd(), 'node_modules/axe-core/axe.min.js') });
   const violations = await page.evaluate(async () => {
     const engine = (window as unknown as { axe: { run: (root: Document) => Promise<{
