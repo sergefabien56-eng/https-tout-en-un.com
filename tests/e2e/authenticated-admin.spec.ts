@@ -45,7 +45,7 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   }).toBe(!firstNotice?.readAt);
   const targetFilter = firstNotice?.readAt ? 'unread' : 'read';
   await page.getByRole('navigation', { name: 'Filtrer les notifications' }).getByRole('link',
-    { name: firstNotice?.readAt ? 'Non lues' : 'Lues' }).click();
+    { name: firstNotice?.readAt ? 'Non lues' : 'Lues', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}`));
   await expect(page.locator('.notification-list > li').first()).toBeVisible();
   const afterFilter = await page.request.get(`/api/notifications?filter=${targetFilter}`);
