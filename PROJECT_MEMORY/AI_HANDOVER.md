@@ -46,3 +46,7 @@ Le run GitHub `43024089653` de `a64593b` est vert (4 jobs) ; la palette modifié
 ## Révocation ciblée des sessions — lot P1 en cours
 
 Le run `43026793436` de `cbbe950` est vert (4 jobs), mais **ce nouveau lot ne l’est pas encore**. Le propriétaire a choisi « Sécurité des sessions ». Service/route/UI protégés, 38 tests ciblés/lint/types OK ; E2E/build/suite entière du prochain SHA non validés. Lire `docs/comptes-rendus/phase1-revocation-autres-sessions.md`. Aperçu sur port 3100 = copie séparée `/home/user/preview-phase1`, pas le clone de travail ni la production.
+
+## Incident CI `43053514712` — second essai réellement analysé
+
+Le premier échec était DNS `security.ubuntu.com` pendant installation Chromium ; le second a installé le navigateur et **révélé un test sessions faux** (attend 0 boutons alors que plusieurs sessions parallèles légitimes), plus une attente fiche utilisateur flaky 5 s. Correctif local dans `tests/e2e/authenticated-admin.spec.ts`, ne pas confondre avec une CI verte. Voir `RESUME_HERE.md` et compte rendu.

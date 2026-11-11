@@ -20,3 +20,5 @@ Enregistrer ici tout bug reproductible avec SHA, environnement, résultat attend
 11. **Nouveau lot palette** : tests ciblés 35/35, lint/types OK ; suite entière, build et E2E du nouveau SHA non validés localement sous contrainte mémoire du sandbox. Le run vert précédent `43024089653` n'est pas une preuve pour le nouveau code.
 
 12. Révocation ciblée : tests ciblés 38/38, lint/types OK, mais build/suite totale/E2E du futur SHA non validés localement ; ne pas attribuer le run `43026793436` à ce lot.
+
+13. `43053514712` tentative 2 : E2E 2 failed (assertion erronée zéro autres sessions), 1 flaky (fiche utilisateur, timeout 5 s), 7 passed ; archive skipped. Correctif local test uniquement, validation CI du futur SHA en attente. Tentative 1 : DNS security.ubuntu.com échoué lors d’apt.

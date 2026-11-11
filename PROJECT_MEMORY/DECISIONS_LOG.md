@@ -20,3 +20,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Lot palette P1 : conserver comportement boutique et clavier de `Ctrl/Cmd+K`, enrichir via le **même service serveur** que la page de recherche ; catégorie comptes exige un droit global, limite 5 ; aucune donnée Jumia ni accès SQL direct client. Rendre le déclencheur accessible aux lecteurs de boutiques ou de comptes globaux.
 
 - Choix du propriétaire : prochain petit lot P1 = **Sécurité des sessions**. Un appareil peut révoquer une autre session du même compte, jamais lui-même via cette action ; Origin/CSRF, filtre serveur et audit dans la transaction ; pas de bouton « tout révoquer » dans ce lot.
+
+- CI sessions : les scénarios parallèles et retries produisent légitimement plusieurs sessions. Tester l’absence de bouton **sur la session courante**, pas zéro bouton global ; garder le refus serveur 404 et `failOnFlakyTests`.

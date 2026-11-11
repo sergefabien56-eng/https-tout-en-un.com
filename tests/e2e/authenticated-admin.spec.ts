@@ -132,7 +132,8 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page).toHaveURL(/status=active&role=owner/);
   await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
   await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible();
+  await expect(page).toHaveURL(/\/espace\/utilisateurs\/[1-9]\d*$/);
+  await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('Global (toutes les boutiques)')).toBeVisible();
   // Les séquences PostgreSQL ne sont PAS rembobinées par ROLLBACK : la fixture RLS
   // peut consommer l'ID 1. Ne jamais supposer que le propriétaire porte cet ID.
@@ -285,7 +286,12 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(sessionResponse.status()).toBe(200);
   const payload = await sessionResponse.json() as { sessions: { id: string; current: boolean }[] };
   expect(payload.sessions.some((entry) => entry.current)).toBe(true);
-  await expect(page.getByRole('button', { name: 'Déconnecter cet autre appareil' })).toHaveCount(0);
+  // Les deux scénarios E2E et leurs tentatives créent aussi des sessions sur le même compte.
+  // Vérifier la ligne de cet appareil, pas l'absence globale de boutons pour les AUTRES.
+  const currentRow = page.getByRole('table').getByRole('row').filter({ hasText: '— cette session' });
+  await expect(currentRow).toHaveCount(1);
+  await expect(currentRow.getByText('Appareil actuel')).toBeVisible();
+  await expect(currentRow.getByRole('button', { name: 'Déconnecter cet autre appareil' })).toHaveCount(0);
   const currentId = payload.sessions.find((entry) => entry.current)!.id;
   expect(JSON.stringify(payload)).not.toMatch(/token_hash|user_agent|ip_hash/);
   const csrf = await page.request.get('/api/auth/csrf');
