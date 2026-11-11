@@ -21,28 +21,37 @@ export function isUserRoleFilter(value: string): value is UserRoleFilter {
     || value === 'accountant' || value === 'assistant';
 }
 
+/** Validation partagée par la liste et l'export, mêmes filtres et limites. */
+export function parseUserFilters(q: string, status: string, role: string): {
+  term: string; status: UserStatusFilter; role: UserRoleFilter;
+} {
+  if (typeof q !== 'string' || q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32))
+    throw new ValidationError('Recherche invalide.');
+  if (!isUserStatusFilter(status)) throw new ValidationError('Statut invalide.');
+  if (!isUserRoleFilter(role)) throw new ValidationError('Rôle invalide.');
+  return { term: q.trim(), status, role };
+}
+
+export const userFilterWhere = `($1::text IS NULL OR position(lower($1) in lower(display_name)) > 0
+          OR position(lower($1) in lower(email)) > 0)
+        AND ($2::text = 'all' OR status = $2)
+        AND ($3::text = 'all' OR EXISTS (SELECT 1 FROM user_roles ur
+          WHERE ur.user_id = users.id AND ur.role_code = $3))`;
+
 /** Le filtre rôle couvre les attributions globales et les attributions boutique. */
 export async function listAuthorizedUsers(token: string | undefined, page = 1, q = '', status: string = 'all', role: string = 'all'): Promise<{
   users: UserSummary[]; nextPage: number | null;
 }> {
   if (!Number.isSafeInteger(page) || page < 1 || page > 10_000) throw new ValidationError('Page invalide.');
-  if (typeof q !== 'string' || q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32))
-    throw new ValidationError('Recherche invalide.');
-  if (!isUserStatusFilter(status)) throw new ValidationError('Statut invalide.');
-  if (!isUserRoleFilter(role)) throw new ValidationError('Rôle invalide.');
-  const term = q.trim();
+  const { term } = parseUserFilters(q, status, role);
   return withAuthorizedGlobalTransaction({ token, permission: 'users:read' }, async (db) => {
     const size = 20;
     const result = await db.query<{
       id: string; display_name: string; email: string;
       status: UserSummary['status']; created_at: Date | string;
     }>(`SELECT id::text, display_name, email, status, created_at FROM users
-        WHERE ($3::text IS NULL OR position(lower($3) in lower(display_name)) > 0
-          OR position(lower($3) in lower(email)) > 0)
-        AND ($4::text = 'all' OR status = $4)
-        AND ($5::text = 'all' OR EXISTS (SELECT 1 FROM user_roles ur
-          WHERE ur.user_id = users.id AND ur.role_code = $5))
-        ORDER BY id DESC LIMIT $1 OFFSET $2`, [size + 1, (page - 1) * size, term || null, status, role]);
+        WHERE ${userFilterWhere}
+        ORDER BY id DESC LIMIT $4 OFFSET $5`, [term || null, status, role, size + 1, (page - 1) * size]);
     return {
       users: result.rows.slice(0, size).map((r) => ({ id: String(r.id), displayName: r.display_name,
         email: r.email, status: r.status, createdAt: new Date(r.created_at).toISOString() })),

@@ -15,6 +15,7 @@ vi.mock('@/core/db/client', () => ({
   },
 }));
 const { listAuthorizedUsers, getAuthorizedUser } = await import('@/modules/identity/user-list');
+const { exportAuthorizedUsers } = await import('@/modules/identity/export-users');
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
@@ -55,6 +56,29 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(result.users[0]?.displayName).toBe('Gestionnaire global');
     expect(JSON.stringify(result)).not.toMatch(/password_hash|totp_secret|token_hash/);
     expect(result.nextPage).toBeNull();
+  });
+  it('export CSV utilisateurs : filtres identiques, neutralisation et autorisation globale', async () => {
+    const fixture = await db.query<{ id: string }>(`INSERT INTO users (email,password_hash,display_name,status)
+      VALUES ('export-fixture@fixture.invalid','SECRET_FIXTURE_HASH','=cmd','invited') RETURNING id`);
+    try {
+      await db.query("INSERT INTO user_roles (user_id, role_code, shop_id) VALUES ($1, 'manager', NULL)",
+        [fixture.rows[0]!.id]);
+      const csv = await exportAuthorizedUsers(owner.token, 'export-fixture', 'invited', 'manager');
+      expect(csv).toContain('"Organisation — droits globaux"');
+      expect(csv).toContain('"export-fixture"');
+      expect(csv).toContain('"\'=cmd"');
+      expect(csv).toContain('"export-fixture@fixture.invalid"');
+      expect(csv).not.toContain('owner@test.invalid');
+      expect(csv).not.toMatch(/SECRET_FIXTURE_HASH|password_hash|totp_secret|token_hash/);
+      expect((await exportAuthorizedUsers(owner.token, 'export-fixture', 'active', 'manager')))
+        .not.toContain('export-fixture@fixture.invalid');
+      await expect(exportAuthorizedUsers(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(exportAuthorizedUsers(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+      await expect(exportAuthorizedUsers(owner.token, '', 'OWNER')).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(exportAuthorizedUsers(owner.token, 'a\n')).rejects.toMatchObject({ httpStatus: 400 });
+    } finally {
+      await db.query('DELETE FROM users WHERE id = $1', [fixture.rows[0]!.id]);
+    }
   });
   it('recherche de comptes par nom/e-mail : serveur global, filtres validés et zéro secret', async () => {
     const name = await listAuthorizedUsers(owner.token, 1, 'GESTIONNAIRE');

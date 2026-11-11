@@ -1,14 +1,10 @@
 /** Export borné, autorisé et neutralisé contre les formules de tableur. */
 import { withAuthorizedShopTransaction } from '@/core/auth/authorize-shop';
 import { ForbiddenError, ValidationError } from '@/core/errors/app-error';
+import { safeCsvCell } from '@/core/export/safe-csv';
 import { auditQueryParams, auditWhere, parseAuditFilters, type AuditFilters } from '@/modules/audit/filters';
 
-export function safeCsvCell(value: string | null): string {
-  const text = value ?? '';
-  // L'apostrophe est posée AVANT tout espace/control : aucun préfixe dangereux après trim.
-  const safe = /^[\s\uFEFF]*[=+@-]/u.test(text) ? `'${text}` : text;
-  return `"${safe.replaceAll('"', '""')}"`;
-}
+export { safeCsvCell } from '@/core/export/safe-csv';
 export async function exportShopAudit(input: { token: string | undefined; shopId: string } & AuditFilters): Promise<string> {
   const filters = parseAuditFilters(input);
   return withAuthorizedShopTransaction({ token: input.token, shopId: input.shopId, permission: 'audit:read' },

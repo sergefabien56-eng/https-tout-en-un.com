@@ -147,6 +147,17 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page).toHaveURL(/status=active&role=owner/);
   await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
+  const usersExportLink = page.getByRole('link', { name: /Exporter les utilisateurs correspondant aux filtres en CSV/ });
+  await expect(usersExportLink).toHaveAttribute('href', /status=active&role=owner/);
+  const usersCsv = await page.request.get(await usersExportLink.getAttribute('href') ?? '');
+  expect(usersCsv.status()).toBe(200);
+  expect(usersCsv.headers()['cache-control']).toBe('no-store');
+  expect(usersCsv.headers()['content-type']).toContain('text/csv');
+  const usersCsvText = await usersCsv.text();
+  expect(usersCsvText).toContain('proprietaire@ci.invalid');
+  expect(usersCsvText).toContain('"active","owner"');
+  expect(usersCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
+  expect((await page.request.get('/api/admin/users/export?role=WRONG')).status()).toBe(400);
   await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
   await expect(page).toHaveURL(/\/espace\/utilisateurs\/[1-9]\d*$/);
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible({ timeout: 15_000 });

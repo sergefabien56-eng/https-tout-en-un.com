@@ -6,6 +6,7 @@ import { POST as logoutPost } from '@/app/api/auth/logout/route';
 import { GET as meGet } from '@/app/api/auth/me/route';
 import { GET as shopGet } from '@/app/api/shops/[shopId]/route';
 import { GET as adminUsersGet } from '@/app/api/admin/users/route';
+import { GET as adminUsersExportGet } from '@/app/api/admin/users/export/route';
 import { GET as adminUserDetailGet } from '@/app/api/admin/users/[id]/route';
 import { GET as adminRolesGet } from '@/app/api/admin/roles/route';
 import { GET as deepHealthGet } from '@/app/api/health/deep/route';
@@ -66,6 +67,14 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
   it('GET utilisateurs sans session est refusé avant la lecture des données', async () => {
     const request = new NextRequest('https://app.example.com/api/admin/users');
     expect((await adminUsersGet(request)).status).toBe(401);
+  });
+  it('GET export utilisateurs sans session refuse le fichier et ne met rien en cache', async () => {
+    const response = await adminUsersExportGet(new NextRequest('https://app.example.com/api/admin/users/export'));
+    expect(response.status).toBe(401);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(response.headers.get('content-type')).not.toContain('text/csv');
+    const invalid = await adminUsersExportGet(new NextRequest('https://app.example.com/api/admin/users/export?role=WRONG'));
+    expect(invalid.status).toBe(400);
   });
   it('GET matrice des rôles sans session est refusé', async () => {
     const request = new NextRequest('https://app.example.com/api/admin/roles');

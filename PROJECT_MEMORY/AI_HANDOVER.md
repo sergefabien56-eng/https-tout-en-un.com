@@ -102,3 +102,7 @@ Run `43112722746` du SHA `410d408` : quatre jobs verts validant **Apparence**, a
 ## Chantier L10 interface et administration après filtre validé
 
 Propriétaire ne veut plus de choix entre micro-améliorations : il veut terminer le vrai chantier interface/administration P1. SHA base GitHub `075be6e`, run `43115169737` quatre jobs success, artifact non restauré ; preuve `/home/user/continuity-backups/verification-publication-075be6e.md`. Premier sous-lot local Système : API+page owner cohérentes (version, environnement déclaré, nombre de migrations, durée de requête ; file absente), sans secret ni changement de droits. Voir compte rendu, `RESUME_HERE.md`, `NEXT_ACTIONS.md`. Tests PGlite renforcés non exécutés localement ; CI du nouveau SHA obligatoire. Windows demeure en pause, aucune donnée réelle ou production.
+
+## Après validation Système — export des utilisateurs (L10)
+
+GitHub `main` `6013a16`, run `43117594559` quatre jobs success, preuve `/home/user/continuity-backups/verification-publication-6013a16.md`, artifact non restauré. Propriétaire a dit « on continue » sans revenir aux menus d'améliorations : sous-lot local CSV utilisateurs protégé (filtres liste partagés, droit global users:read + reports:export, max 10k, pas de secrets, CSV hostile neutralisé). Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md`, compte rendu ; tests PGlite et E2E ajoutés non exécutés localement. Windows toujours en pause, aucune vraie donnée ni production.
