@@ -281,9 +281,15 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page.getByRole('table')).toContainText('fixture.created');
   await expect(page.getByRole('table')).not.toContainText('=cmd');
-  await page.getByRole('navigation', { name: 'Périodes rapides du journal' })
-    .getByRole('link', { name: '7 derniers jours (UTC)' }).click();
-  await expect(page).toHaveURL(/\/espace\/journal\?/);
+  const sevenLink = page.getByRole('navigation', { name: 'Périodes rapides du journal' })
+    .getByRole('link', { name: '7 derniers jours (UTC)' });
+  const sevenTarget = new URL((await sevenLink.getAttribute('href'))!, page.url());
+  await sevenLink.click();
+  // L'ancienne URL est déjà /espace/journal?... ; attendre la nouvelle plage,
+  // pas simplement une URL ayant la même route (course du client router Next).
+  await expect(page).toHaveURL((url) => url.pathname === sevenTarget.pathname
+    && url.searchParams.get('from') === sevenTarget.searchParams.get('from')
+    && url.searchParams.get('to') === sevenTarget.searchParams.get('to'));
   const presetParams = new URL(page.url()).searchParams;
   expect(presetParams.get('shop')).toBe(shopId);
   expect(presetParams.get('q')).toBe('fixture.created');
@@ -300,9 +306,13 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   const filteredCsv = await page.request.get(filteredCsvUrl!);
   expect(filteredCsv.status()).toBe(200);
   expect(await filteredCsv.text()).not.toContain(`"'=cmd"`);
-  await page.getByRole('navigation', { name: 'Périodes rapides du journal' })
-    .getByRole('link', { name: '30 derniers jours (UTC)' }).click();
-  await expect(page).toHaveURL(/\/espace\/journal\?/);
+  const thirtyLink = page.getByRole('navigation', { name: 'Périodes rapides du journal' })
+    .getByRole('link', { name: '30 derniers jours (UTC)' });
+  const thirtyTarget = new URL((await thirtyLink.getAttribute('href'))!, page.url());
+  await thirtyLink.click();
+  await expect(page).toHaveURL((url) => url.pathname === thirtyTarget.pathname
+    && url.searchParams.get('from') === thirtyTarget.searchParams.get('from')
+    && url.searchParams.get('to') === thirtyTarget.searchParams.get('to'));
   const thirty = new URL(page.url()).searchParams;
   expect(thirty.get('shop')).toBe(shopId);
   expect(thirty.get('q')).toBe('fixture.created');

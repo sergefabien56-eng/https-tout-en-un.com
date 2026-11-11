@@ -74,3 +74,7 @@ Le navigateur reçoit bien réponse audit et palette affiche `ci · fixture.crea
 ## Nouveau lot — périodes rapides du journal
 
 Le run `43073364514` sur `ae540ec` est confirmé success (4 jobs) ; l'artifact GitHub n'a pas été téléchargé. Les sources ont été copiées sur Drive privé, MD5 concordant ; restauration depuis les octets Drive non testée. Le propriétaire a ensuite choisi les raccourcis 7/30 jours UTC du journal, les filtres module/date préexistant. Nouveau lot local ; suivre `RESUME_HERE.md` et `docs/comptes-rendus/phase1-periodes-rapides-journal.md` ; ne pas attribuer la CI de la base au nouveau lot.
+
+## Run périodes rapides `43077689648` — flaky E2E
+
+Le SHA `f05f8b7` est publié ; qualité/PG16 success, navigateur 9 passés/1 flaky bureau, archive skipped. L'assertion `toHaveURL(/\/espace\/journal\?/)` était vraie sur l'ancienne URL après clic 30 jours : le test lisait encore l'intervalle 7 jours (6 jours d'écart). Correction locale attend `from`/`to` de la nouvelle destination avant assertions, sans toucher au métier. Voir `RESUME_HERE.md` et compte rendu ; le prochain SHA doit être publié et CI quatre jobs verts.

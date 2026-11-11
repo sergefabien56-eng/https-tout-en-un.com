@@ -11,3 +11,7 @@ Tests ajoutés : calcul UTC et franchissement de mois bissextile ; parcours E2E 
 ## Sauvegarde et validation du lot précédent
 
 Run `43073364514` de `ae540ec` : quatre jobs verts. Sources du même SHA déposées en archive privée Google Drive (`code-source-ae540ecea575097cb61e4dc05386390ad9087f07.zip`) avec taille/MD5 distant conformes, ZIP local restauré et comparé aux 267 fichiers suivis ; **artifact GitHub et octets Drive non téléchargés/restaurés**. Voir `/home/user/continuity-backups/verification-sauvegarde-code-ae540ec.md` (hors dépôt). Snapshot avant nouveau lot copié hors dépôt ; suite à committer et CI à vérifier.
+
+## CI du premier SHA et correctif de synchronisation E2E
+
+Le run `43077689648` sur `f05f8b732ad07424e1352e257afd2d4ff9ea9b07` est **completed failure** : qualité/build et migrations PG16 success ; navigateurs 9 passés/1 flaky (bureau), archive skipped, artifact `e2e-traces` seulement. Annotation du premier essai : après clic 30 jours, le test attendait un écart de 29 jours mais lisait encore **6 jours**, la période précédente. Le test utilisait `toHaveURL(/\/espace\/journal\?/)`, déjà vrai *avant le clic* : course de navigation, pas preuve que l'API calcule mal les dates. Le retry est passé. Correctif descendant local : capturer le `href` de chaque raccourci et attendre que les paramètres `from`/`to` de l'URL naviguée correspondent à cette destination, pour **7 et 30 jours**, avant assertions métier ; pas d'augmentation de délai ni suppression de contrôle. L'application reste inchangée. CI du futur SHA obligatoire.
