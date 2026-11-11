@@ -202,6 +202,19 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.getByRole('button', { name: 'Thème system : changer le thème' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expectNoSeriousAccessibilityViolations(page);
+  await page.goto('/espace/apparence');
+  await expect(page.getByRole('heading', { name: 'Apparence' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: /Sombre/ })).toBeChecked();
+  await page.getByRole('radio', { name: /Clair/ }).check();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.getByRole('button', { name: 'Thème light : changer le thème' }).click();
+  await expect(page.getByRole('radio', { name: /Système/ })).toBeChecked();
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
+  await page.getByRole('radio', { name: /Sombre/ }).check();
+  await page.reload();
+  await expect(page.getByRole('radio', { name: /Sombre/ })).toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expectNoSeriousAccessibilityViolations(page);
   if (testInfo.project.name === 'mobile-375') {
     const menuTrigger = page.getByRole('button', { name: 'Ouvrir le menu' });
     await menuTrigger.click();

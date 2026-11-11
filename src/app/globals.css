@@ -153,6 +153,12 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .quick-search-panel ul { padding: 0; list-style: none; }
 .quick-search-panel li { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
 .topbar-user { font-size: 12px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.appearance-options { display: grid; gap: 12px; max-width: 620px; margin-top: 24px; }
+.appearance-options legend { font-weight: 700; padding: 0 6px; }
+.appearance-option { display: flex; align-items: flex-start; gap: 12px; padding: 10px; border-radius: var(--radius-md); cursor: pointer; }
+.appearance-option:hover { background: var(--bg-app); }
+.appearance-option input { width: 20px; height: 20px; margin: 0; flex: 0 0 20px; accent-color: var(--brand-blue); }
+.appearance-option small { display: block; color: var(--text-secondary); }
 .workspace-content { padding: 0 24px; }
 .workspace-inner { max-width: 1600px; margin: 0 auto; }
 .workspace-main { max-width: none; padding: 36px 0 90px; }

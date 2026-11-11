@@ -86,3 +86,7 @@ Qualité/PG16 verts, navigateur 9 passés/1 flaky bureau dans scénario notifica
 ## Lot Actions rapides et installation Windows en pause
 
 Run `43082146651` du SHA `0f04914` : **quatre jobs verts**, artifact code présent non restauré. Le propriétaire a tenté WSL/Docker sur son PC Windows 10 puis demandé de **cesser les manipulations Windows** (erreur `0x80070641`, `msiserver` introuvable) pour reprendre la programmation P1. Aucune vraie donnée / backup DB / production installée. Nouveau lot menu Actions rapides engagé localement, non publié : accès aux routes prêtes selon droits, audit uniquement sur boutique sélectionnée autorisée, invitation non cliquable. Lire `RESUME_HERE.md` et compte rendu ; ne pas attribuer la CI précédente au nouveau lot.
+
+## Lot écran Apparence personnelle — installation PC en pause
+
+GitHub `main` `75ee3b2`, run `43110029953` quatre jobs verts, artifact code présent non restauré. Propriétaire a choisi l'écran d'apparence personnel Système/Clair/Sombre, tout en gardant Windows 10/WSL/Docker **en pause**. Nouveau lot local non validé en CI : même `localStorage` que le bouton barre, synchronisation événement locale, aucune préférence serveur ni paramètres admin généraux. Lire `RESUME_HERE.md` et `docs/comptes-rendus/phase1-apparence-personnelle.md` ; ne pas attribuer CI précédente au nouveau lot.

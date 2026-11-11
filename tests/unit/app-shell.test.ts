@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { AppShell } from '@/ui/app-shell';
+import { AppearancePreference } from '@/ui/appearance-preference';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/espace', useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
 
@@ -136,6 +137,23 @@ describe('coquille UI — état prêt et états indisponibles', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: /changer le thème/ }));
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(localStorage.getItem('toutenun.theme')).toBe('dark');
+  });
+  it('écran apparence et bouton de barre restent synchronisés dans ce navigateur', async () => {
+    mount();
+    render(createElement(AppearancePreference));
+    const user = userEvent.setup();
+    const nav = within(screen.getByRole('navigation', { name: 'Modules' }));
+    expect(nav.getByRole('link', { name: 'Apparence' }).getAttribute('href')).toBe('/espace/apparence');
+    await user.click(screen.getByRole('radio', { name: /Sombre/ }));
+    expect(screen.getByRole('radio', { name: /Sombre/ })).toHaveProperty('checked', true);
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(localStorage.getItem('toutenun.theme')).toBe('dark');
+    await user.click(screen.getByRole('button', { name: 'Thème dark : changer le thème' }));
+    expect(screen.getByRole('radio', { name: /Clair/ })).toHaveProperty('checked', true);
+    expect(document.documentElement.dataset.theme).toBe('light');
+    await user.click(screen.getByRole('radio', { name: /Système/ }));
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+    expect(localStorage.getItem('toutenun.theme')).toBeNull();
   });
   it('le tiroir s’ouvre et Échap le ferme, avec retour du focus', () => {
     mount();

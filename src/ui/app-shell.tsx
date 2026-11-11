@@ -7,14 +7,15 @@ import { Bell, ChevronDown, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } 
 import { ShopSwitcher } from '@/ui/shop-switcher';
 import { DirectoryQuickSearch } from '@/ui/directory-quick-search';
 import { QuickActions } from '@/ui/quick-actions';
+import { THEME_CHANGED_EVENT, applyThemePreference, readThemePreference, saveThemePreference,
+  type ThemePreference } from '@/ui/theme-preference';
 import { appConfig } from '@/core/config/app.config';
 import { visibleNavigation } from '@/ui/navigation.config';
 import { Button } from '@/ui/components/button';
 
 const MENU_KEY = 'toutenun.nav.open';
 const RAIL_KEY = 'toutenun.nav.rail';
-const THEME_KEY = 'toutenun.theme';
-type Theme = 'system' | 'light' | 'dark';
+
 
 function readIds(): string[] {
   try {
@@ -33,7 +34,7 @@ export function AppShell({ userName, selectedShop, auditShopAccess = false, perm
   const [open, setOpen] = useState<string[]>(active ? [active.id] : []);
   const [drawer, setDrawer] = useState(false);
   const [rail, setRail] = useState(false);
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setTheme] = useState<ThemePreference>('system');
   const menuButton = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
 
@@ -41,12 +42,14 @@ export function AppShell({ userName, selectedShop, auditShopAccess = false, perm
     const stored = readIds();
     setOpen(active && !stored.includes(active.id) ? [...stored, active.id] : stored);
     setRail(localStorage.getItem(RAIL_KEY) === 'true');
-    const value = localStorage.getItem(THEME_KEY);
-    if (value === 'light' || value === 'dark') {
-      setTheme(value);
-      document.documentElement.dataset.theme = value;
-    }
   }, [active?.id]);
+  useEffect(() => {
+    const sync = () => { const next = readThemePreference(); setTheme(next); applyThemePreference(next); };
+    sync();
+    window.addEventListener(THEME_CHANGED_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => { window.removeEventListener(THEME_CHANGED_EVENT, sync); window.removeEventListener('storage', sync); };
+  }, []);
   useEffect(() => {
     if (!drawer) return;
     const sidebar = navRef.current?.closest<HTMLElement>('.workspace-sidebar');
@@ -76,10 +79,9 @@ export function AppShell({ userName, selectedShop, auditShopAccess = false, perm
     if (rail) { setRail(false); localStorage.setItem(RAIL_KEY, 'false'); }
   }
   function changeTheme() {
-    const next: Theme = theme === 'system' ? 'dark' : theme === 'dark' ? 'light' : 'system';
+    const next: ThemePreference = theme === 'system' ? 'dark' : theme === 'dark' ? 'light' : 'system';
+    saveThemePreference(next);
     setTheme(next);
-    if (next === 'system') { localStorage.removeItem(THEME_KEY); delete document.documentElement.dataset.theme; }
-    else { localStorage.setItem(THEME_KEY, next); document.documentElement.dataset.theme = next; }
   }
   function navigateKeys(event: KeyboardEvent<HTMLElement>) {
     const focusable = [...(navRef.current?.querySelectorAll<HTMLElement>('[data-nav-focus]:not([disabled])') ?? [])]

@@ -23,6 +23,8 @@ test('espace privé inaccessible sans session, côté serveur', async ({ page })
   await expect(page.getByText(/Bienvenue,/)).toHaveCount(0);
   const result = await page.request.get('/api/auth/me');
   expect(result.status()).toBe(401);
+  await page.goto('/espace/apparence');
+  await expect(page).toHaveURL(/\/connexion$/);
 });
 
 test('connexion sans vrai compte : aucune donnée métier inventée', async ({ page }) => {
