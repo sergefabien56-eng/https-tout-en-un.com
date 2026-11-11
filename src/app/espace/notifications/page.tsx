@@ -21,6 +21,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
   return <main className="workspace-main"><span className="tag">Compte · Réelle</span>
     <h1>Mes notifications</h1>
     <p>Événements enregistrés pour votre compte. Les notifications Jumia et l’envoi par e-mail ne sont pas encore disponibles.</p>
+    <p>Cette liste ne s’actualise pas automatiquement. <a href={`/espace/notifications?filter=${filter}&page=${page}`}>Actualiser les notifications</a></p>
     <nav aria-label="Filtrer les notifications" className="pagination">
       <Link href="/espace/notifications?filter=all" aria-current={filter === 'all' ? 'page' : undefined}>Toutes</Link>
       <Link href="/espace/notifications?filter=unread" aria-current={filter === 'unread' ? 'page' : undefined}>Non lues</Link>

@@ -63,11 +63,21 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
     const data = await result.json() as { notifications: { id: string; readAt: string | null }[] };
     return Boolean(data.notifications.find((n) => n.id === firstNotice?.id)?.readAt);
   }).toBe(!firstNotice?.readAt);
+  // Rechargement complet : relit le serveur, sans laisser croire à un flux temps réel.
+  await page.getByRole('link', { name: 'Actualiser les notifications' }).click();
+  await expect(page).toHaveURL(/\/espace\/notifications\?filter=all&page=1$/);
+  await expect(page.locator(`.notification-list > li[data-notification-id="${visibleId}"]`))
+    .toContainText(firstNotice?.readAt ? 'Non lue' : 'Lue');
   const targetFilter = firstNotice?.readAt ? 'unread' : 'read';
   await page.getByRole('navigation', { name: 'Filtrer les notifications' }).getByRole('link',
     { name: firstNotice?.readAt ? 'Non lues' : 'Lues', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}`));
   await expect(page.locator('.notification-list > li').first()).toBeVisible();
+  const refreshFiltered = page.getByRole('link', { name: 'Actualiser les notifications' });
+  await expect(refreshFiltered).toHaveAttribute('href', `/espace/notifications?filter=${targetFilter}&page=1`);
+  await refreshFiltered.click();
+  await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}&page=1$`));
+  await expect(page.locator(`.notification-list > li[data-notification-id="${visibleId}"]`)).toBeVisible();
   const afterFilter = await page.request.get(`/api/notifications?filter=${targetFilter}`);
   expect((await afterFilter.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
   await page.goto('/espace');

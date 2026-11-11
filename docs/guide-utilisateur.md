@@ -28,7 +28,7 @@ La page n'affiche pas encore la comparaison complète avant/après de chaque év
 
 ## 5. Consulter ses notifications
 
-La cloche ouvre **Mes notifications** (`/espace/notifications`) et affiche le nombre de notifications personnelles non lues (au-delà de 99 : **99+**). Une **connexion 2FA réussie** crée une notification de sécurité personnelle. Les filtres **Toutes**, **Non lues** et **Lues** montrent seulement les notifications du compte connecté. Sur chaque notification, **Marquer comme lue** ou **Marquer comme non lue** enregistre la modification sur le serveur ; un message d'erreur s'affiche si elle échoue. Les événements sont affichés en **UTC**. Les notifications liées aux ventes/Jumia et les alertes par e-mail ne sont **pas encore disponibles**.
+La cloche ouvre **Mes notifications** (`/espace/notifications`) et affiche le nombre de notifications personnelles non lues (au-delà de 99 : **99+**). Une **connexion 2FA réussie** crée une notification de sécurité personnelle. Les filtres **Toutes**, **Non lues** et **Lues** montrent seulement les notifications du compte connecté. Sur chaque notification, **Marquer comme lue** ou **Marquer comme non lue** enregistre la modification sur le serveur ; un message d'erreur s'affiche si elle échoue. Les événements sont affichés en **UTC**. La liste **n’est pas actualisée en temps réel** : utilisez **Actualiser les notifications** pour relire les événements depuis le serveur sans perdre le filtre ni la page courante. Les notifications liées aux ventes/Jumia et les alertes par e-mail ne sont **pas encore disponibles**.
 
 Si une connexion inconnue apparaît, changez vos accès par une procédure sûre avec le Propriétaire ; ne transmettez aucun mot de passe, code TOTP ou code de secours.
 
