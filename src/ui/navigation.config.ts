@@ -4,7 +4,7 @@ import {
   Bot, Settings, House, Activity, Bell, Gauge, Package, Truck, ReceiptText,
   RotateCcw, Link2, RefreshCw, ClipboardList, Tags, Layers3, Warehouse,
   ArrowLeftRight, Landmark, FileText, PieChart, BarChart3, Sparkles,
-  Workflow, Users, ShieldCheck, ScrollText, SlidersHorizontal,
+  Workflow, Users, ShieldCheck, ScrollText, SlidersHorizontal, Search,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -26,6 +26,7 @@ const soon = (id: string, label: string, href: `/${string}`, icon: LucideIcon, p
 export const navigation: readonly NavGroup[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, children: [
     { id: 'dashboard.overview', label: "Vue d'ensemble", href: '/espace', icon: House, permission: 'dashboard:read', availability: 'ready' },
+    { id: 'dashboard.search', label: 'Recherche dans mon espace', href: '/espace/recherche', icon: Search, permission: 'dashboard:read', availability: 'ready' },
     soon('dashboard.finance', 'Indicateurs financiers', '/indicateurs', Gauge, 'finance:read'),
     soon('dashboard.performance', 'Performances globales', '/performances', ChartNoAxesCombined, 'reports:read'),
     soon('dashboard.activity', 'Activités récentes', '/activites', Activity, 'audit:read'),

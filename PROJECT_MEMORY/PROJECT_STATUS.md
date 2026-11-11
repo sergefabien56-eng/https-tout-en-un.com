@@ -1,12 +1,12 @@
-# Phase 1 — état vérifié et lot rôle en attente de CI
+# Phase 1 — lot recherche limitée en attente de CI
 
-| Élément | État et preuve |
+| Élément | État vérifié |
 |---|---|
-| Publié | GitHub `main` `d1d40888c63100e2372c846f63b2e714ae839a53`, run `43018013858` terminé **success**, quatre jobs verts |
-| Archive code | Artifact `code-valide-d1d4088…` présent (expiration annoncée 2026-12-11 UTC) ; **non téléchargé/restauré depuis GitHub** ; temporaire et même hébergeur |
-| Filtre de rôle | Service SQL paramétré, API et page combinant rôle/statut/recherche, rôles globaux et par boutique ; **non publié, CI et E2E de ce lot en attente** |
-| Tests locaux du nouveau lot | contrôle mémoire, lint, typage, **162 Vitest** réussis. Build local non validé : résolution Next avec symlink ; `npm ci` expiré puis tué (137) faute de ressources. Le build du précédent SHA réussi ne valide pas ce lot. |
-| PostgreSQL | 10 migrations ; aucune migration ajoutée. Test CI de restauration de fixtures, pas backup de données réelles. |
-| Production | Aucun déploiement durable ni sauvegarde chiffrée hors serveur de la base vérifiés ; SMTP/Jumia/finance non livrés. |
+| Base publiée | `061a368b08333ce8a0f0b88f5504aa26c0f19d6a` sur GitHub `main`, run `43021881652` : **4 jobs verts**, artifact code présent mais non restauré depuis GitHub. |
+| Nouveau lot recherche | Page `src/app/espace/recherche/page.tsx`, service `src/modules/identity/directory-search.ts`, entrée navigation : boutiques sous RLS + comptes si droit global ; **non encore publié**, CI/E2E du nouveau SHA en attente. |
+| Tests locaux ciblés | mémoire, lint, types, **9/9 tests ciblés** réussis ; build local non validé. |
+| Suite locale | **NON VERTE** : 18 fichiers/20, 153 tests passés/163 ; workers auth-service/bootstrap-owner tués par OOM (confirmé dmesg), même avec `--maxWorkers=1`; bootstrap-owner isolé 3/3 ; auth-service isolé tué. Aucune conclusion sur ce lot via un test complet local. |
+| Schéma / métier | 10 migrations inchangées ; aucune donnée Jumia réelle, module MIMI ni produit financier. |
+| Exploitation | archive code temporaire GitHub uniquement ; aucune sauvegarde chiffrée extérieure/restauration de données commerciales ni déploiement production validés. |
 
-**À faire** : publier le nouveau commit descendant et vérifier qualité/build, migrations PG16, E2E et archive sur le nouveau SHA ; télécharger/restaurer l'artifact ; préciser hébergement et destination indépendante des données sans jamais partager de secrets.
+**Validation attendue** : commit puis quatre jobs verts sur le **nouveau** SHA, y compris suite complète, build et E2E. Ne pas attribuer le succès de la CI précédente au présent lot.

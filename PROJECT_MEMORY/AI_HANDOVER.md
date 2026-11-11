@@ -34,3 +34,7 @@ La liste utilisateurs ajoute `status` (`all/active/suspended/invited`) combiné 
 ## Lot P1 rôle des utilisateurs
 
 Lire `docs/comptes-rendus/phase1-filtre-role-utilisateurs.md`. Le `main` GitHub `d1d4088` a quatre jobs verts et artifact présent ; nouveau filtre rôle n'est pas encore validé en CI. Lint/types/162 Vitest locaux verts ; build local non validé après échec symlink Next et `npm ci` tué (137). Ne pas présenter le filtre terminé sans job qualité et E2E verts sur le nouveau SHA.
+
+## Lot P1 recherche limitée
+
+Le run `43021881652` de `061a368` est vert (4 jobs) ; nouveau lot non encore publié. Lire `docs/comptes-rendus/phase1-recherche-boutiques-comptes.md`. La suite complète locale a été interrompue par OOM (dmesg), ne jamais annoncer 163 tests verts ; ciblés 9/9, lint/types OK. Confirmer build/163 tests/E2E sur **nouveau** SHA en CI avant validation.

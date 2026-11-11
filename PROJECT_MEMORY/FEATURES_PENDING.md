@@ -8,3 +8,5 @@
 Une entrée de menu « bientôt » ou une maquette ne vaut jamais réalisation. Priorités de court terme : `NEXT_ACTIONS.md`.
 
 - Confirmer les nouveaux tests du filtre utilisateurs sur PostgreSQL 16/Playwright et le job d’archive du code dans la CI du nouveau SHA, puis conserver une copie durable hors GitHub.
+
+- Valider sur la CI du prochain SHA la nouvelle page de recherche limitée ; recherche universelle commandes/produits/finance et MIMI ne sont pas livrées.

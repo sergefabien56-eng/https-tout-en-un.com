@@ -18,6 +18,7 @@ vi.mock('@/core/db/client', () => ({
   },
 }));
 const { listOwnShops } = await import('@/modules/identity/shop-catalog');
+const { searchAuthorizedDirectory } = await import('@/modules/identity/directory-search');
 const owner = createSessionToken(), manager = createSessionToken(), limited = createSessionToken();
 beforeAll(async () => {
   db = await PGlite.create();
@@ -47,6 +48,33 @@ describe('catalogue RLS', () => {
     expect((await listOwnShops(owner.token)).shops.map((s) => s.displayName)).toEqual(['B','A']);
     expect((await listOwnShops(manager.token)).shops.map((s) => s.displayName)).toEqual(['A']);
     expect((await listOwnShops(limited.token)).shops.map((s) => s.displayName)).toEqual(['B']);
+  });
+  it('recherche transversale : boutiques RLS et comptes uniquement avec droit global', async () => {
+    const shop = await db.query<{ id: string }>(`INSERT INTO shops
+      (app_id, jumia_shop_sid, business_client_code, country_code, currency, display_name)
+      VALUES (1, gen_random_uuid(), 'search-test', 'CI', 'XOF', 'Recherche Boutique') RETURNING id::text`);
+    await db.exec(`INSERT INTO users (email, password_hash, display_name)
+      VALUES ('recherche@fixture.invalid','hash','Recherche Compte')`);
+    try {
+      const own = await searchAuthorizedDirectory(owner.token, ' RECHERCHE ');
+      expect(own.shops.map((entry) => entry.displayName)).toEqual(['Recherche Boutique']);
+      expect(own.users.map((entry) => entry.email)).toEqual(['recherche@fixture.invalid']);
+      expect(JSON.stringify(own)).not.toMatch(/password_hash|token_hash|totp_secret/);
+      const global = await searchAuthorizedDirectory(manager.token, 'recherche');
+      expect(global.shops).toEqual([]); // Pas d'accès à la nouvelle boutique.
+      expect(global.users.map((entry) => entry.email)).toEqual(['recherche@fixture.invalid']);
+      const scoped = await searchAuthorizedDirectory(limited.token, 'recherche');
+      expect(scoped.shops).toEqual([]);
+      expect(scoped.users).toEqual([]); // Le rôle boutique ne donne pas users:read GLOBAL.
+      await expect(searchAuthorizedDirectory(undefined, 'recherche')).rejects.toMatchObject({ httpStatus: 401 });
+      await expect(searchAuthorizedDirectory(owner.token, 'x')).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(searchAuthorizedDirectory(owner.token, 'x'.repeat(81))).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(searchAuthorizedDirectory(owner.token, 'recherche\n')).rejects.toMatchObject({ httpStatus: 400 });
+      expect((await searchAuthorizedDirectory(owner.token, '%%')).shops).toEqual([]);
+    } finally {
+      await db.query('DELETE FROM shops WHERE id = $1', [shop.rows[0]!.id]);
+      await db.exec("DELETE FROM users WHERE email = 'recherche@fixture.invalid'");
+    }
   });
   it('un accès boutique révoqué cache immédiatement cette boutique', async () => {
     await db.exec('UPDATE user_shop_access SET can_view = false WHERE user_id = 2;');

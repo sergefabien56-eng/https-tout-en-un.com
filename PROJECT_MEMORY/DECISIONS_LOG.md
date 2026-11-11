@@ -14,3 +14,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Après échec d'`upload-artifact@v4` sur `.project-backups/*` (`43016471668`), conserver le snapshot local ignoré par Git et copier uniquement les trois archives validées dans un dossier non caché pour l'upload ; ne pas activer l'option globale d'inclusion de fichiers cachés afin de ne pas élargir le périmètre par inadvertance.
 
 - Lot P1 filtre rôle : cinq rôles système fixés en 0003 ; `EXISTS` sur `user_roles` permet de retrouver une attribution globale ou boutique sans multiplier les utilisateurs. Le filtre ne confère aucun nouveau droit, les valeurs sont validées, la requête est paramétrée ; pas de migration.
+
+- Lot P1 recherche : page séparée boutique + utilisateur plutôt que recherche globale trompeuse ; réutilise les services existants sous RLS et `users:read` global, limite 5 résultats par catégorie, garde Ctrl/Cmd+K limité aux boutiques. Pas de SQL non autorisé, pas de MIMI ni donnée Jumia.

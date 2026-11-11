@@ -8,3 +8,5 @@
 - Migrations 0001–0010 up/down, CI PostgreSQL 16, restauration d'une **fixture jetable** vérifiée ; pas de sauvegarde en exploitation.
 
 **Preuves** : v34 `0226bd0`, CI `43009896449` 3 jobs success, 10 Playwright ; mémoire `bf706f1` CI `43013341355` success ; compte rendu `docs/comptes-rendus/2026-11-11-actualisation-notifications.md` mentionne aussi 159 Vitest locaux et 6 tests publics supplémentaires ; ces derniers ne sont pas une nouvelle CI. Aucun module métier/Jumia réel déclaré terminé.
+
+- Recherche limitée boutiques/comptes : code et tests ciblés locaux présents, mais **pas encore validée en CI du nouveau SHA** ; jamais présentée comme recherche globale complète.

@@ -141,6 +141,18 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   const user = await page.request.get(`/api/admin/users/${ownerId}`);
   expect(user.status()).toBe(200);
   expect((await user.json() as { roles: { shopId: string | null }[] }).roles[0]?.shopId).toBeNull();
+  // Recherche transversale bornée : comptes avec droit global, boutiques filtrées par RLS.
+  await page.goto('/espace/recherche');
+  await expect(page.getByRole('heading', { name: 'Rechercher dans mon espace' })).toBeVisible();
+  const directoryQuery = page.getByRole('searchbox', { name: 'Nom de boutique, utilisateur ou e-mail' });
+  await directoryQuery.fill('proprietaire');
+  await page.getByRole('search').getByRole('button', { name: 'Rechercher' }).click();
+  await expect(page.getByRole('link', { name: /Propriétaire CI · proprietaire@ci.invalid/ })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+  await directoryQuery.fill('Boutique CI');
+  await page.getByRole('search').getByRole('button', { name: 'Rechercher' }).click();
+  await expect(page.getByRole('link', { name: /Boutique CI fictive · CI/ })).toBeVisible();
+  await expect(page.getByText('Les commandes, produits et données Jumia ne sont pas encore disponibles.')).toBeVisible();
 });
 
 test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page }, testInfo) => {
