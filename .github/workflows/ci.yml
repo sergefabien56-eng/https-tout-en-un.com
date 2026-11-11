@@ -78,6 +78,8 @@ jobs:
           for i in 1 2 3 4 5 6 7 8; do npm run db:rollback || exit 1; done
           psql "$DATABASE_URL" -Atc 'SELECT count(*) FROM schema_migrations' | grep -qx '0'
           npm run db:migrate
+      - name: Sauvegarder et restaurer dans une seconde base PostgreSQL CI
+        run: node scripts/test-backup-restore.mjs
       - name: Contrôle final
         run: psql "$DATABASE_URL" -c "\dt" && psql "$DATABASE_URL" -c "SELECT count(*) AS migrations FROM schema_migrations;"
 
