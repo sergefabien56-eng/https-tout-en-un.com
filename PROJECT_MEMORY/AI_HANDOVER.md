@@ -70,3 +70,7 @@ Qualité/PG16 verts, E2E bureau/mobile échouent sur lien audit absent de palett
 ## Cause du run `43071602554` démontrée
 
 Le navigateur reçoit bien réponse audit et palette affiche `ci · fixture.created`. L'ancienne assertion attendait `shops · fixture.created` alors que `scripts/seed-e2e-shop.mjs` définit `module=ci`. Correction **du test seulement**, locale et non publiée ; suivre `RESUME_HERE.md` et compte rendu.
+
+## Nouveau lot — périodes rapides du journal
+
+Le run `43073364514` sur `ae540ec` est confirmé success (4 jobs) ; l'artifact GitHub n'a pas été téléchargé. Les sources ont été copiées sur Drive privé, MD5 concordant ; restauration depuis les octets Drive non testée. Le propriétaire a ensuite choisi les raccourcis 7/30 jours UTC du journal, les filtres module/date préexistant. Nouveau lot local ; suivre `RESUME_HERE.md` et `docs/comptes-rendus/phase1-periodes-rapides-journal.md` ; ne pas attribuer la CI de la base au nouveau lot.

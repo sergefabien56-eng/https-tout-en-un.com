@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { listShopAudit } from '@/modules/audit/list-audit';
+import { auditPeriodPreset } from '@/modules/audit/period-presets';
 import { AppError } from '@/core/errors/app-error';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,12 @@ export default async function AuditPage({ searchParams }: {
     if (targetPage !== undefined) params.set('page', String(targetPage));
     return exportFile ? `/api/shops/${shop}/audit/export?${params}` : `/espace/journal?${params}`;
   };
+  // Les raccourcis remplacent uniquement les dates et repartent à la page 1.
+  // La route existante valide ensuite boutique, permission et période côté serveur.
+  const presetLink = (days: 7 | 30) => {
+    const params = new URLSearchParams({ shop, ...filters, ...auditPeriodPreset(days) });
+    return `/espace/journal?${params}`;
+  };
   let result: Awaited<ReturnType<typeof listShopAudit>>;
   try { result = await listShopAudit({ token, shopId: shop, page: Number(raw), ...filters }); }
   catch (error) {
@@ -32,6 +39,10 @@ export default async function AuditPage({ searchParams }: {
   }
   return <main className="workspace-main"><span className="tag">Journal d’activité · Boutique n° {shop}</span>
     <h1>Événements de la boutique</h1><p><Link href="/espace/boutiques">Changer de boutique</Link></p>
+    <nav aria-label="Périodes rapides du journal" className="pagination">
+      <Link href={presetLink(7)}>7 derniers jours (UTC)</Link>
+      <Link href={presetLink(30)}>30 derniers jours (UTC)</Link>
+    </nav>
     <form action="/espace/journal" method="get" className="shop-filters" role="search">
       <input name="shop" type="hidden" value={shop} />
       <label htmlFor="audit-query">Rechercher une action ou un module</label>

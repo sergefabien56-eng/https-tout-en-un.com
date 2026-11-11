@@ -1,6 +1,6 @@
-# Actions suivantes — corriger l'assertion E2E audit
+# Actions suivantes — périodes rapides du journal
 
-1. Vérifier lint/types/tests ciblés/découverte E2E + mémoire/diff du test corrigé `module='ci'`, conformément à la fixture `scripts/seed-e2e-shop.mjs` ; commit descendant de `ea09d9d`, snapshot après vérifié, archive GitHub Desktop extraite/HEAD/empreinte vérifiés. Snapshot avant déjà copié/contrôlé.
-2. Publier normalement sans force push par propriétaire. Vérifier sur **nouveau SHA** quatre jobs verts (qualité/build, PG16, navigateur bureau/mobile sans flaky, archive code) et artifact présent ; l'ancien run de diagnostic `43071602554` reste rouge. Si nouvel échec, lire annotations plutôt que masquer les tests.
-3. Télécharger/restaurer artifact GitHub du code dans clone isolé puis conserver copie hors GitHub ; indépendamment prévoir backup chiffré/restauré des **vraies données PostgreSQL** après informations non secrètes hébergeur/stockage. Aucun aperçu Arena n'est une production.
-4. Après validation, choisir petit lot P1 suivant, sans commencer MIMI/Jumia.
+1. Sur le clone descendant `/tmp/toutenun-continuity-audit`, vérifier lint/types, tests ciblés de périodes/audit, découverte E2E, mémoire et diff du lot « 7/30 jours UTC » ; ne pas changer les droits ou les filtres existants. Snapshot avant déjà copié/vérifié hors dépôt.
+2. Commit propre descendant du SHA publié `ae540ec`, snapshot après copié/vérifié hors dépôt, archive GitHub Desktop contrôlée par extraction/HEAD/`git fsck`/arbre propre ; demander au propriétaire de publier normalement sans force push.
+3. Sur **le nouveau SHA**, vérifier quatre jobs CI verts (qualité/build, migrations PG16, navigateur bureau/mobile, archive code) et artifact présent ; si échec, lire annotations et corriger sans supprimer le test. Ne pas attribuer l'ancien run vert `43073364514` à ce lot.
+4. L'artifact GitHub et les octets Drive de `ae540ec` ne sont pas retéléchargés/restaurés ; copie privée Drive des sources avec MD5 conforme et restauration ZIP local déjà effectuées. Prévoir un test de restauration depuis Drive et backup chiffré/restauré des **vraies données PostgreSQL** avant toute production. Aucun aperçu Arena n'est une production.

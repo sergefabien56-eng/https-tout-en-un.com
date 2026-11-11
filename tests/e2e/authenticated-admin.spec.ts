@@ -281,11 +281,33 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page.getByRole('table')).toContainText('fixture.created');
   await expect(page.getByRole('table')).not.toContainText('=cmd');
+  await page.getByRole('navigation', { name: 'Périodes rapides du journal' })
+    .getByRole('link', { name: '7 derniers jours (UTC)' }).click();
+  await expect(page).toHaveURL(/\/espace\/journal\?/);
+  const presetParams = new URL(page.url()).searchParams;
+  expect(presetParams.get('shop')).toBe(shopId);
+  expect(presetParams.get('q')).toBe('fixture.created');
+  expect(presetParams.has('page')).toBe(false);
+  const presetFrom = presetParams.get('from'); const presetTo = presetParams.get('to');
+  expect(presetFrom).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(presetTo).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect((Date.parse(`${presetTo}T00:00:00Z`) - Date.parse(`${presetFrom}T00:00:00Z`)) / 86_400_000).toBe(6);
+  await expect(page.getByRole('table')).toContainText('fixture.created');
   const filteredCsvUrl = await page.getByRole('link', { name: 'Exporter cette sélection en CSV' }).getAttribute('href');
   expect(filteredCsvUrl).toContain('q=fixture.created');
+  expect(new URL(filteredCsvUrl!, page.url()).searchParams.get('from')).toBe(presetFrom);
+  expect(new URL(filteredCsvUrl!, page.url()).searchParams.get('to')).toBe(presetTo);
   const filteredCsv = await page.request.get(filteredCsvUrl!);
   expect(filteredCsv.status()).toBe(200);
   expect(await filteredCsv.text()).not.toContain(`"'=cmd"`);
+  await page.getByRole('navigation', { name: 'Périodes rapides du journal' })
+    .getByRole('link', { name: '30 derniers jours (UTC)' }).click();
+  await expect(page).toHaveURL(/\/espace\/journal\?/);
+  const thirty = new URL(page.url()).searchParams;
+  expect(thirty.get('shop')).toBe(shopId);
+  expect(thirty.get('q')).toBe('fixture.created');
+  expect((Date.parse(`${thirty.get('to')}T00:00:00Z`) - Date.parse(`${thirty.get('from')}T00:00:00Z`)) / 86_400_000).toBe(29);
+  await expect(page.getByRole('table')).toContainText('fixture.created');
   await page.goto('/espace/journal');
   const exportResponse = await page.request.get(`/api/shops/${shopId}/audit/export`);
   expect(exportResponse.status()).toBe(200);
