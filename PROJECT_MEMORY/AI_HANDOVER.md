@@ -110,3 +110,7 @@ GitHub `main` `6013a16`, run `43117594559` quatre jobs success, preuve `/home/us
 ## Après export utilisateurs validé — tri boutiques (L10)
 
 GitHub `main` `d721595`, run `43119275267` quatre jobs success, preuve `/home/user/continuity-backups/verification-publication-d721595.md`, artifact non restauré. Sous-lot local demandé dans continuité de L10 : tri catalogue boutiques plus récentes/nom A–Z/Z–A sur page et API, ORDER BY fixé par whitelist, filtres et RLS inchangés. Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md`, compte rendu ; PGlite/E2E ajoutés non exécutés localement. Windows toujours en pause, aucune vraie donnée ni production.
+
+## Run rouge tri boutiques puis correctif état vide
+
+SHA `3fd31f8` publié, run `43120844550` completed failure : qualité et PG16 success, navigateurs bureau/mobile failure (table absente après envoi tri), archive skipped. Cause déduite du code et des annotations : formulaire GET transmet `status=''` pour « Tous les états », module rejetait ce statut. Correctif local parseur `''` => pas de filtre, invalides toujours 400, tests unitaires/PGlite/E2E adaptés. Voir `RESUME_HERE.md`, `NEXT_ACTIONS.md` et compte rendu ; nouveau SHA/CI obligatoire. Windows en pause, aucune vraie donnée.

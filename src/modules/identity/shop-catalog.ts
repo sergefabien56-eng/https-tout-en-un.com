@@ -17,6 +17,11 @@ const orderBy: Record<ShopSort, string> = {
 export function isShopSort(value: string): value is ShopSort {
   return Object.hasOwn(orderBy, value);
 }
+export function parseShopStatus(value: string | undefined): ShopStatus | undefined {
+  if (value === undefined || value === '') return undefined;
+  if (!statuses.has(value as ShopStatus)) throw new ValidationError('Filtres invalides.');
+  return value as ShopStatus;
+}
 
 export async function listOwnShops(token: string | undefined, page = 1, filters: { q?: string; status?: string; sort?: string } = {}): Promise<{
   shops: ShopSummary[]; nextPage: number | null;
@@ -25,8 +30,10 @@ export async function listOwnShops(token: string | undefined, page = 1, filters:
   if (filters.q !== undefined && typeof filters.q !== 'string') throw new ValidationError('Filtres invalides.');
   const q = filters.q?.trim() ?? '';
   const sort = filters.sort ?? 'recent';
-  if (q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32) || (filters.status !== undefined && !statuses.has(filters.status as ShopStatus))
-    || !isShopSort(sort)) throw new ValidationError('Filtres invalides.');
+  // Le formulaire GET soumet status='' pour « Tous les états » : absence de filtre, pas erreur.
+  const status = parseShopStatus(filters.status);
+  if (q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32) || !isShopSort(sort))
+    throw new ValidationError('Filtres invalides.');
   if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token))
     throw new AppError('UNAUTHENTICATED', { userMessage: 'Connexion nécessaire.' });
   return withIdentityTransaction(async (db) => {
@@ -46,7 +53,7 @@ export async function listOwnShops(token: string | undefined, page = 1, filters:
        WHERE deleted_at IS NULL
          AND ($3::text IS NULL OR position(lower($3) in lower(display_name)) > 0)
          AND ($4::text IS NULL OR status = $4)
-       ORDER BY ${orderBy[sort]} LIMIT $1 OFFSET $2`, [51, (page - 1) * 50, q || null, filters.status ?? null]);
+       ORDER BY ${orderBy[sort]} LIMIT $1 OFFSET $2`, [51, (page - 1) * 50, q || null, status ?? null]);
     return { shops: result.rows.slice(0, 50).map((r) => ({ id: String(r.id), displayName: r.display_name,
       countryCode: r.country_code, currency: r.currency, status: r.status })),
       nextPage: result.rows.length > 50 ? page + 1 : null };

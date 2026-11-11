@@ -85,6 +85,8 @@ describe('catalogue RLS', () => {
     expect((await listOwnShops(manager.token, 1, { q: 'B' })).shops).toEqual([]);
     expect((await listOwnShops(owner.token, 1, { q: '%' })).shops).toEqual([]);
     expect((await listOwnShops(owner.token, 1, { status: 'connected' })).shops).toHaveLength(2);
+    expect((await listOwnShops(owner.token, 1, { q: '', status: '', sort: 'name-asc' })).shops.map((s) => s.displayName))
+      .toEqual(['A', 'B']);
     expect((await listOwnShops(owner.token, 1, { sort: 'name-asc' })).shops.map((s) => s.displayName)).toEqual(['A', 'B']);
     expect((await listOwnShops(owner.token, 1, { sort: 'name-desc' })).shops.map((s) => s.displayName)).toEqual(['B', 'A']);
     expect((await listOwnShops(manager.token, 1, { sort: 'name-desc' })).shops).toEqual([]);

@@ -1,6 +1,6 @@
-# Actions suivantes — Phase 1 interface et administration (L10)
+# Actions suivantes — corriger le tri boutiques (L10)
 
-1. **Tri boutiques (sous-lot local)** : relire diff/mémoire, vérifier tri SQL fixe, RLS/droits inchangés, q/état/pagination/états vides conservés ; ne pas déclarer PGlite ajouté ou E2E verts localement (sandbox OOM précédemment). Types/lint, 26 tests unitaires et découverte 10 E2E OK.
-2. Commit descendant de `d721595`, snapshot après exporté/vérifié hors sandbox et archive GitHub Desktop restaurable contrôlée par SHA/`git fsck`/arbre propre. Publication propriétaire normale sans force push ; vérifier **quatre jobs CI sur le nouveau SHA**, dont PG16 et E2E bureau/mobile.
-3. Poursuivre L10 réel selon plan : utilisateurs/invitations avec SMTP réel et stratégie sûre, rôles/accès, paramètres généraux à valider, toutes boutiques, autres exports et états d'interface. Ne pas annoncer L10 terminé après le tri. L11 HTTPS/sauvegarde et L12 sécurité/démo restent nécessaires avant fin P1.
-4. Windows en pause explicite du propriétaire ; aucune vraie donnée avant sécurité, backup chiffré externe et restauration testée. GitHub/Drive/Arena ne sont pas production ni backup PostgreSQL.
+1. Contrôler diff/mémoire et validation `status=''` dans page/API, garder états inconnus 400/404, isolation RLS, filtres/pagination/tri sans perte. Snapshot avant correction `3fd31f8` vérifié hors dépôt. Types/lint, 27 tests unitaires ciblés et découverte 10 E2E OK ; PGlite/E2E non exécutés localement.
+2. Commit descendant du SHA rouge `3fd31f8`, snapshot après exporté/vérifié hors sandbox et archive Desktop restaurable SHA/`git fsck`/arbre propre. Publication propriétaire normale sans force push. Vérifier **quatre jobs CI sur le nouveau SHA** ; si navigateur reste rouge, lire annotations et corriger sans supprimer tests. L'ancien run `43120844550` reste failure.
+3. Après validation seulement, poursuivre L10 (administration réelle, boutiques, invitations seulement avec SMTP fiable, paramètres généraux à confirmer). L11 HTTPS/backup et L12 sécurité/démo requis avant fin P1.
+4. Windows en pause explicite ; aucune vraie donnée avant sécurité, backup chiffré externe et restauration testée. GitHub/Drive/Arena ne sont pas production ni backup PostgreSQL.

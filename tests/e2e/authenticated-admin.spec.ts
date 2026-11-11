@@ -220,7 +220,8 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page).toHaveURL(/sort=name-asc/);
   await expect(page.getByRole('table')).toContainText('Boutique CI fictive');
-  expect((await page.request.get('/api/shops?sort=name-asc')).status()).toBe(200);
+  expect((await page.request.get('/api/shops?status=&sort=name-asc')).status()).toBe(200);
+  expect((await page.request.get('/api/shops?status=malicious&sort=name-asc')).status()).toBe(400);
   expect((await page.request.get('/api/shops?sort=name%3BDELETE')).status()).toBe(400);
   await expectNoSeriousAccessibilityViolations(page);
   await page.getByRole('button', { name: 'Thème system : changer le thème' }).click();

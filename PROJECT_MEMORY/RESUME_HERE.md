@@ -1,15 +1,15 @@
-# Reprendre ici — Phase 1 interface et administration L10
+# Reprendre ici — correctif tri des boutiques L10
 
-## Base publiée et validée
+## Base et échec constaté
 
-GitHub `main` et clone descendant `/tmp/toutenun-continuity-audit/` au SHA `d7215951d987385723e53466c9883758933a0270` **avant le nouveau sous-lot**. Export CSV utilisateurs validé : [run `43119275267`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43119275267) `completed success`, quatre jobs qualité/tests/build, migrations PostgreSQL 16, navigateurs bureau/mobile 375 px et archive verts. Artifact présent non téléchargé/restauré. Preuve `/home/user/continuity-backups/verification-publication-d721595.md`. Système validé sur `6013a16`/run `43117594559`. Ces anciens runs **ne valident pas le nouveau tri**.
+GitHub `main` et clone descendant `/tmp/toutenun-continuity-audit/` au SHA `3fd31f861e807dfd96ebd151f60f4b47d9b63371` **avant ce correctif**. [Run `43120844550`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43120844550) `completed failure` : qualité/types/tests/build et migrations PG16 verts, navigateur bureau/mobile échoué après retry, archive skipped. Annotations montrent `getByRole('table')` absent après soumission formulaire tri. Diagnostic : `status=''` envoyé par « Tous les états » mais rejeté par le serveur. Export utilisateurs précédent `d721595`/run `43119275267` avait quatre jobs verts ; ne pas attribuer ce run au tri. Preuve run rouge dans `docs/comptes-rendus/phase1-correctif-tri-boutiques.md`.
 
-## Travail local en cours
+## Correctif local en cours
 
-Propriétaire poursuit **le vrai chantier interface et administration P1/L10**, sans menus de propositions de micro-améliorations. Sous-lot « Toutes les boutiques » : tri plus récentes/nom A–Z/nom Z–A, SQL whitelist, RLS/droits et filtres existants préservés, pagination conserve tri ; API 400/page 404 si tri invalide. Voir `docs/comptes-rendus/phase1-tri-boutiques.md`. Code **local non committé/non publié/non validé CI** au moment de cette mise à jour. Snapshot avant copié/vérifié sous `/home/user/continuity-backups/*avant-tri-boutiques*`. Types/lint, 26 tests unitaires ciblés et découverte 10 E2E OK ; PGlite renforcé et vrais E2E non exécutés localement. Suite : contrôle mémoire/diff, commit descendant, snapshot après et ZIP GitHub Desktop contrôlés, publication normale par propriétaire, CI quatre jobs du futur SHA. L10 incomplet (invitations/SMTP, paramètres généraux, autres écrans/exports).
+`parseShopStatus` traite `''` comme absence de filtre, garde 400 pour statut non vide inconnu ; SQL whitelist/RLS/droits inchangés. Tests unitaires, PGlite et E2E adaptés à la véritable soumission. Code **local non committé/non publié/non validé CI** au moment de cette mise à jour. Snapshot avant correction `*avant-correctif-tri-boutiques*` copié et SHA vérifié sous `/home/user/continuity-backups/`. TypeScript/lint, 27 tests unitaires ciblés et découverte 10 E2E OK ; PGlite renforcé et vrais E2E non exécutés localement (OOM sandbox précédent). Suite : mémoire/diff, commit descendant de `3fd31f8`, snapshot après et ZIP GitHub Desktop vérifiés, publication normale par propriétaire, CI **quatre jobs sur le futur SHA**. Ne pas dire que le run rouge valide le correctif.
 
-## Restrictions
+## Chantier et restrictions
 
-Windows 10/WSL/Docker **en pause demandée explicitement** (`0x80070641`, `msiserver` absent). Aucune installation, vraie donnée, sauvegarde PostgreSQL réelle chiffrée/restaurée ni production vérifiés. Ne pas solliciter de manipulations PC non demandées. Aucun aperçu Arena n'est production ; `docker-compose.dev.yml` est inadapté aux données réelles. Préserver ancien dépôt divergent `/home/user` ; ni reset/clean/force push. Pas de Jumia/MIMI dans L10.
+Le propriétaire poursuit le vrai chantier interface et administration L10, pas des menus d'améliorations. L10 et P1 restent inachevés. Windows/WSL/Docker en pause explicite (`0x80070641`, `msiserver` absent) : aucune installation, vraie donnée, sauvegarde PostgreSQL réelle restaurée ni production. Ne pas solliciter de manipulations PC. Aucun aperçu Arena n'est production ; préserver ancien dépôt divergent `/home/user` sans reset/clean/force push. Pas de Jumia/MIMI dans L10.
 
 **Prompt de reprise** : « Lis `PROJECT_MEMORY/RESUME_HERE.md` puis `AI_HANDOVER.md`, compare Git/code/CI/docs, préserve l'arbre et suis `NEXT_ACTIONS.md` sans repartir de zéro. »
