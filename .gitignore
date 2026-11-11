@@ -21,3 +21,7 @@ test-results/
 .local/
 uploads/
 tout-en-un-github-desktop*.zip
+
+# Archives de continuité locales (code seulement ; ne pas versionner)
+.project-backups/
+continuity-backups/

@@ -32,6 +32,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Continuité et cohérence documentaire
+        run: node scripts/project-memory.mjs check
+
       - name: Lint
         run: npm run lint
 
