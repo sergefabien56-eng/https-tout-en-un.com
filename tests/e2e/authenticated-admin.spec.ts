@@ -1,16 +1,14 @@
 import { readFileSync } from 'node:fs';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
 // Seulement en CI : utilisateur et codes FICTIFS créés dans une base PostgreSQL jetable.
 // Jamais exécuté contre une base réelle de production.
-test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async ({ page }, testInfo) => {
-  test.setTimeout(90_000); // Parcours connecté multi-pages sur PostgreSQL, bureau et mobile.
-  test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
+/** Quatre codes réservés par scénario : bureau/mobile et première tentative/retry. */
+async function loginOwner(page: Page, testInfo: TestInfo, scenario: 0 | 1): Promise<void> {
   const codes = readFileSync(process.env.E2E_RECOVERY_FILE!, 'utf8').trim().split('\n');
-  // Chaque tentative consomme un code de secours : retry et appareils distincts.
-  const code = codes[testInfo.retry * 2 + (testInfo.project.name === 'mobile-375' ? 1 : 0)];
+  const index = scenario * 4 + testInfo.retry * 2 + (testInfo.project.name === 'mobile-375' ? 1 : 0);
+  const code = codes[index];
   expect(code).toMatch(/^[A-Za-z0-9_-]{22}$/);
-
   await page.goto('/connexion');
   await page.getByLabel('Adresse e-mail').fill('proprietaire@ci.invalid');
   await page.getByLabel('Mot de passe').fill('MotDePasseCI!2026');
@@ -19,6 +17,12 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   await page.getByRole('button', { name: 'Se connecter' }).click();
   await expect(page).toHaveURL(/\/espace$/);
   await expect(page.locator('.topbar-user')).toHaveText('Propriétaire CI');
+}
+
+test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs', async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
+  test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
+  await loginOwner(page, testInfo, 0);
   const notificationLink = page.getByRole('link', { name: /^Mes notifications : (?:plus de 99|\d+) non lues?$/ });
   await expect(notificationLink).toBeVisible();
   await notificationLink.click();
@@ -85,8 +89,15 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   const user = await page.request.get(`/api/admin/users/${ownerId}`);
   expect(user.status()).toBe(200);
   expect((await user.json() as { roles: { shopId: string | null }[] }).roles[0]?.shopId).toBeNull();
-  // Permission owner vérifiée côté serveur, puis page réelle dans les deux tailles d'écran.
+});
+
+test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
+  test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
+  await loginOwner(page, testInfo, 1);
   if (testInfo.project.name === 'mobile-375') await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
+  await page.getByRole('button', { name: 'Administration' }).click();
+  // Permission owner vérifiée côté serveur, puis page réelle dans les deux tailles d'écran.
   await page.getByRole('link', { name: 'Rôles' }).click();
   await expect(page).toHaveURL(/\/espace\/roles$/);
   await expect(page.getByRole('heading', { name: 'Rôles et permissions' })).toBeVisible();
