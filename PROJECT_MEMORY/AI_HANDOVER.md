@@ -18,3 +18,7 @@
 5. Donner bilan : fichiers exacts, sauvegardes et emplacement, SHA commit/local/distant, tests passés/non exécutés, blocages, et le prompt de reprise ci-dessous.
 
 **Prompt de reprise à copier** : « Ouvre `PROJECT_MEMORY/RESUME_HERE.md` puis `AI_HANDOVER.md` ; compare Git, code, migrations, tests et docs. Préserve tout travail local ; vérifie le dernier SHA GitHub et reprends la première action de `NEXT_ACTIONS.md`. Effectue un snapshot propre avant/après et distingue testé de non testé. »
+
+## Archive automatique du code validé (à vérifier après publication)
+
+La CI ajoute `code_archive` dépendant de `quality`, `migrations`, `e2e`, seulement sur `main`. Récupérer depuis **Artifacts** du run réussi : `code-valide-<sha>` ; vérifier SHA256 et `git bundle verify`, puis restaurer en clone séparé. Rétention demandée 30 jours sur GitHub, pas une copie indépendante : transférer ailleurs pour durabilité. Ce mécanisme ne sauvegarde ni DB ni travail non poussé. Vérifier réellement le nouveau run avant de le déclarer opérationnel.

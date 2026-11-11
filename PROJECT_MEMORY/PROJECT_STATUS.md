@@ -1,14 +1,14 @@
-# État de référence — 2026-11-11
+# État de référence — jalon Phase 1 archive CI du code
 
-| Élément | Constat vérifiable | Statut |
-|---|---|---|
-| GitHub publié | `main` v34 `0226bd0890a20dd73bdcf09679003f0077085319` ; nouveau jalon mémoire à publier/contrôler séparément | v34 vérifié |
-| CI v34 | run `43009896449`, 3 jobs success, 10 Playwright passés sans flaky | testé sur v34 |
-| Stack | Next 15, React 19, TypeScript 5.9, PostgreSQL (`pg`), npm, Vitest/Playwright | code lu |
-| DB | 10 migrations up/down, RLS forcée sur certaines tables, test de restauration CI fictive | v34 CI ; pas production |
-| UI / auth | accueil, connexion, espace, boutiques, utilisateurs/rôles/sessions, journal, notifications, système partiel | implémenté/test CI v34 ; portée limitée |
-| Jumia / financier | étude et conception seulement ; pas de données Jumia réelles ni chiffre financier de production | non livré |
-| Exploitation | templates Caddy/Docker, prévisualisation temporaire ; pas de VPS, domaine ni backup chiffré hors site validés | non testé en prod |
-| Mémoire | 13 documents + script de check/snapshot, sans modification du code applicatif | check OK, lint OK, typecheck OK, 159 Vitest passés localement ; CI du nouveau commit non testée |
+| Élément | État constaté |
+|---|---|
+| Version GitHub confirmée avant ce jalon | `bf706f194241e4ff6a9a69aa4f4e2d538b6fa78c`, run `43013341355` **completed success**, trois jobs verts |
+| Nouveau job `code_archive` | écrit dans `.github/workflows/ci.yml`, après 3 jobs réussis sur `main` ; **pas encore prouvé sur un runner GitHub** |
+| Archive source et histoire | `scripts/project-memory.mjs snapshot`, bundle + ZIP + SHA256 ; locale testée au jalon précédent, invocation CI nouvelle à valider |
+| Auth/UI | socle P1 connexion/TOTP, boutiques, rôles, utilisateurs, journal, notifications manuelles ; tests du précédent SHA validés ; aucun nouveau module métier livré |
+| PostgreSQL | 10 migrations contrôlées ; restauration de fixtures en CI, pas un backup externe de données |
+| Exploitation | hébergement/SMTP et destination externe non vérifiés ; aucune sauvegarde de production, pas de serveur métier déclaré en service |
 
-**Bloquants** : domaine/VPS/SMTP, sauvegarde de production chiffrée + restauration indépendante, accès Jumia, validation des règles financières ; anciens documents de planification obsolètes par endroits. Voir `BUGS_AND_ISSUES.md`. Ne pas réutiliser le résultat de CI v34 comme résultat du nouveau SHA.
+**Validation locale de ce jalon :** YAML parsé (4 jobs et dépendances), check de mémoire OK, syntaxe Node OK, lint OK, typecheck OK, 159/159 Vitest. Nouvelle CI distante et téléchargement/restauration de l'artifact encore en attente ; ne jamais réutiliser le succès de `43013341355` comme celui d'un commit ultérieur.
+
+**Problèmes** : Git local `/home/user` à ancien HEAD et histoire divergente, documents Phase 0 périmés, absence de sauvegarde de données commerciale. Voir `BUGS_AND_ISSUES.md`.

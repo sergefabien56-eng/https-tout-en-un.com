@@ -12,7 +12,7 @@ Le job `Migrations (PostgreSQL 16 réel)` lance `scripts/test-backup-restore.mjs
 4. Restaure avec `pg_restore --exit-on-error` de la **même image PostgreSQL 16** dans une autre base, `toutenun_restore_ci`.
 5. Compare la présence des migrations versionnées, la boutique, l’audit, le nombre de politiques RLS et le `FORCE ROW LEVEL SECURITY` sur `shops` ; vérifie que l’archive n’a pas changé ; détruit la base restaurée et l’archive temporaire.
 
-L’étape est bloquante en CI. La restauration de la version précédente (8 migrations) a réussi dans le run `42932059433` ; **la nouvelle migration 0009 des notifications devra être revalidée en CI**.
+L’étape est bloquante en CI. La version à 10 migrations a réussi dans le run v35 `43013341355` (trois jobs verts). Ce test reste limité à une base fictive et jetable.
 
 ## Ce qui manque avant une sauvegarde de production
 
@@ -22,3 +22,9 @@ L’étape est bloquante en CI. La restauration de la version précédente (8 mi
 - Tester un rollback applicatif N → N−1 sans perte de données, puis la reprise sur l’URL HTTPS définitive.
 
 **Ne pas exécuter le script CI en lui passant l’URL d’une base réelle.** Son archive temporaire n’est pas chiffrée et sa base source est modifiée par des fixtures avant le dump ; ces propriétés le rendent inadapté à la production.
+
+## Archive automatique du code validé sur GitHub Actions (lot P1 partiel)
+
+Après **les trois jobs verts** (qualité, migrations PostgreSQL 16, navigateur), uniquement sur un `push` vers `main`, le job `Archive du code validé (30 jours)` crée un bundle Git de l'historique et un ZIP des fichiers suivis, puis vérifie les SHA-256 et le bundle avant de les publier dans les **Artifacts** du run Actions. Un échec de validation n'archive rien ; la réussite de ce quatrième job signifie seulement que l'archive a été déposée. Télécharger l'artefact depuis le run puis vérifier les empreintes localement (`sha256sum -c *.sha256`, `git bundle verify *.bundle`) et tester une restauration isolée (`git clone fichier.bundle restauration-test`). La vérification de ce nouveau job sur GitHub est **en attente de publication du commit**.
+
+**Limites importantes** : rétention GitHub configurée à 30 jours (la politique effective de l'organisation peut être plus courte), même hébergeur que le dépôt, aucun chiffrement externe ni copie hors GitHub, aucun fichier non suivi, aucune donnée PostgreSQL réelle. Ce mécanisme ne remplace pas une sauvegarde indépendante ni la procédure de restauration chiffrée de production ci-dessus. Pour une conservation durable, télécharger et transférer l'archive vers un stockage indépendant approuvé, sans ajouter de secret à ce workflow.
