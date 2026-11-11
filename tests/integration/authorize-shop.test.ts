@@ -26,6 +26,7 @@ vi.mock('@/core/db/client', () => ({
 
 const { withAuthorizedShopTransaction, withAuditedShopMutation } = await import('@/core/auth/authorize-shop');
 const { listShopAudit } = await import('@/modules/audit/list-audit');
+const { exportShopAudit } = await import('@/modules/audit/export-audit');
 const { POST: selectShop } = await import('@/app/api/preferences/shop/route');
 const owner = createSessionToken();
 const manager = createSessionToken();
@@ -149,6 +150,23 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
       expect(selected.cookies.get('toutenun_shop')?.value).toBe(shop1);
       expect(selected.cookies.get('toutenun_shop')?.httpOnly).toBe(true);
     } finally { if (previous === undefined) delete process.env.APP_URL; else process.env.APP_URL = previous; }
+  });
+
+  it('export CSV : permission double, filtre période et formule neutralisée, sans événement B/global', async () => {
+    await db.query("INSERT INTO audit_log (shop_id,module,action,entity_type) VALUES ($1,'shops','=cmd','@hostile')", [shop1]);
+    const today = new Date().toISOString().slice(0, 10);
+    const csv = await exportShopAudit({ token: manager.token, shopId: shop1, from: today, to: today });
+    expect(csv).toContain('Boutique');
+    expect(csv).toContain(`"'=cmd"`);
+    expect(csv).toContain(`"'@hostile"`);
+    expect(csv).not.toContain('test.b');
+    expect(csv).not.toContain('rls-global');
+    await expect(exportShopAudit({ token: manager.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
+    // Un rôle ayant audit:read mais pas reports:export ne peut télécharger le journal.
+    await db.exec("INSERT INTO role_permissions(role_code,permission_code) VALUES('stock_manager','audit:read');");
+    await db.query('INSERT INTO user_roles(user_id,role_code,shop_id) VALUES (3,$1,$2)', ['stock_manager', shop2]);
+    expect((await listShopAudit({ token: assistant.token, shopId: shop2, page: 1 })).events.length).toBeGreaterThan(0);
+    await expect(exportShopAudit({ token: assistant.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
   });
 
 });

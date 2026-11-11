@@ -8,15 +8,17 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ shopId: string }> }): Promise<NextResponse> {
   const q = request.nextUrl.searchParams;
   const page = q.get('page') ?? '1';
-  const module = q.get('module');
-  const actorId = q.get('actorId');
+  const module = q.get('module') || null;
+  const actorId = q.get('actorId') || null;
+  const from = q.get('from') || null; const to = q.get('to') || null;
   const headers = { 'Cache-Control': 'no-store' };
   if (!/^[1-9]\d{0,4}$/.test(page)) return NextResponse.json({ error: 'Page invalide.' }, { status: 400, headers });
   try {
     const { shopId } = await params;
     const events = await listShopAudit({ token: request.cookies.get('toutenun_session')?.value,
       shopId, page: Number(page), ...(module !== null ? { module } : {}),
-      ...(actorId !== null ? { actorId } : {}) });
+      ...(actorId !== null ? { actorId } : {}), ...(from !== null ? { from } : {}),
+      ...(to !== null ? { to } : {}) });
     return NextResponse.json(events, { headers });
   } catch (error) {
     if (error instanceof AppError) return NextResponse.json({ error: error.userMessage },

@@ -75,6 +75,13 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toContainText('Préférence : Boutique CI fictive');
   await page.goto('/espace/journal');
   await expect(page.getByRole('table')).toContainText('fixture.created');
+  const exportResponse = await page.request.get(`/api/shops/${shopId}/audit/export`);
+  expect(exportResponse.status()).toBe(200);
+  expect(exportResponse.headers()['content-type']).toContain('text/csv');
+  const csvText = await exportResponse.text();
+  expect(csvText).toContain('fixture.created');
+  expect(csvText).toContain(`"'=cmd"`);
+  expect(csvText).toContain(`"'@hostile"`);
   await page.goto('/espace/boutiques');
   // Une sélection fabriquée par le navigateur doit échouer malgré une session owner.
   await page.request.get('/api/auth/csrf');
