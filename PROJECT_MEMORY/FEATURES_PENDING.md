@@ -14,3 +14,5 @@ Une entrée de menu « bientôt » ou une maquette ne vaut jamais réalisation. 
 - Palette/API de recherche validées sur `cbbe950` en CI (4 jobs) ; artifact du code non restauré depuis GitHub.
 
 - Révocation d’une autre session : code et 38 tests ciblés locaux ; CI du futur SHA en attente. Déconnexion globale en un clic, gestion des invitations et sauvegarde PostgreSQL indépendantes restent à faire.
+
+- Déconnexion de tous les autres appareils : code local, 43 tests ciblés, **CI du futur SHA en attente**. Déploiement durable, SMTP, invitations et backup PostgreSQL indépendant restent à faire.

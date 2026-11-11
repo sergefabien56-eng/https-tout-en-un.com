@@ -54,3 +54,7 @@ Le premier échec était DNS `security.ubuntu.com` pendant installation Chromium
 ## Correctif filtres notifications (après `e4c4678`)
 
 Run `43063876856` : qualité/PG16 verts, navigateur 9 passed/1 flaky sur clic filtre notifications, archive skipped ; traces présentes sur GitHub mais non téléchargées. Correctif local : navigation document native pour les trois filtres et attente URL 15 s. Hypothèse de concurrence router.refresh/Link, non prouvée. Lire `RESUME_HERE.md` et `docs/comptes-rendus/phase1-correctif-navigation-notifications.md`.
+
+## Lot déconnexion groupée — Phase 1
+
+Le propriétaire a choisi « Déconnecter tous les autres appareils » ; code local descendant de `a78a901`, dont run `43065395902` était vert (4 jobs). Nouveau lot non publié/non validé par ce run. `revokeAllOtherSessions`, route POST Origin/CSRF, bouton confirmation dans Mes sessions, audit transactionnel et tests 43/43 locaux ; lire `RESUME_HERE.md` et `docs/comptes-rendus/phase1-deconnecter-tous-autres-appareils.md`.

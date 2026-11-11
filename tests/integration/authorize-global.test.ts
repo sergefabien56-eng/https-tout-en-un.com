@@ -20,6 +20,7 @@ const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
 const { revokeOtherSession } = await import('@/modules/identity/revoke-other-session');
+const { revokeAllOtherSessions } = await import('@/modules/identity/revoke-all-other-sessions');
 const { refreshSession } = await import('@/core/auth/refresh-session');
 const owner = createSessionToken(); const scoped = createSessionToken(); const globalManager = createSessionToken();
 
@@ -216,6 +217,32 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     await expect(revokeOtherSession(owner.token, target.rows[0]!.id)).rejects.toMatchObject({ httpStatus: 404 });
     const audit = await db.query<{ n: number }>("SELECT count(*)::int AS n FROM audit_log WHERE action = 'revoke_other_session' AND actor_user_id = 1");
     expect(audit.rows[0]!.n).toBe(before.rows[0]!.n + 1);
+  });
+  it('révocation groupée : toutes les autres du même compte, jamais la courante ni un autre compte', async () => {
+    const otherA = createSessionToken(); const otherB = createSessionToken();
+    for (const other of [otherA, otherB]) await db.query(
+      "INSERT INTO sessions (user_id, token_hash, expires_at) VALUES (1,$1,now()+interval '1 hour')", [other.hash]);
+    const foreign = createSessionToken();
+    await db.query("INSERT INTO sessions (user_id, token_hash, expires_at) VALUES (2,$1,now()+interval '1 hour')", [foreign.hash]);
+    const before = await listOwnSessions(owner.token);
+    const count = before.filter((s) => !s.current).length;
+    expect(count).toBeGreaterThanOrEqual(2);
+    await expect(revokeAllOtherSessions(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(revokeAllOtherSessions(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
+    const auditBefore = await db.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM audit_log WHERE action='revoke_all_other_sessions'");
+    expect(await revokeAllOtherSessions(owner.token)).toEqual({ revokedCount: count });
+    expect((await listOwnSessions(owner.token)).map((s) => s.current)).toEqual([true]);
+    await expect(refreshSession(otherA.token)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(refreshSession(otherB.token)).rejects.toMatchObject({ httpStatus: 401 });
+    expect((await listOwnSessions(scoped.token)).some((s) => s.current)).toBe(true);
+    await expect(refreshSession(foreign.token)).resolves.toBeInstanceOf(Date);
+    expect(await revokeAllOtherSessions(owner.token)).toEqual({ revokedCount: 0 });
+    const audit = await db.query<{ before: { activeOtherSessions: number }; after: { activeOtherSessions: number } }>(
+      "SELECT before, after FROM audit_log WHERE action='revoke_all_other_sessions' ORDER BY id");
+    expect(audit.rows).toHaveLength(auditBefore.rows[0]!.n + 1);
+    expect(audit.rows.at(-1)?.before.activeOtherSessions).toBe(count);
+    expect(audit.rows.at(-1)?.after.activeOtherSessions).toBe(0);
   });
   it('expiration glissante : prolonge active, refuse expirée et révoquée', async () => {
     await db.exec("UPDATE sessions SET last_seen_at = now() - interval '15 minutes' WHERE user_id = 1;");

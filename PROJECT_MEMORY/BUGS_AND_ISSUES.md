@@ -24,3 +24,5 @@ Enregistrer ici tout bug reproductible avec SHA, environnement, résultat attend
 13. `43053514712` tentative 2 : E2E 2 failed (assertion erronée zéro autres sessions), 1 flaky (fiche utilisateur, timeout 5 s), 7 passed ; archive skipped. Correctif local test uniquement, validation CI du futur SHA en attente. Tentative 1 : DNS security.ubuntu.com échoué lors d’apt.
 
 14. `43063876856` (`e4c4678`) : navigateur 9 passés/1 flaky après clic filtre notification (« Lues »), URL restée `filter=all&page=1` 5 s ; retry réussi, job rouge car `failOnFlakyTests`. Trace présente non téléchargée ; cause exacte non prouvée. Correctif navigation native local, CI du nouveau SHA à vérifier.
+
+15. Nouveau lot sessions groupées : 43 tests ciblés/lint/types OK mais suite entière/build/E2E du futur SHA non exécutés localement ; l'ancien run `43065395902` de `a78a901` est vert, pas celui du nouveau code.

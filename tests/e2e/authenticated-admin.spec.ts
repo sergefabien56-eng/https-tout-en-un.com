@@ -309,6 +309,12 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
     headers: { origin: 'http://unauthorized.invalid', 'x-csrf-token': csrfToken! },
   });
   expect(blockedForeignOrigin.status()).toBe(403);
+  // La révocation groupée ne doit jamais être déclenchée contre les autres scénarios CI
+  // partageant ce compte ; vérifier ses barrières sans changer leurs sessions.
+  expect((await page.request.post('/api/auth/sessions/revoke-others', {
+    headers: { origin: 'http://unauthorized.invalid', 'x-csrf-token': csrfToken! },
+  })).status()).toBe(403);
+  expect((await page.request.get('/api/auth/me')).status()).toBe(200);
   const refresh = await page.request.post('/api/auth/refresh', {
     headers: { origin: 'http://127.0.0.1:3100', 'x-csrf-token': csrfToken! },
   });

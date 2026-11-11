@@ -11,6 +11,7 @@ import { GET as adminRolesGet } from '@/app/api/admin/roles/route';
 import { GET as deepHealthGet } from '@/app/api/health/deep/route';
 import { GET as sessionsGet } from '@/app/api/auth/sessions/route';
 import { POST as revokeOtherPost } from '@/app/api/auth/sessions/[id]/revoke/route';
+import { POST as revokeOthersPost } from '@/app/api/auth/sessions/revoke-others/route';
 import { GET as notificationsGet } from '@/app/api/notifications/route';
 import { GET as shopAuditGet } from '@/app/api/shops/[shopId]/audit/route';
 import { GET as auditExportGet } from '@/app/api/shops/[shopId]/audit/export/route';
@@ -97,6 +98,22 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
       origin: 'https://app.example.com', cookie: `toutenun_csrf=${token}`, 'x-csrf-token': token,
     } });
     const response = await revokeOtherPost(noSession, params);
+    expect(response.status).toBe(401);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+  });
+  it('POST déconnecter tous les autres : Origin exact et double-submit requis avant la base', async () => {
+    process.env.APP_URL = 'https://app.example.com';
+    const url = 'https://app.example.com/api/auth/sessions/revoke-others';
+    expect((await revokeOthersPost(new NextRequest(url, { method: 'POST' }))).status).toBe(403);
+    const csrf = csrfGet().cookies.get('toutenun_csrf')!.value;
+    const hostile = new NextRequest(url, { method: 'POST', headers: {
+      origin: 'https://app.example.com.evil.invalid', cookie: `toutenun_csrf=${csrf}`, 'x-csrf-token': csrf,
+    } });
+    expect((await revokeOthersPost(hostile)).status).toBe(403);
+    const noSession = new NextRequest(url, { method: 'POST', headers: {
+      origin: 'https://app.example.com', cookie: `toutenun_csrf=${csrf}`, 'x-csrf-token': csrf,
+    } });
+    const response = await revokeOthersPost(noSession);
     expect(response.status).toBe(401);
     expect(response.headers.get('cache-control')).toBe('no-store');
   });

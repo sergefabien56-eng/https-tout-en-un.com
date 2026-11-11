@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { listOwnSessions } from '@/modules/identity/active-sessions';
 import { AppError } from '@/core/errors/app-error';
 import { RevokeSessionButton } from '@/ui/revoke-session-button';
+import { RevokeAllSessionsButton } from '@/ui/revoke-all-sessions-button';
 
 export const dynamic = 'force-dynamic';
 export default async function SessionsPage() {
@@ -25,6 +26,8 @@ export default async function SessionsPage() {
         <td>{session.current ? 'Appareil actuel' : <RevokeSessionButton id={session.id} />}</td>
       </tr>)}</tbody>
     </table></div>
-    <p>Vous pouvez déconnecter chaque autre appareil actif ; votre session actuelle reste ouverte. Une confirmation est demandée et l’action est journalisée.</p>
+    <p>Vous pouvez déconnecter chaque autre appareil actif, ou tous les autres en une fois. Votre session actuelle reste ouverte ; ces actions demandent confirmation et sont journalisées.</p>
+    {sessions.some((session) => !session.current) &&
+      <RevokeAllSessionsButton />}
   </main>;
 }

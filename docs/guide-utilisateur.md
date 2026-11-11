@@ -6,7 +6,7 @@
 
 Lorsque l'opérateur aura déployé et validé une URL HTTPS, ouvrez **Connexion** (`/connexion`). Entrez l'adresse e-mail et le mot de passe de votre compte, puis le code de votre application d'authentification ou un code de secours à usage unique. Les rôles Propriétaire et Gestionnaire nécessitent la double authentification. Il n'existe **pas d'inscription publique** ; ne saisissez jamais un code de secours dans une assistance ou dans un courriel. Un accès refusé doit être signalé au Propriétaire par un canal sûr.
 
-La page **Mes sessions** (`/espace/sessions`) montre les connexions actives de votre compte, sans divulguer de jeton ni d'adresse IP. L'heure est affichée en **UTC**. La déconnexion de l'appareil courant est disponible depuis l'espace privé ; vous pouvez désormais déconnecter un autre appareil actif depuis cette page, après confirmation. Votre session courante reste ouverte ; l'action est journalisée.
+La page **Mes sessions** (`/espace/sessions`) montre les connexions actives de votre compte, sans divulguer de jeton ni d'adresse IP. L'heure est affichée en **UTC**. La déconnexion de l'appareil courant est disponible depuis l'espace privé ; vous pouvez déconnecter un autre appareil ou **tous les autres appareils** après confirmation. Votre session courante reste ouverte ; chaque action effective est journalisée.
 
 ## 2. Se déplacer dans l'application
 

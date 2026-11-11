@@ -24,3 +24,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - CI sessions : les scénarios parallèles et retries produisent légitimement plusieurs sessions. Tester l’absence de bouton **sur la session courante**, pas zéro bouton global ; garder le refus serveur 404 et `failOnFlakyTests`.
 
 - Après `e4c4678` : ne pas supprimer `failOnFlakyTests` pour obtenir une CI verte ; les filtres des notifications passent par navigation document normale après `router.refresh()` afin de conserver une URL/périmètre serveur cohérents. Examiner traces si échec persistant.
+
+- Choix du propriétaire : après révocation ciblée, ajouter « Déconnecter tous les autres appareils » sans déconnecter l'appareil courant ; audit agrégé par nombre et transaction, 0 idempotent ; ne pas exécuter de mutation groupée dans des scénarios E2E parallèles partageant le compte fictif.
