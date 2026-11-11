@@ -67,6 +67,45 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     await expect(listAuthorizedUsers(owner.token, 1, 'a'.repeat(81))).rejects.toMatchObject({ httpStatus: 400 });
     await expect(listAuthorizedUsers(owner.token, 1, 'a\n')).rejects.toMatchObject({ httpStatus: 400 });
   });
+  it('filtre de statut combiné à la recherche, sans accès inter-périmètre', async () => {
+    await db.exec(`INSERT INTO users (email, password_hash, display_name, status) VALUES
+      ('status-active@fixture.invalid','hash','Compte test','active'),
+      ('status-invited@fixture.invalid','hash','Compte test','invited'),
+      ('status-suspended@fixture.invalid','hash','Compte test','suspended');`);
+    try {
+      for (const status of ['active', 'invited', 'suspended']) {
+        const result = await listAuthorizedUsers(owner.token, 1, 'COMPTE TEST', status);
+        expect(result.users.map((user) => user.email)).toEqual([`status-${status}@fixture.invalid`]);
+        expect(result.users[0]?.status).toBe(status);
+        expect(result.nextPage).toBeNull();
+        expect(JSON.stringify(result)).not.toMatch(/password_hash|totp_secret|token_hash/);
+      }
+      expect((await listAuthorizedUsers(owner.token, 1, 'introuvable', 'invited')).users).toEqual([]);
+      expect((await listAuthorizedUsers(owner.token, 1, 'Compte test', 'all')).users).toHaveLength(3);
+      await expect(listAuthorizedUsers(owner.token, 1, '', 'ACTIVE')).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(listAuthorizedUsers(owner.token, 1, '', 'active OR 1=1')).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(listAuthorizedUsers(scoped.token, 1, '', 'invited')).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(listAuthorizedUsers(undefined, 1, '', 'invited')).rejects.toMatchObject({ httpStatus: 401 });
+    } finally {
+      await db.exec("DELETE FROM users WHERE email LIKE 'status-%@fixture.invalid'");
+    }
+  });
+  it('pagination des résultats garde la combinaison recherche et statut côté serveur', async () => {
+    await db.exec(`INSERT INTO users (email, password_hash, display_name, status)
+      SELECT 'page-filter-' || n || '@fixture.invalid', 'hash', 'Pagination filtre', 'invited'
+      FROM generate_series(1, 21) AS n`);
+    try {
+      const first = await listAuthorizedUsers(owner.token, 1, 'Pagination filtre', 'invited');
+      const second = await listAuthorizedUsers(owner.token, 2, 'Pagination filtre', 'invited');
+      expect(first.users).toHaveLength(20);
+      expect(first.nextPage).toBe(2);
+      expect(second.users).toHaveLength(1);
+      expect(second.nextPage).toBeNull();
+      expect((await listAuthorizedUsers(owner.token, 2, 'Pagination filtre', 'active')).users).toEqual([]);
+    } finally {
+      await db.exec("DELETE FROM users WHERE email LIKE 'page-filter-%@fixture.invalid'");
+    }
+  });
   it('manager limité à une boutique : refus global, même avec users:read', async () => {
     await expect(listAuthorizedUsers(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
     const grants = await getNavigationPermissions('2');

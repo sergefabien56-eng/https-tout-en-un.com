@@ -10,12 +10,18 @@ export interface UserSummary {
   createdAt: string;
 }
 
-export async function listAuthorizedUsers(token: string | undefined, page = 1, q = ''): Promise<{
+export type UserStatusFilter = 'all' | UserSummary['status'];
+export function isUserStatusFilter(value: string): value is UserStatusFilter {
+  return value === 'all' || value === 'active' || value === 'suspended' || value === 'invited';
+}
+
+export async function listAuthorizedUsers(token: string | undefined, page = 1, q = '', status: string = 'all'): Promise<{
   users: UserSummary[]; nextPage: number | null;
 }> {
   if (!Number.isSafeInteger(page) || page < 1 || page > 10_000) throw new ValidationError('Page invalide.');
   if (typeof q !== 'string' || q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32))
     throw new ValidationError('Recherche invalide.');
+  if (!isUserStatusFilter(status)) throw new ValidationError('Statut invalide.');
   const term = q.trim();
   return withAuthorizedGlobalTransaction({ token, permission: 'users:read' }, async (db) => {
     const size = 20;
@@ -25,7 +31,8 @@ export async function listAuthorizedUsers(token: string | undefined, page = 1, q
     }>(`SELECT id::text, display_name, email, status, created_at FROM users
         WHERE ($3::text IS NULL OR position(lower($3) in lower(display_name)) > 0
           OR position(lower($3) in lower(email)) > 0)
-        ORDER BY id DESC LIMIT $1 OFFSET $2`, [size + 1, (page - 1) * size, term || null]);
+        AND ($4::text = 'all' OR status = $4)
+        ORDER BY id DESC LIMIT $1 OFFSET $2`, [size + 1, (page - 1) * size, term || null, status]);
     return {
       users: result.rows.slice(0, size).map((r) => ({ id: String(r.id), displayName: r.display_name,
         email: r.email, status: r.status, createdAt: new Date(r.created_at).toISOString() })),

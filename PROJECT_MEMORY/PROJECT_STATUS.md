@@ -1,14 +1,12 @@
-# État de référence — jalon Phase 1 archive CI du code
+# État Phase 1 — filtres d'administration, publication attendue
 
-| Élément | État constaté |
+| Élément | État et preuve |
 |---|---|
-| Version GitHub confirmée avant ce jalon | `bf706f194241e4ff6a9a69aa4f4e2d538b6fa78c`, run `43013341355` **completed success**, trois jobs verts |
-| Nouveau job `code_archive` | écrit dans `.github/workflows/ci.yml`, après 3 jobs réussis sur `main` ; **pas encore prouvé sur un runner GitHub** |
-| Archive source et histoire | `scripts/project-memory.mjs snapshot`, bundle + ZIP + SHA256 ; locale testée au jalon précédent, invocation CI nouvelle à valider |
-| Auth/UI | socle P1 connexion/TOTP, boutiques, rôles, utilisateurs, journal, notifications manuelles ; tests du précédent SHA validés ; aucun nouveau module métier livré |
-| PostgreSQL | 10 migrations contrôlées ; restauration de fixtures en CI, pas un backup externe de données |
-| Exploitation | hébergement/SMTP et destination externe non vérifiés ; aucune sauvegarde de production, pas de serveur métier déclaré en service |
+| v34 notifications | `0226bd0`, run `43009896449` : 3 jobs verts, 10 E2E passés |
+| Mémoire publiée | `bf706f1` sur `main`, run `43013341355` : 3 jobs verts |
+| Archive automatique du code | commit local `8833d4c` : nouveau job CI après 3 validations ; **non encore publié/vérifié sur GitHub**. Artifact temporaire 30 jours demandés, pas backup indépendant. |
+| Filtre de statut utilisateurs | présent lot : `src/modules/identity/user-list.ts`, API et page, recherche combinée ; **check, lint, typecheck, 161 Vitest et build verts localement**. E2E ajoutés mais non encore exécutés sur ce SHA. |
+| Schéma et sécurité | 10 migrations, autorisation globale `users:read` maintenue ; pas de schéma changé. Test base CI fictive, aucune sauvegarde chiffrée de données réelles. |
+| Produit | application P1 partielle ; Jumia API, finance, worker, SMTP, domaine/VPS et restauration prod non validés. |
 
-**Validation locale de ce jalon :** YAML parsé (4 jobs et dépendances), check de mémoire OK, syntaxe Node OK, lint OK, typecheck OK, 159/159 Vitest. Nouvelle CI distante et téléchargement/restauration de l'artifact encore en attente ; ne jamais réutiliser le succès de `43013341355` comme celui d'un commit ultérieur.
-
-**Problèmes** : Git local `/home/user` à ancien HEAD et histoire divergente, documents Phase 0 périmés, absence de sauvegarde de données commerciale. Voir `BUGS_AND_ISSUES.md`.
+**Blocage immédiat** : publier le nouveau commit descendant et attendre quatre jobs verts sur le **nouveau** SHA, puis restaurer artifact ; ne pas réutiliser le succès de `43013341355` pour cette fonctionnalité. Le Git local historique `/home/user` diverge : travailler depuis un clone propre. Aucun identifiant réel dans Git.

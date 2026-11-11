@@ -22,3 +22,7 @@
 ## Archive automatique du code validé (à vérifier après publication)
 
 La CI ajoute `code_archive` dépendant de `quality`, `migrations`, `e2e`, seulement sur `main`. Récupérer depuis **Artifacts** du run réussi : `code-valide-<sha>` ; vérifier SHA256 et `git bundle verify`, puis restaurer en clone séparé. Rétention demandée 30 jours sur GitHub, pas une copie indépendante : transférer ailleurs pour durabilité. Ce mécanisme ne sauvegarde ni DB ni travail non poussé. Vérifier réellement le nouveau run avant de le déclarer opérationnel.
+
+## Présent lot P1
+
+La liste utilisateurs ajoute `status` (`all/active/suspended/invited`) combiné à `q` côté SQL, API et UI, avec liens de pagination préservant les deux filtres. Lire `docs/comptes-rendus/phase1-filtre-statut-utilisateurs.md`. Tests locaux 161 Vitest/lint/types/build verts ; E2E ajoutés mais non exécutés sur PostgreSQL réel localement, valider via CI du prochain SHA. Deux commits restent éventuellement à pousser selon `git ls-remote`; ne pas déclarer l'archive CI opérationnelle sans artifact restauré.

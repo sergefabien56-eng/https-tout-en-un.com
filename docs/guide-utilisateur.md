@@ -1,6 +1,6 @@
 # Guide utilisateur — TOUT EN UN BUSINESS MANAGER
 
-> **État : guide de la version de développement, Phase 1 non terminée.** L'application n'est pas déployée ; le dépôt GitHub et sa CI ne sont pas une URL de production. Ce guide décrit uniquement les parcours visibles dans le code validé par la CI v23 (`6550912`, run `42975121641`). Aucun compte, boutique ou chiffre Jumia n'est créé par défaut en production.
+> **État : guide de la version de développement, Phase 1 non terminée.** L'application n'est pas déployée ; le dépôt GitHub et sa CI ne sont pas une URL de production. Base publiée vérifiée : mémoire `bf706f1`, CI `43013341355` verte. Le filtre de statut des utilisateurs ci-dessous est testé localement mais attend la CI de son nouveau commit ; voir `docs/comptes-rendus/phase1-filtre-statut-utilisateurs.md`. Aucun compte, boutique ou chiffre Jumia n'est créé par défaut en production.
 
 ## 1. Accéder à son espace
 
@@ -34,7 +34,7 @@ Si une connexion inconnue apparaît, changez vos accès par une procédure sûre
 
 ## 6. Administration et état du système
 
-Selon vos droits, **Utilisateurs** (`/espace/utilisateurs`) présente des comptes existants et leur statut ; vous pouvez rechercher par nom ou adresse e-mail. Seuls les rôles dotés de la permission **globale** peuvent consulter cette liste et les résultats. La fiche d'un utilisateur présente ses accès. La création par invitation et la modification des rôles depuis l'interface ne sont **pas encore disponibles**. **Rôles et permissions** (`/espace/roles`) affiche une matrice en lecture seule : une coche signifie que le rôle possède le droit indiqué, un tiret l'absence de droit.
+Selon vos droits, **Utilisateurs** (`/espace/utilisateurs`) présente des comptes existants et leur statut ; vous pouvez rechercher par nom ou adresse e-mail et filtrer par statut (actif, suspendu, invité). Les filtres sont combinables et conservés dans les liens de pagination ; la vérification se fait côté serveur. Seuls les rôles dotés de la permission **globale** peuvent consulter cette liste et les résultats. La fiche d'un utilisateur présente ses accès. La création par invitation et la modification des rôles depuis l'interface ne sont **pas encore disponibles**. **Rôles et permissions** (`/espace/roles`) affiche une matrice en lecture seule : une coche signifie que le rôle possède le droit indiqué, un tiret l'absence de droit.
 
 **Système** (`/espace/systeme`) est réservé au Propriétaire : il vérifie la connexion à la base et compte les migrations effectivement appliquées. La file de tâches y est indiquée **Indisponible** : n'interprétez pas son absence comme « aucune tâche ».
 

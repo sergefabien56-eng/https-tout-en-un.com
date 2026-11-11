@@ -3,6 +3,7 @@
 - Socle Next/TS, pages publiques et shell d'espace ; thème et adaptation mobile, tests d'accessibilité limités aux scénarios existants.
 - Authentification propriétaire, sessions, TOTP/2FA, contrôles d'accès et rôles ; routes et modules indiqués dans `TECHNICAL_ARCHITECTURE.md`.
 - Catalogue de boutiques et sélection, sans synchronisation Jumia ; journal d'audit boutique et export protégé ; administration utilisateurs/rôles partielle et écran système partiel.
+- Liste des utilisateurs : filtre par statut et recherche combinés, pagination conservée ; test PGlite local réussi sur les trois statuts et droits globaux ; E2E/CI du nouveau SHA en attente.
 - Notifications personnelles liées à la sécurité : consultation, badge, lecture/non-lecture, bouton de rafraîchissement manuel préservant le filtre/la page ; ni push ni polling.
 - Migrations 0001–0010 up/down, CI PostgreSQL 16, restauration d'une **fixture jetable** vérifiée ; pas de sauvegarde en exploitation.
 

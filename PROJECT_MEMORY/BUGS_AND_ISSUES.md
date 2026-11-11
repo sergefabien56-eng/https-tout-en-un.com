@@ -8,3 +8,5 @@
 6. **Archive de code CI** : nouveau job non encore testé sur runner au moment de la préparation ; durée demandée 30 jours, pas de rétention externe. `bf706f1` (mémoire) a passé la CI `43013341355` ; le présent jalon attend sa propre validation.
 
 Enregistrer ici tout bug reproductible avec SHA, environnement, résultat attendu/observé et preuve de correction.
+
+7. **Deux lots locaux non publiés** (`8833d4c` archive CI + filtre utilisateurs du présent lot) : ne pas attribuer leur validation au run de `bf706f1`; E2E filtre et job artifact restent à tester sur GitHub.

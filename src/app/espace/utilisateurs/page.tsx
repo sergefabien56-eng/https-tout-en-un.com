@@ -2,21 +2,22 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { AppError } from '@/core/errors/app-error';
-import { listAuthorizedUsers } from '@/modules/identity/user-list';
+import { isUserStatusFilter, listAuthorizedUsers } from '@/modules/identity/user-list';
 
 export const dynamic = 'force-dynamic';
 
 const STATUS: Record<string, string> = { active: 'Actif', suspended: 'Suspendu', invited: 'Invité' };
 
-export default async function UsersPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
+export default async function UsersPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string; status?: string }> }) {
   const params = await searchParams;
   const raw = params.page ?? '1';
   const q = params.q ?? '';
-  if (!/^[1-9]\d{0,4}$/.test(raw)) notFound();
+  const status = params.status ?? 'all';
+  if (!/^[1-9]\d{0,4}$/.test(raw) || !isUserStatusFilter(status)) notFound();
   const page = Number(raw);
   let result: Awaited<ReturnType<typeof listAuthorizedUsers>>;
   try {
-    result = await listAuthorizedUsers((await cookies()).get('toutenun_session')?.value, page, q);
+    result = await listAuthorizedUsers((await cookies()).get('toutenun_session')?.value, page, q, status);
   } catch (error) {
     if (error instanceof AppError && error.httpStatus === 401) redirect('/connexion');
     if (error instanceof AppError && (error.httpStatus === 403 || error.httpStatus === 400)) notFound();
@@ -30,10 +31,17 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       <label htmlFor="user-search">Rechercher un utilisateur</label>
       <input id="user-search" name="q" type="search" maxLength={80} defaultValue={q}
         placeholder="Nom ou adresse e-mail" />
+      <label htmlFor="user-status">Statut du compte</label>
+      <select id="user-status" name="status" defaultValue={status}>
+        <option value="all">Tous les statuts</option>
+        <option value="active">Actifs</option>
+        <option value="suspended">Suspendus</option>
+        <option value="invited">Invités</option>
+      </select>
       <button type="submit">Filtrer</button>
     </form>
     {result.users.length === 0 ? <div className="card" role="status">
-      <h2>Aucun utilisateur</h2><p>{q.trim() ? 'Aucun compte ne correspond à cette recherche.' : 'Aucun compte n’a encore été créé.'}</p>
+      <h2>Aucun utilisateur</h2><p>{q.trim() || status !== 'all' ? 'Aucun compte ne correspond à ces filtres.' : 'Aucun compte n’a encore été créé.'}</p>
     </div> : <div className="card users-list" role="region" aria-label="Tableau des utilisateurs défilant horizontalement" tabIndex={0}>
       <table><caption>Utilisateurs réels — page {page}</caption>
         <thead><tr><th scope="col">Nom</th><th scope="col">Adresse e-mail</th><th scope="col">Statut</th><th scope="col">Créé le</th></tr></thead>
@@ -45,8 +53,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       </table>
     </div>}
     <nav aria-label="Pagination des utilisateurs" className="pagination">
-      {page > 1 && <Link href={`/espace/utilisateurs?page=${page - 1}&q=${encodeURIComponent(q.trim())}`}>Page précédente</Link>}
-      {result.nextPage !== null && <Link href={`/espace/utilisateurs?page=${result.nextPage}&q=${encodeURIComponent(q.trim())}`}>Page suivante</Link>}
+      {page > 1 && <Link href={`/espace/utilisateurs?page=${page - 1}&q=${encodeURIComponent(q.trim())}&status=${status}`}>Page précédente</Link>}
+      {result.nextPage !== null && <Link href={`/espace/utilisateurs?page=${result.nextPage}&q=${encodeURIComponent(q.trim())}&status=${status}`}>Page suivante</Link>}
     </nav>
   </main>;
 }

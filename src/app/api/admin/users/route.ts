@@ -9,11 +9,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = new URL(request.url).searchParams;
   const value = params.get('page') ?? '1';
   const q = params.get('q') ?? '';
+  const status = params.get('status') ?? 'all';
   if (!/^[1-9]\d{0,4}$/.test(value)) {
     return NextResponse.json({ error: 'Page invalide.' }, { status: 400, headers: { 'Cache-Control': 'no-store' } });
   }
   try {
-    const result = await listAuthorizedUsers(request.cookies.get('toutenun_session')?.value, Number(value), q);
+    const result = await listAuthorizedUsers(request.cookies.get('toutenun_session')?.value, Number(value), q, status);
     return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     if (error instanceof AppError) return NextResponse.json({ error: error.userMessage },
