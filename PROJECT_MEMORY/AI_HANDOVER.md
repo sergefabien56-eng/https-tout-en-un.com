@@ -42,3 +42,7 @@ Historique : `43021881652` de `061a368` est vert (4 jobs) ; le lot recherche a d
 ## Lot palette Ctrl/Cmd+K enrichie
 
 Le run GitHub `43024089653` de `a64593b` est vert (4 jobs) ; la palette modifiée attend **son** run. Lire `docs/comptes-rendus/phase1-recherche-rapide-permissions.md`. Nouveau `/api/search` + `src/ui/directory-quick-search.tsx` remplace l'ancien fichier boutique sans supprimer la recherche boutique. Tests ciblés 35/35, lint/types OK, suite entière/build/E2E locaux non validés. Ne pas déclarer opérationnel avant CI du nouveau SHA.
+
+## Révocation ciblée des sessions — lot P1 en cours
+
+Le run `43026793436` de `cbbe950` est vert (4 jobs), mais **ce nouveau lot ne l’est pas encore**. Le propriétaire a choisi « Sécurité des sessions ». Service/route/UI protégés, 38 tests ciblés/lint/types OK ; E2E/build/suite entière du prochain SHA non validés. Lire `docs/comptes-rendus/phase1-revocation-autres-sessions.md`. Aperçu sur port 3100 = copie séparée `/home/user/preview-phase1`, pas le clone de travail ni la production.

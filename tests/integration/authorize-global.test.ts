@@ -19,6 +19,7 @@ const { getNavigationPermissions } = await import('@/ui/navigation-permissions')
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
+const { revokeOtherSession } = await import('@/modules/identity/revoke-other-session');
 const { refreshSession } = await import('@/core/auth/refresh-session');
 const owner = createSessionToken(); const scoped = createSessionToken(); const globalManager = createSessionToken();
 
@@ -191,6 +192,30 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(JSON.stringify(ownerSessions)).not.toMatch(/token_hash|Hostile-UA|script|user_agent|ip_hash/);
     await expect(listOwnSessions(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnSessions(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
+  });
+  it('révocation ciblée : autre session du compte uniquement, audit atomique, courant préservé', async () => {
+    const other = createSessionToken(); const stranger = createSessionToken();
+    const target = await db.query<{ id: string }>(`INSERT INTO sessions (user_id, token_hash, expires_at)
+      VALUES (1,$1,now()+interval '1 hour') RETURNING id::text`, [other.hash]);
+    const foreign = await db.query<{ id: string }>(`INSERT INTO sessions (user_id, token_hash, expires_at)
+      VALUES (2,$1,now()+interval '1 hour') RETURNING id::text`, [stranger.hash]);
+    const ownId = (await listOwnSessions(owner.token)).find((s) => s.current)!.id;
+    const before = await db.query<{ n: number }>("SELECT count(*)::int AS n FROM audit_log WHERE action = 'revoke_other_session'");
+    await expect(revokeOtherSession(owner.token, ownId)).rejects.toMatchObject({ httpStatus: 404 });
+    await expect(revokeOtherSession(owner.token, foreign.rows[0]!.id)).rejects.toMatchObject({ httpStatus: 404 });
+    await expect(revokeOtherSession(scoped.token, target.rows[0]!.id)).rejects.toMatchObject({ httpStatus: 404 });
+    await expect(revokeOtherSession(owner.token, '1 OR 1=1')).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(revokeOtherSession(owner.token, '9223372036854775808')).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(revokeOtherSession(undefined, target.rows[0]!.id)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(revokeOtherSession(createSessionToken().token, target.rows[0]!.id)).rejects.toMatchObject({ httpStatus: 401 });
+    await revokeOtherSession(owner.token, target.rows[0]!.id);
+    await expect(refreshSession(other.token)).rejects.toMatchObject({ httpStatus: 401 });
+    expect((await listOwnSessions(owner.token)).some((s) => s.id === target.rows[0]!.id)).toBe(false);
+    expect((await listOwnSessions(owner.token)).some((s) => s.current)).toBe(true);
+    expect((await listOwnSessions(scoped.token)).some((s) => s.id === foreign.rows[0]!.id)).toBe(true);
+    await expect(revokeOtherSession(owner.token, target.rows[0]!.id)).rejects.toMatchObject({ httpStatus: 404 });
+    const audit = await db.query<{ n: number }>("SELECT count(*)::int AS n FROM audit_log WHERE action = 'revoke_other_session' AND actor_user_id = 1");
+    expect(audit.rows[0]!.n).toBe(before.rows[0]!.n + 1);
   });
   it('expiration glissante : prolonge active, refuse expirée et révoquée', async () => {
     await db.exec("UPDATE sessions SET last_seen_at = now() - interval '15 minutes' WHERE user_id = 1;");

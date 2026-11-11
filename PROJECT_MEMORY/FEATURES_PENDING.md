@@ -9,6 +9,8 @@ Une entrée de menu « bientôt » ou une maquette ne vaut jamais réalisation. 
 
 - Filtres utilisateurs validés en CI aux SHA précédents ; télécharger/restaurer l’artifact du prochain SHA et conserver une copie durable hors GitHub.
 
-- Valider sur la CI du prochain SHA la nouvelle page de recherche limitée ; recherche universelle commandes/produits/finance et MIMI ne sont pas livrées.
+- Page de recherche limitée validée sur `a64593b` ; recherche universelle commandes/produits/finance et MIMI non livrées.
 
-- Nouvelle API et palette de recherche : valider build, suite complète, E2E et artifact sur le prochain SHA ; les autres modules et MIMI restent à venir.
+- Palette/API de recherche validées sur `cbbe950` en CI (4 jobs) ; artifact du code non restauré depuis GitHub.
+
+- Révocation d’une autre session : code et 38 tests ciblés locaux ; CI du futur SHA en attente. Déconnexion globale en un clic, gestion des invitations et sauvegarde PostgreSQL indépendantes restent à faire.

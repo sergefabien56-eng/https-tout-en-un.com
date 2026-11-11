@@ -1,3 +1,5 @@
+- **Phase 1 — révocation ciblée des autres sessions** (lot local ; CI du nouveau SHA en attente) : route Origin/CSRF, propriétaire + appareil courant protégés, audit atomique, UI confirmée ; 38 tests ciblés/lint/types OK. Aucun schéma modifié.
+- `cbbe950` publié et validé par le run `43026793436` : 4 jobs verts, artifact code présent mais non restauré depuis GitHub.
 - **Phase 1 — Ctrl/Cmd+K enrichi** (présent lot, SHA à relever) : API recherche protégée, palette boutiques + comptes selon permission globale ; 35 tests ciblés/lint/types OK ; build/suite complète/E2E du nouveau SHA à vérifier en CI. Aucun schéma, Jumia ni MIMI.
 - **Validation `a64593b`** : run `43024089653` quatre jobs verts, artifact code présent, non téléchargé/restauré depuis GitHub.
 - **Phase 1 — recherche limitée boutiques/comptes** (`a64593b`, validé CI `43024089653`) : service composé de deux contrôles d’accès existants, page, menu et tests ciblés 9/9 ; lint/types OK. Suite complète locale NON VERTE par OOM (153/163, 18/20), build/E2E locaux non exécutés ; CI du SHA `a64593b` depuis réussie (4 jobs). Aucun schéma/Jumia/IA.

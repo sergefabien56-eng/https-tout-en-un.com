@@ -283,13 +283,24 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByRole('table')).toContainText('cette session');
   const sessionResponse = await page.request.get('/api/auth/sessions');
   expect(sessionResponse.status()).toBe(200);
-  const payload = await sessionResponse.json() as { sessions: { current: boolean }[] };
+  const payload = await sessionResponse.json() as { sessions: { id: string; current: boolean }[] };
   expect(payload.sessions.some((entry) => entry.current)).toBe(true);
+  await expect(page.getByRole('button', { name: 'Déconnecter cet autre appareil' })).toHaveCount(0);
+  const currentId = payload.sessions.find((entry) => entry.current)!.id;
   expect(JSON.stringify(payload)).not.toMatch(/token_hash|user_agent|ip_hash/);
   const csrf = await page.request.get('/api/auth/csrf');
   expect(csrf.status()).toBe(200);
   const csrfToken = (await page.context().cookies()).find((cookie) => cookie.name === 'toutenun_csrf')?.value;
   expect(csrfToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  const blockedCurrent = await page.request.post(`/api/auth/sessions/${currentId}/revoke`, {
+    headers: { origin: 'http://127.0.0.1:3100', 'x-csrf-token': csrfToken! },
+  });
+  expect(blockedCurrent.status()).toBe(404);
+  expect((await page.request.get('/api/auth/me')).status()).toBe(200);
+  const blockedForeignOrigin = await page.request.post('/api/auth/sessions/999999/revoke', {
+    headers: { origin: 'http://unauthorized.invalid', 'x-csrf-token': csrfToken! },
+  });
+  expect(blockedForeignOrigin.status()).toBe(403);
   const refresh = await page.request.post('/api/auth/refresh', {
     headers: { origin: 'http://127.0.0.1:3100', 'x-csrf-token': csrfToken! },
   });

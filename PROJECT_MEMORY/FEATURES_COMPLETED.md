@@ -12,3 +12,5 @@
 - Recherche limitée boutiques/comptes (page) : `a64593b`, run `43024089653` (4 jobs verts) ; **pas** une recherche globale complète.
 
 - Palette de recherche boutique + comptes globaux : code et tests ciblés 35/35, mais **CI du nouveau SHA en attente** ; ne pas prétendre recherche universelle ni fonctionnalité entièrement validée.
+
+- Recherche rapide boutiques/comptes : `cbbe950`, CI `43026793436` quatre jobs verts ; artifact présent non restauré depuis GitHub. Révocation des autres sessions seulement en code local, **pas encore validée en CI du futur SHA**.

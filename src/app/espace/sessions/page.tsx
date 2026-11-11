@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { listOwnSessions } from '@/modules/identity/active-sessions';
 import { AppError } from '@/core/errors/app-error';
+import { RevokeSessionButton } from '@/ui/revoke-session-button';
 
 export const dynamic = 'force-dynamic';
 export default async function SessionsPage() {
@@ -17,12 +18,13 @@ export default async function SessionsPage() {
     <h1>Mes sessions</h1>
     <p>Connexions actives vérifiées dans la base. Heures affichées en UTC ; aucun jeton ou adresse IP n’est affiché.</p>
     <div className="card users-list" role="region" aria-label="Tableau des sessions défilant horizontalement" tabIndex={0}><table><caption>Jusqu’à 100 sessions actives</caption>
-      <thead><tr><th scope="col">Appareil</th><th scope="col">Connecté le</th><th scope="col">Dernière activité</th><th scope="col">Expiration</th></tr></thead>
+      <thead><tr><th scope="col">Appareil</th><th scope="col">Connecté le</th><th scope="col">Dernière activité</th><th scope="col">Expiration</th><th scope="col">Action</th></tr></thead>
       <tbody>{sessions.map((session) => <tr key={session.id}>
         <th scope="row">{session.device}{session.current ? ' — cette session' : ''}</th>
         <td>{date(session.createdAt)}</td><td>{date(session.lastSeenAt)}</td><td>{date(session.expiresAt)}</td>
+        <td>{session.current ? 'Appareil actuel' : <RevokeSessionButton id={session.id} />}</td>
       </tr>)}</tbody>
     </table></div>
-    <p>La déconnexion de cet appareil est disponible depuis la connexion ; la révocation des autres sessions sera ajoutée après validation des contrôles de sécurité.</p>
+    <p>Vous pouvez déconnecter chaque autre appareil actif ; votre session actuelle reste ouverte. Une confirmation est demandée et l’action est journalisée.</p>
   </main>;
 }

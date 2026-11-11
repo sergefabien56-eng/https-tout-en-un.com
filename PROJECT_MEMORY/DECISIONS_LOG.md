@@ -18,3 +18,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Lot P1 recherche : page séparée boutique + utilisateur plutôt que recherche globale trompeuse ; réutilise les services existants sous RLS et `users:read` global, limite 5 résultats par catégorie, garde Ctrl/Cmd+K limité aux boutiques. Pas de SQL non autorisé, pas de MIMI ni donnée Jumia.
 
 - Lot palette P1 : conserver comportement boutique et clavier de `Ctrl/Cmd+K`, enrichir via le **même service serveur** que la page de recherche ; catégorie comptes exige un droit global, limite 5 ; aucune donnée Jumia ni accès SQL direct client. Rendre le déclencheur accessible aux lecteurs de boutiques ou de comptes globaux.
+
+- Choix du propriétaire : prochain petit lot P1 = **Sécurité des sessions**. Un appareil peut révoquer une autre session du même compte, jamais lui-même via cette action ; Origin/CSRF, filtre serveur et audit dans la transaction ; pas de bouton « tout révoquer » dans ce lot.

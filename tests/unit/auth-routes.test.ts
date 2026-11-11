@@ -10,6 +10,7 @@ import { GET as adminUserDetailGet } from '@/app/api/admin/users/[id]/route';
 import { GET as adminRolesGet } from '@/app/api/admin/roles/route';
 import { GET as deepHealthGet } from '@/app/api/health/deep/route';
 import { GET as sessionsGet } from '@/app/api/auth/sessions/route';
+import { POST as revokeOtherPost } from '@/app/api/auth/sessions/[id]/revoke/route';
 import { GET as notificationsGet } from '@/app/api/notifications/route';
 import { GET as shopAuditGet } from '@/app/api/shops/[shopId]/audit/route';
 import { GET as auditExportGet } from '@/app/api/shops/[shopId]/audit/export/route';
@@ -81,6 +82,23 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
   it('GET sessions sans cookie refuse les détails de compte', async () => {
     const request = new NextRequest('https://app.example.com/api/auth/sessions');
     expect((await sessionsGet(request)).status).toBe(401);
+  });
+  it('POST révocation autre session : Origin exact, CSRF et session exigés', async () => {
+    process.env.APP_URL = 'https://app.example.com';
+    const params = { params: Promise.resolve({ id: '2' }) };
+    const base = 'https://app.example.com/api/auth/sessions/2/revoke';
+    expect((await revokeOtherPost(new NextRequest(base, { method: 'POST' }), params)).status).toBe(403);
+    const token = csrfGet().cookies.get('toutenun_csrf')!.value;
+    const spoofed = new NextRequest(base, { method: 'POST', headers: {
+      origin: 'https://app.example.com.evil.test', cookie: `toutenun_csrf=${token}`, 'x-csrf-token': token,
+    } });
+    expect((await revokeOtherPost(spoofed, params)).status).toBe(403);
+    const noSession = new NextRequest(base, { method: 'POST', headers: {
+      origin: 'https://app.example.com', cookie: `toutenun_csrf=${token}`, 'x-csrf-token': token,
+    } });
+    const response = await revokeOtherPost(noSession, params);
+    expect(response.status).toBe(401);
+    expect(response.headers.get('cache-control')).toBe('no-store');
   });
   it('POST refresh exige Origin, CSRF et session valide', async () => {
     process.env.APP_URL = 'https://app.example.com';

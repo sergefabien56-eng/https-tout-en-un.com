@@ -18,3 +18,5 @@ Enregistrer ici tout bug reproductible avec SHA, environnement, résultat attend
 10. **Suite locale non verte sur nouveau lot recherche** : 2 workers Vitest (`auth-service`, `bootstrap-owner`) tués par dépassement mémoire (dmesg OOM), 18/20 fichiers et 153/163 tests passés ; bootstrap-owner isolé 3/3, auth-service isolé OOM. Tests ciblés du nouveau lot verts. Build non relancé localement. Ne conclure qu'après CI du nouveau SHA.
 
 11. **Nouveau lot palette** : tests ciblés 35/35, lint/types OK ; suite entière, build et E2E du nouveau SHA non validés localement sous contrainte mémoire du sandbox. Le run vert précédent `43024089653` n'est pas une preuve pour le nouveau code.
+
+12. Révocation ciblée : tests ciblés 38/38, lint/types OK, mais build/suite totale/E2E du futur SHA non validés localement ; ne pas attribuer le run `43026793436` à ce lot.

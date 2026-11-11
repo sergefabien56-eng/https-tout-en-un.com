@@ -1,11 +1,7 @@
-# Phase 1 — palette enrichie en attente de CI
+# Phase 1 — révocation ciblée des autres sessions (lot local)
 
-| Élément | Statut vérifiable |
-|---|---|
-| Base publiée | `a64593b08e1dbd0adf22c5381565fe0916a5ce73`, run `43024089653` : **4 jobs verts**, artifact code présent mais non restauré depuis GitHub. |
-| Présent lot | Palette `Ctrl/Cmd+K` garde les boutiques autorisées et ajoute les comptes visibles **seulement** avec `users:read` global ; API `/api/search` réutilise le service serveur/RLS de la page existante. **Non encore publié/validé en CI.** |
-| Tests locaux | Mémoire, lint, types, **35/35 tests ciblés** (UI, API refus, catalogue RLS) verts ; build/total Vitest/E2E du nouveau SHA non validés localement, vérifier la CI. |
-| Schéma | 10 migrations inchangées ; aucun SQL ou donnée Jumia/financière nouvelle. |
-| Production | Aucune sauvegarde PostgreSQL réelle chiffrée hors serveur ni déploiement de production validés. Artifact GitHub code temporaire uniquement. |
-
-Le précédent run vert ne valide pas les modifications de la palette. La CI et l'artifact du nouveau SHA sont la prochaine preuve exigée ; voir `BUGS_AND_ISSUES.md` pour les limites mémoire locales.
+- Dernier SHA **publié et vérifié** : `cbbe9505d593b55eeaa1810d57e1ef99e9926bc2`, GitHub Actions `43026793436` **completed success** : lint/types/tests/build, migrations PostgreSQL 16, E2E bureau/mobile, archive du code : 4 jobs verts. Artifact `code-valide-cbbe9505d593b55eeaa1810d57e1ef99e9926bc2` présent, **non téléchargé/restauré depuis GitHub**. Preuve complémentaire hors dépôt : `/home/user/continuity-backups/verification-ci-cbbe950.md`.
+- Nouveau lot choisi par le propriétaire : **sécurité des sessions**. Bouton pour révoquer **une autre session** active, route POST Origin/CSRF/session contrôlée, transaction filtrée par compte et excluant l'appareil courant, audit atomique. Fichiers et risques dans `docs/comptes-rendus/phase1-revocation-autres-sessions.md`. **Local descendant, non publié et non validé en CI du prochain SHA.**
+- Tests locaux : intégration et route (35), composant (3) = **38 tests ciblés verts**, lint, types, contrôle mémoire. Suite complète, build et tests E2E de ce nouveau lot **non exécutés localement** ; la CI du futur SHA devra confirmer.
+- Schéma : 10 migrations inchangées. Révocation de toutes les autres sessions en un clic non livrée. Pas de SMTP, invitations ni déploiement production vérifiés.
+- Les snapshots de code (bundle/ZIP) et l'artifact GitHub ne contiennent **aucune base PostgreSQL réelle**. Sauvegarde indépendante chiffrée/restaurée non vérifiée ; aucun aperçu Arena n'est une production.
