@@ -234,9 +234,9 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   const auditQuickResponse = await page.request.get('/api/search?q=fixture.created');
   expect(auditQuickResponse.status()).toBe(200);
   const auditQuick = await auditQuickResponse.json() as { auditShopId: string | null;
-    audit: { action: string; shopId: string }[] };
+    audit: { module: string; action: string; shopId: string }[] };
   expect(auditQuick.auditShopId).toBe(shopId);
-  expect(auditQuick.audit.map((event) => event.action)).toContain('fixture.created');
+  expect(auditQuick.audit).toContainEqual(expect.objectContaining({ module: 'ci', action: 'fixture.created' }));
   expect(auditQuick.audit.every((event) => event.shopId === shopId)).toBe(true);
   expect(JSON.stringify(auditQuick)).not.toMatch(/token_hash|before|after|ip_hash/);
   await page.keyboard.press('ControlOrMeta+k');
@@ -251,19 +251,17 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   ]);
   expect(paletteResponse.status()).toBe(200);
   const paletteData = await paletteResponse.json() as { auditShopId: string | null;
-    audit: { action: string; shopId: string }[] };
+    audit: { module: string; action: string; shopId: string }[] };
   expect(paletteData.auditShopId).toBe(shopId);
-  expect(paletteData.audit.map((entry) => entry.action)).toContain('fixture.created');
-  // Si la réponse est bonne mais pas l'UI, le texte de la palette dans l'assertion
-  // localisera l'état (chargement, erreur ou résultats vides) sans exposer de secrets.
-  await expect.poll(() => scopedSearch.innerText(), { timeout: 15_000 })
-    .toContain('shops · fixture.created');
-  await expect(scopedSearch.getByRole('link', { name: /shops · fixture.created/ })).toBeVisible();
+  expect(paletteData.audit).toContainEqual(expect.objectContaining({ module: 'ci', action: 'fixture.created' }));
+  // La fixture seed-e2e-shop.mjs enregistre module='ci', pas 'shops'.
+  // Vérifier le module réel et l'action, sans fabriquer un autre libellé.
+  await expect(scopedSearch.getByRole('link', { name: 'ci · fixture.created' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(scopedSearch).toBeHidden();
   await page.goto('/espace/recherche?q=fixture.created');
   await expect(page.getByRole('heading', { name: 'Journal de la boutique sélectionnée' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /shops · fixture.created/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /ci · fixture.created/ })).toBeVisible();
   await page.goto('/espace/journal');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.getByRole('table')).toContainText('fixture.created');

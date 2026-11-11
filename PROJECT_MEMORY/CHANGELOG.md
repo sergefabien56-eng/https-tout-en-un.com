@@ -1,3 +1,4 @@
+- **Correction test E2E recherche audit** (locale, futur SHA) : fixture module `ci`, pas `shops` ; assertions API/palette/page alignées, aucun code métier modifié. Run diagnostic `43071602554` rouge uniquement navigateur, qualité/PG16 verts, archive skipped.
 - **Diagnostic palette audit** (local, futur SHA) : E2E contrôle le fetch réel du navigateur et texte UI ; `213dca6` a échoué en navigateur (2 scénarios), qualité/PG16 verts, archive skipped. Aucune fonction supprimée.
 - **Phase 1 — recherche audit boutique sélectionnée** (lot local, futur SHA) : catégorie limitée au shop autorisé sous RLS/droit audit:read, API/page/palette ; 49 ciblés/lint/types verts, build/E2E du futur SHA en attente.
 - `9055afb` publié et validé en CI `43067657827` : quatre jobs verts et artifact code présent, non restauré depuis GitHub.

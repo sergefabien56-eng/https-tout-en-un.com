@@ -66,3 +66,7 @@ Run `43067657827` du SHA `9055afb` : 4 jobs verts, artifact code présent mais n
 ## Diagnostic du run `43069544036`
 
 Qualité/PG16 verts, E2E bureau/mobile échouent sur lien audit absent de palette (API directe Playwright correcte), archive skipped. Nouveau test local capte la **réponse fetch du navigateur** et l’état UI, sans changer app. Lire `RESUME_HERE.md` et compte rendu ; ne pas présenter le diagnostic comme correctif validé.
+
+## Cause du run `43071602554` démontrée
+
+Le navigateur reçoit bien réponse audit et palette affiche `ci · fixture.created`. L'ancienne assertion attendait `shops · fixture.created` alors que `scripts/seed-e2e-shop.mjs` définit `module=ci`. Correction **du test seulement**, locale et non publiée ; suivre `RESUME_HERE.md` et compte rendu.
