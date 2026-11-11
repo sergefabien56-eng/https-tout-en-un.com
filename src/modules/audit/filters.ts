@@ -9,6 +9,7 @@ export const auditFiltersSchema = z.object({
   q: z.string().max(80).refine((s) => [...s].every((c) => c.charCodeAt(0) >= 32)).optional(),
   module: z.string().regex(/^[a-z][a-z0-9_-]{0,49}$/).optional(),
   actorId: z.string().regex(/^[1-9]\d{0,17}$/).optional(),
+  result: z.enum(['success', 'failure']).optional(),
   from: date.optional(),
   to: date.optional(),
 });
@@ -24,11 +25,13 @@ export function parseAuditFilters(value: unknown): AuditFilters {
 export function auditQueryParams(shopId: string, filters: AuditFilters): (string | null)[] {
   const end = filters.to ? new Date(Date.parse(`${filters.to}T00:00:00Z`) + 86_400_000).toISOString() : null;
   return [shopId, filters.module ?? null, filters.actorId ?? null,
-    filters.from ? `${filters.from}T00:00:00Z` : null, end, filters.q?.trim() || null];
+    filters.from ? `${filters.from}T00:00:00Z` : null, end, filters.q?.trim() || null,
+    filters.result ?? null];
 }
 export const auditWhere = `shop_id = $1 AND ($2::text IS NULL OR module = $2)
   AND ($3::bigint IS NULL OR actor_user_id = $3)
   AND ($4::timestamptz IS NULL OR occurred_at >= $4)
   AND ($5::timestamptz IS NULL OR occurred_at < $5)
   AND ($6::text IS NULL OR position(lower($6) in lower(action)) > 0
-    OR position(lower($6) in lower(module)) > 0)`;
+    OR position(lower($6) in lower(module)) > 0)
+  AND ($7::text IS NULL OR result = $7)`;

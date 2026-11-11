@@ -94,3 +94,7 @@ GitHub `main` `75ee3b2`, run `43110029953` quatre jobs verts, artifact code pré
 ## Run `43111774881` — contrat navigation obsolète
 
 SHA `bfe33db` publié ; PG16 success, qualité failure sur deux assertions `tests/unit/navigation-config.test.ts` obsolètes (45 feuilles / route Apparence absente), E2E/archive skipped. Test corrigé localement vers 46 feuilles et liste réelle ; ne pas attribuer cette CI au correctif. Voir `RESUME_HERE.md`.
+
+## Nouveau lot filtre résultat du journal
+
+Run `43112722746` du SHA `410d408` : quatre jobs verts validant **Apparence**, artifact code non restauré. Nouveau lot local « Tous/Succès/Échec » sur journal boutique, API et CSV, SQL paramétré sous RLS, valeurs invalides 400, fixture E2E fictive failure. Non publié/non validé par cet ancien run. PC Windows reste en pause explicite. Voir `RESUME_HERE.md`, `NEXT_ACTIONS.md` et `docs/comptes-rendus/phase1-filtre-resultat-journal.md`.

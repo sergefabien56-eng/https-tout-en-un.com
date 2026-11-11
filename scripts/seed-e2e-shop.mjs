@@ -12,8 +12,10 @@ try {
     (app_id, jumia_shop_sid, business_client_code, country_code, currency, display_name)
     VALUES ($1, gen_random_uuid(), 'ci-e2e-fictif', 'CI', 'XOF', 'Boutique CI fictive') RETURNING id`,
   [app.rows[0].id]);
-  await db.query(`INSERT INTO audit_log (shop_id, module, action, entity_type) VALUES
-    ($1, 'ci', 'fixture.created', 'shop'), ($1, 'ci', '=cmd', '@hostile')`, [shop.rows[0].id]);
+  await db.query(`INSERT INTO audit_log (shop_id, module, action, entity_type, result) VALUES
+    ($1, 'ci', 'fixture.created', 'shop', 'success'),
+    ($1, 'ci', '=cmd', '@hostile', 'success'),
+    ($1, 'ci', 'fixture.denied', 'shop', 'failure')`, [shop.rows[0].id]);
   await db.query('COMMIT');
   console.log('Fixture E2E boutique fictive créée dans la base CI jetable.');
 } catch (error) {

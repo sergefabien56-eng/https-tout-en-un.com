@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { exportShopAudit } from '@/modules/audit/export-audit';
+import { parseAuditFilters } from '@/modules/audit/filters';
 import { AppError } from '@/core/errors/app-error';
 
 export const runtime = 'nodejs';
@@ -9,12 +10,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { shopId } = await params;
     const q = request.nextUrl.searchParams;
+    const resultFilter = parseAuditFilters({ result: q.get('result') || undefined }).result;
     const csv = await exportShopAudit({ token: request.cookies.get('toutenun_session')?.value, shopId,
       ...(q.get('module') ? { module: q.get('module')! } : {}),
       ...(q.get('q') ? { q: q.get('q')! } : {}),
       ...(q.get('actorId') ? { actorId: q.get('actorId')! } : {}),
       ...(q.get('from') ? { from: q.get('from')! } : {}),
-      ...(q.get('to') ? { to: q.get('to')! } : {}) });
+      ...(q.get('to') ? { to: q.get('to')! } : {}),
+      ...(resultFilter !== undefined ? { result: resultFilter } : {}) });
     return new NextResponse(csv, { status: 200, headers: {
       ...headers, 'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': `attachment; filename="journal-boutique-${shopId}.csv"`,

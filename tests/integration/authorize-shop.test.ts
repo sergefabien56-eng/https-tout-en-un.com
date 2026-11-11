@@ -29,6 +29,8 @@ const { listShopAudit } = await import('@/modules/audit/list-audit');
 const { searchAuthorizedAudit } = await import('@/modules/audit/search-audit');
 const { exportShopAudit } = await import('@/modules/audit/export-audit');
 const { POST: selectShop } = await import('@/app/api/preferences/shop/route');
+const { GET: auditGet } = await import('@/app/api/shops/[shopId]/audit/route');
+const { GET: auditExportGet } = await import('@/app/api/shops/[shopId]/audit/export/route');
 const owner = createSessionToken();
 const manager = createSessionToken();
 const assistant = createSessionToken();
@@ -138,6 +140,40 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     await expect(listShopAudit({ token: undefined, shopId: shop1, page: 1 })).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 0 })).rejects.toMatchObject({ httpStatus: 400 });
     await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 1, module: "x' OR 1=1 --" })).rejects.toMatchObject({ httpStatus: 400 });
+  });
+
+  it('résultat succès/échec : liste, API et CSV partagent le filtre boutique autorisée', async () => {
+    await db.query("INSERT INTO audit_log (shop_id,module,action,result,before) VALUES ($1,'shops','fixture.denied','failure','{\"secret\":\"non exposer\"}')", [shop1]);
+    await db.query("INSERT INTO audit_log (shop_id,module,action,result) VALUES ($1,'shops','fixture.denied','failure')", [shop2]);
+    const failed = await listShopAudit({ token: manager.token, shopId: shop1, page: 1, result: 'failure',
+      module: 'shops', q: 'fixture.denied' });
+    expect(failed.events.map((event) => event.action)).toEqual(['fixture.denied']);
+    expect(failed.events.every((event) => event.result === 'failure' && event.shopId === shop1)).toBe(true);
+    expect(JSON.stringify(failed)).not.toContain('non exposer');
+    expect((await listShopAudit({ token: manager.token, shopId: shop1, page: 1, result: 'success',
+      q: 'fixture.denied' })).events).toEqual([]);
+    expect((await listShopAudit({ token: owner.token, shopId: shop2, page: 1, result: 'failure',
+      q: 'fixture.denied' })).events).toHaveLength(1);
+    await expect(listShopAudit({ token: manager.token, shopId: shop2, page: 1, result: 'failure' }))
+      .rejects.toMatchObject({ httpStatus: 403 });
+    const request = (shopId: string, query: string) => new NextRequest(`https://app.example.com/api/shops/${shopId}/audit${query}`,
+      { headers: { cookie: `toutenun_session=${manager.token}` } });
+    const params = (shopId: string) => ({ params: Promise.resolve({ shopId }) });
+    const response = await auditGet(request(shop1, '?result=failure&q=fixture.denied'), params(shop1));
+    expect(response.status).toBe(200);
+    expect((await response.json() as { events: { shopId: string; result: string }[] }).events)
+      .toEqual([expect.objectContaining({ shopId: shop1, result: 'failure' })]);
+    expect((await auditGet(request(shop2, '?result=failure'), params(shop2))).status).toBe(403);
+    expect((await auditGet(request(shop1, '?result=unknown'), params(shop1))).status).toBe(400);
+    const csvResponse = await auditExportGet(request(shop1, '/export?result=failure&q=fixture.denied'), params(shop1));
+    expect(csvResponse.status).toBe(200);
+    const csv = await csvResponse.text();
+    expect(csv).toContain('Résultat filtré');
+    expect(csv).toContain('"failure"');
+    expect(csv).toContain('fixture.denied');
+    expect(csv).not.toContain('non exposer');
+    expect((await auditExportGet(request(shop2, '/export?result=failure'), params(shop2))).status).toBe(403);
+    expect((await auditExportGet(request(shop1, '/export?result=unknown'), params(shop1))).status).toBe(400);
   });
 
   it('recherche rapide audit : seulement boutique choisie autorisée, jamais globale ni autre compte', async () => {

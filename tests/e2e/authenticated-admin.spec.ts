@@ -297,6 +297,28 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.getByRole('table')).toContainText('fixture.created');
   await expectNoSeriousAccessibilityViolations(page);
+  await page.getByRole('combobox', { name: 'Résultat' }).selectOption('failure');
+  await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
+  await expect(page).toHaveURL((url) => url.searchParams.get('result') === 'failure');
+  await expect(page.getByRole('table')).toContainText('fixture.denied');
+  await expect(page.getByRole('table')).not.toContainText('fixture.created');
+  const failureCsvHref = await page.getByRole('link', { name: 'Exporter cette sélection en CSV' }).getAttribute('href');
+  expect(new URL(failureCsvHref!, page.url()).searchParams.get('result')).toBe('failure');
+  const failurePresetHref = await page.getByRole('navigation', { name: 'Périodes rapides du journal' })
+    .getByRole('link', { name: '7 derniers jours (UTC)' }).getAttribute('href');
+  expect(new URL(failurePresetHref!, page.url()).searchParams.get('result')).toBe('failure');
+  const failureCsv = await page.request.get(failureCsvHref!);
+  expect(failureCsv.status()).toBe(200);
+  expect(await failureCsv.text()).toContain('fixture.denied');
+  const failureApi = await page.request.get(`/api/shops/${shopId}/audit?result=failure`);
+  expect(failureApi.status()).toBe(200);
+  expect((await failureApi.json() as { events: { result: string; action: string }[] }).events)
+    .toEqual([expect.objectContaining({ result: 'failure', action: 'fixture.denied' })]);
+  expect((await page.request.get(`/api/shops/${shopId}/audit?result=unknown`)).status()).toBe(400);
+  await page.getByRole('combobox', { name: 'Résultat' }).selectOption('');
+  await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
+  await expect(page.getByRole('combobox', { name: 'Résultat' })).toHaveValue('');
+  await expect(page.getByRole('table')).toContainText('fixture.created');
   if (testInfo.project.name === 'mobile-375') {
     const scrollableJournal = page.getByRole('region', { name: 'Tableau du journal défilant horizontalement' });
     await scrollableJournal.focus();
