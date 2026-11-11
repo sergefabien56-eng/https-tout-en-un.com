@@ -82,3 +82,7 @@ Le SHA `f05f8b7` est publié ; qualité/PG16 success, navigateur 9 passés/1 fla
 ## Run `43079138718` — autre flaky notifications
 
 Qualité/PG16 verts, navigateur 9 passés/1 flaky bureau dans scénario notifications, archive skipped. Lien rafraîchir `href=...filter=read&page=1` vérifié mais ancienne URL `filter=read` persiste à l'assertion de 5 s ; retry passe. Cause précise inconnue sans trace GitHub (non téléchargée). Diagnostic local attend navigation document et réponse 200 ; ne pas le présenter comme correction validée. Voir `RESUME_HERE.md`.
+
+## Lot Actions rapides et installation Windows en pause
+
+Run `43082146651` du SHA `0f04914` : **quatre jobs verts**, artifact code présent non restauré. Le propriétaire a tenté WSL/Docker sur son PC Windows 10 puis demandé de **cesser les manipulations Windows** (erreur `0x80070641`, `msiserver` introuvable) pour reprendre la programmation P1. Aucune vraie donnée / backup DB / production installée. Nouveau lot menu Actions rapides engagé localement, non publié : accès aux routes prêtes selon droits, audit uniquement sur boutique sélectionnée autorisée, invitation non cliquable. Lire `RESUME_HERE.md` et compte rendu ; ne pas attribuer la CI précédente au nouveau lot.

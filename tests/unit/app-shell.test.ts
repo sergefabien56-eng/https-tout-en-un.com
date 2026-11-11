@@ -30,6 +30,35 @@ describe('coquille UI — état prêt et états indisponibles', () => {
     expect(screen.getByText('Compte réel')).toBeTruthy();
     expect(screen.getByText('Contenu protégé')).toBeTruthy();
   });
+  it('actions rapides : destinations réelles, droits globaux et accès audit de boutique vérifié', async () => {
+    render(createElement(AppShell, { userName: 'Propriétaire', selectedShop: 'Boutique CI',
+      auditShopAccess: true, permissions: ['dashboard:read', 'shops:read', 'audit:read', 'users:read', 'users:write'],
+      globalPermissions: ['users:read', 'users:write'], unreadNotifications: 0,
+      children: createElement('p', {}, 'Espace') }));
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Actions rapides' }));
+    const panel = within(screen.getByRole('navigation', { name: 'Actions rapides' }));
+    expect(panel.getAllByRole('link')).toHaveLength(6);
+    expect(panel.getByRole('link', { name: 'Journal de la boutique sélectionnée' }).getAttribute('href'))
+      .toBe('/espace/journal');
+    expect(panel.getByRole('link', { name: 'Utilisateurs' }).getAttribute('href')).toBe('/espace/utilisateurs');
+    expect(panel.getByText('Inviter un utilisateur · bientôt').closest('a')).toBeNull();
+    expect(panel.getByText('Inviter un utilisateur · bientôt').getAttribute('aria-disabled')).toBe('true');
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Actions rapides' }).parentElement!, { key: 'Escape' });
+    expect(screen.queryByRole('navigation', { name: 'Actions rapides' })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Actions rapides' }));
+  });
+  it('actions rapides : ne propose aucun lien vers les données hors droits', async () => {
+    render(createElement(AppShell, { userName: 'Compte restreint', permissions: ['audit:read'],
+      globalPermissions: [], auditShopAccess: false, unreadNotifications: 0,
+      children: createElement('p', {}, 'Espace') }));
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Actions rapides' }));
+    const panel = within(screen.getByRole('navigation', { name: 'Actions rapides' }));
+    expect(panel.getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['/espace/sessions']);
+    expect(panel.getByText('Journal · sélectionner une boutique').closest('a')).toBeNull();
+    expect(panel.queryByText('Utilisateurs')).toBeNull();
+    expect(panel.queryByText('Mes boutiques')).toBeNull();
+    expect(panel.queryByText('Inviter un utilisateur · bientôt')).toBeNull();
+  });
   it('cloche : compteur réel plafonné et nom accessible sans divulgation', () => {
     mount(undefined, 100);
     expect(screen.getByRole('link', { name: 'Mes notifications : plus de 99 non lues' }).textContent).toContain('99+');

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Bell, ChevronDown, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } from 'lucide-react';
 import { ShopSwitcher } from '@/ui/shop-switcher';
 import { DirectoryQuickSearch } from '@/ui/directory-quick-search';
+import { QuickActions } from '@/ui/quick-actions';
 import { appConfig } from '@/core/config/app.config';
 import { visibleNavigation } from '@/ui/navigation.config';
 import { Button } from '@/ui/components/button';
@@ -22,8 +23,8 @@ function readIds(): string[] {
   } catch { return ['dashboard']; }
 }
 
-export function AppShell({ userName, selectedShop, permissions, globalPermissions, unreadNotifications, children }: {
-  userName: string; selectedShop?: string | null; permissions: readonly string[];
+export function AppShell({ userName, selectedShop, auditShopAccess = false, permissions, globalPermissions, unreadNotifications, children }: {
+  userName: string; selectedShop?: string | null; auditShopAccess?: boolean; permissions: readonly string[];
   globalPermissions?: readonly string[]; unreadNotifications: number; children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -155,6 +156,8 @@ export function AppShell({ userName, selectedShop, permissions, globalPermission
           <ShopSwitcher selectedShop={selectedShop ?? null} />
           <div className="topbar-spacer" />
           {(permissions.includes('shops:read') || globalPermissions?.includes('users:read')) && <DirectoryQuickSearch />}
+          <QuickActions permissions={permissions} globalPermissions={globalPermissions ?? permissions}
+            auditShopAccess={auditShopAccess} />
           <Link href="/espace/notifications" className="topbar-notifications"
             title="Mes notifications"
             aria-label={`Mes notifications : ${unreadNotifications === 100 ? 'plus de 99' : unreadNotifications} non lue${unreadNotifications === 1 ? '' : 's'}`}>

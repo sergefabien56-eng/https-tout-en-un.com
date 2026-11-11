@@ -24,6 +24,13 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   test.setTimeout(90_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   await loginOwner(page, testInfo, 0);
+  await page.getByRole('button', { name: 'Actions rapides' }).click();
+  const quickActions = page.getByRole('navigation', { name: 'Actions rapides' });
+  await expect(quickActions.getByRole('link', { name: 'Mes sessions' })).toHaveAttribute('href', '/espace/sessions');
+  await expect(quickActions.getByRole('link', { name: 'Utilisateurs' })).toHaveAttribute('href', '/espace/utilisateurs');
+  await expect(quickActions.getByText('Journal · sélectionner une boutique')).toHaveAttribute('aria-disabled', 'true');
+  await page.keyboard.press('Escape');
+  await expect(quickActions).toBeHidden();
   const notificationLink = page.getByRole('link', { name: /^Mes notifications : (?:plus de 99|\d+) non lues?$/ });
   await expect(notificationLink).toBeVisible();
   await notificationLink.click();
@@ -270,6 +277,10 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByRole('heading', { name: 'Journal de la boutique sélectionnée' })).toBeVisible();
   await expect(page.getByRole('link', { name: /ci · fixture.created/ })).toBeVisible();
   await page.goto('/espace/journal');
+  await page.getByRole('button', { name: 'Actions rapides' }).click();
+  await expect(page.getByRole('navigation', { name: 'Actions rapides' })
+    .getByRole('link', { name: 'Journal de la boutique sélectionnée' })).toHaveAttribute('href', '/espace/journal');
+  await page.keyboard.press('Escape');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.getByRole('table')).toContainText('fixture.created');
   await expectNoSeriousAccessibilityViolations(page);
