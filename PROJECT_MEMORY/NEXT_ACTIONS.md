@@ -1,6 +1,6 @@
-# Prochaines actions Phase 1 — sessions groupées
+# Actions suivantes — Phase 1 recherche audit boutique
 
-1. Vérifier et publier le lot local de **déconnexion de tous les autres appareils** descendant de `a78a901` : 43 tests ciblés/lint/types/découverte Playwright verts localement ; contrôle mémoire/diff/absence de secrets ; commit, snapshot après/empreintes et archive Desktop extraite/vérifiée. Ne pas publier depuis la copie d'aperçu `/home/user/preview-phase1/` ni écraser l'ancien Git divergent.
-2. Après push normal sans force, confirmer sur **nouveau SHA** les quatre jobs GitHub (qualité/build/tous tests, PG16, E2E bureau/mobile sans flaky, archive) et artifact du bon SHA. Corriger échec plutôt que désactiver E2E. L'ancien run `43065395902` valide `a78a901` uniquement.
-3. Télécharger/restaurer l'artifact GitHub dans un clone isolé et conserver une copie hors GitHub. Configurer plus tard, avec l'hébergement/stockage non secrets fournis par propriétaire, backup chiffré indépendant et restauration de la **vraie base PostgreSQL** ; actuellement non vérifié.
-4. Après validation, choisir prochain petit lot P1 (invitations/accès, audit ou déploiement/SMTP). MIMI/Jumia hors P1.
+1. Finaliser le lot local descendant de `9055afb` : audit **uniquement boutique sélectionnée** via permission serveur/RLS ; préserver boutiques/comptes. 49 tests ciblés/lint/types/découverte Playwright locaux OK ; contrôler mémoire/diff/secrets, puis commit, snapshot après/empreintes, archive Desktop vérifiée par extraction propre. Snapshot avant `*avant-p1-recherche-audit*` déjà vérifié.
+2. Publier normalement sans force push ; sur **nouveau SHA**, confirmer quatre jobs GitHub verts (lint/types/tous tests/build, migrations PG16, E2E bureau/mobile palette/page/permissions, archive code) et artifact du bon SHA. Les anciens jobs verts de `9055afb` ne valident pas ce lot.
+3. Télécharger/restaurer artifact GitHub et conserver code indépendant hors GitHub ; planifier hébergement/SMTP et backup chiffré/restauré de la **vraie** base avec informations non secrètes du propriétaire. Aucun aperçu Arena n'est production.
+4. Choisir après validation le prochain petit lot P1 ; MIMI/Jumia hors phase.

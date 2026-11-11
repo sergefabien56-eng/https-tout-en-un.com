@@ -5,10 +5,11 @@ import { Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 type Hit = { id: string; displayName: string; countryCode?: string; status?: string; email?: string };
-type Hits = { shops: Hit[]; users: Hit[] };
-const EMPTY: Hits = { shops: [], users: [] };
+type AuditHit = { id: string; module: string; action: string; occurredAt: string };
+type Hits = { shops: Hit[]; users: Hit[]; audit: AuditHit[]; auditShopId: string | null };
+const EMPTY: Hits = { shops: [], users: [], audit: [], auditShopId: null };
 
-/** Recherche rapide : boutique RLS et compte seulement avec users:read GLOBAL côté serveur. */
+/** Palette : boutique RLS, compte global et journal de la seule boutique sélectionnée autorisée. */
 export function DirectoryQuickSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -41,7 +42,8 @@ export function DirectoryQuickSearch() {
           { cache: 'no-store', credentials: 'same-origin', signal: abort.signal });
         if (!response.ok) throw new Error();
         const data = await response.json() as Hits;
-        if (!abort.signal.aborted) setHits({ shops: data.shops.slice(0, 5), users: data.users.slice(0, 5) });
+        if (!abort.signal.aborted) setHits({ shops: data.shops.slice(0, 5), users: data.users.slice(0, 5),
+          audit: data.audit.slice(0, 5), auditShopId: data.auditShopId });
       } catch {
         if (!abort.signal.aborted) { setHits(EMPTY); setError(true); }
       } finally { if (!abort.signal.aborted) setLoading(false); }
@@ -70,8 +72,8 @@ export function DirectoryQuickSearch() {
         <input ref={field} id="quick-directory-query" type="search" maxLength={80} value={query}
           onChange={(event) => { setQuery(event.target.value); setHits(EMPTY); setError(false);
             setLoading(event.target.value.trim().length >= 2); }}
-          placeholder="Boutique ou utilisateur (2 caractères minimum)" />
-        <p className="muted">Boutiques autorisées et comptes visibles selon vos droits. Aucun résultat Jumia.</p>
+          placeholder="Boutique, utilisateur ou action (2 caractères minimum)" />
+        <p className="muted">Boutiques, comptes et journal de la boutique sélectionnée selon vos droits. Aucun résultat Jumia.</p>
         {query.trim().length < 2 ? <p role="status">Saisissez au moins deux caractères.</p>
           : loading ? <p role="status">Recherche en cours…</p>
           : error ? <p role="alert">Recherche indisponible. Réessayez.</p>
@@ -84,6 +86,13 @@ export function DirectoryQuickSearch() {
             <section aria-label="Utilisateurs accessibles"><h3>Utilisateurs accessibles</h3>
               {hits.users.length === 0 ? <p>Aucun compte visible ou correspondant.</p> : <ul>{hits.users.map((hit) => <li key={hit.id}>
                 <Link onClick={close} href={`/espace/utilisateurs/${hit.id}`}>{hit.displayName} · {hit.email}</Link></li>)}</ul>}
+            </section>
+            <section aria-label="Journal de la boutique sélectionnée"><h3>Journal de la boutique sélectionnée</h3>
+              {!hits.auditShopId ? <p>Sélectionnez une boutique autorisée pour consulter son journal.</p>
+                : hits.audit.length === 0 ? <p>Aucun événement correspondant.</p>
+                : <ul>{hits.audit.map((hit) => <li key={hit.id}><Link onClick={close}
+                  href={`/espace/journal?shop=${hits.auditShopId}&q=${encodeURIComponent(query.trim())}`}>
+                  {hit.module} · {hit.action}</Link></li>)}</ul>}
             </section>
           </>}
         {query.trim().length >= 2 && !error && <Link onClick={close} href={`/espace/recherche?q=${encodeURIComponent(query.trim())}`}>

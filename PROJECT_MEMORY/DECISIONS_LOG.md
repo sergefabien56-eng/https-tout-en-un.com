@@ -26,3 +26,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Après `e4c4678` : ne pas supprimer `failOnFlakyTests` pour obtenir une CI verte ; les filtres des notifications passent par navigation document normale après `router.refresh()` afin de conserver une URL/périmètre serveur cohérents. Examiner traces si échec persistant.
 
 - Choix du propriétaire : après révocation ciblée, ajouter « Déconnecter tous les autres appareils » sans déconnecter l'appareil courant ; audit agrégé par nombre et transaction, 0 idempotent ; ne pas exécuter de mutation groupée dans des scénarios E2E parallèles partageant le compte fictif.
+
+- Choix du propriétaire : prochain lot P1 = recherche dans journal. Aucun audit multi-boutiques : `toutenun_shop` sélectionné doit être valide et autorisé `audit:read` ; sinon catégorie vide sans révéler boutique. Réutiliser `listShopAudit` et exclure `before`/`after`.

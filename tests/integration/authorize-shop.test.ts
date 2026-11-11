@@ -26,6 +26,7 @@ vi.mock('@/core/db/client', () => ({
 
 const { withAuthorizedShopTransaction, withAuditedShopMutation } = await import('@/core/auth/authorize-shop');
 const { listShopAudit } = await import('@/modules/audit/list-audit');
+const { searchAuthorizedAudit } = await import('@/modules/audit/search-audit');
 const { exportShopAudit } = await import('@/modules/audit/export-audit');
 const { POST: selectShop } = await import('@/app/api/preferences/shop/route');
 const owner = createSessionToken();
@@ -139,6 +140,20 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 1, module: "x' OR 1=1 --" })).rejects.toMatchObject({ httpStatus: 400 });
   });
 
+  it('recherche rapide audit : seulement boutique choisie autorisée, jamais globale ni autre compte', async () => {
+    const own = await searchAuthorizedAudit(owner.token, 'RENAME', shop1);
+    expect(own.auditShopId).toBe(shop1);
+    expect(own.audit.map((entry) => entry.action)).toContain('shops.rename');
+    expect(own.audit.every((entry) => entry.shopId === shop1)).toBe(true);
+    expect(JSON.stringify(own)).not.toMatch(/secret-à-expurger|token_hash|before|after/);
+    expect((await searchAuthorizedAudit(owner.token, 'test.b', shop1)).audit).toEqual([]);
+    expect((await searchAuthorizedAudit(owner.token, 'test.b', shop2)).audit.map((entry) => entry.action)).toEqual(['test.b']);
+    expect((await searchAuthorizedAudit(manager.token, 'test.b', shop2))).toEqual({ audit: [], auditShopId: null });
+    expect((await searchAuthorizedAudit(assistant.token, 'test.b', shop2))).toEqual({ audit: [], auditShopId: null });
+    expect((await searchAuthorizedAudit(owner.token, 'rename', 'all'))).toEqual({ audit: [], auditShopId: null });
+    expect((await searchAuthorizedAudit(owner.token, 'rename', '1 OR 1=1'))).toEqual({ audit: [], auditShopId: null });
+    await expect(searchAuthorizedAudit(undefined, 'rename', shop1)).rejects.toMatchObject({ httpStatus: 401 });
+  });
   it('sélection par cookie : Origin/CSRF et droit boutique contrôlés avant écriture', async () => {
     const previous = process.env.APP_URL; process.env.APP_URL = 'https://app.example.com';
     try {

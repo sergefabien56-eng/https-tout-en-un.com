@@ -16,3 +16,5 @@
 - Recherche rapide boutiques/comptes : `cbbe950`, CI `43026793436` quatre jobs verts ; artifact présent non restauré depuis GitHub. Révocation des autres sessions seulement en code local, **pas encore validée en CI du futur SHA**.
 
 - Déconnexion ciblée d’un autre appareil et navigation filtres notifications validées en CI sur `a78a901` (4 jobs verts). Déconnexion groupée du nouveau lot **non encore validée en CI**.
+
+- Déconnexion de tous les autres appareils : `9055afb`, CI `43067657827` quatre jobs verts ; artifact code présent non restauré depuis GitHub. Le lot recherche audit ci-dessus est seulement local, **pas encore validé en CI**.

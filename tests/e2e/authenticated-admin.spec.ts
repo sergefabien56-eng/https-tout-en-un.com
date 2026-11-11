@@ -147,7 +147,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   // Recherche transversale bornée : comptes avec droit global, boutiques filtrées par RLS.
   await page.goto('/espace/recherche');
   await expect(page.getByRole('heading', { name: 'Rechercher dans mon espace' })).toBeVisible();
-  const directoryQuery = page.getByRole('searchbox', { name: 'Nom de boutique, utilisateur ou e-mail' });
+  const directoryQuery = page.getByRole('searchbox', { name: 'Boutique, utilisateur, e-mail ou action d’audit' });
   await directoryQuery.fill('proprietaire');
   await page.getByRole('search').getByRole('button', { name: 'Rechercher' }).click();
   await expect(page.getByRole('link', { name: /Propriétaire CI · proprietaire@ci.invalid/ })).toBeVisible();
@@ -230,6 +230,25 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.getByRole('button', { name: 'Choisir une boutique' }).click();
   await picker.getByRole('button', { name: /Boutique CI fictive/ }).click();
   await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toContainText('Préférence : Boutique CI fictive');
+  // Recherche transversale : audit seulement dans la boutique sélectionnée et autorisée.
+  const auditQuickResponse = await page.request.get('/api/search?q=fixture.created');
+  expect(auditQuickResponse.status()).toBe(200);
+  const auditQuick = await auditQuickResponse.json() as { auditShopId: string | null;
+    audit: { action: string; shopId: string }[] };
+  expect(auditQuick.auditShopId).toBe(shopId);
+  expect(auditQuick.audit.map((event) => event.action)).toContain('fixture.created');
+  expect(auditQuick.audit.every((event) => event.shopId === shopId)).toBe(true);
+  expect(JSON.stringify(auditQuick)).not.toMatch(/token_hash|before|after|ip_hash/);
+  await page.keyboard.press('ControlOrMeta+k');
+  const scopedSearch = page.getByRole('dialog', { name: 'Recherche rapide dans mon espace' });
+  await expect(scopedSearch).toBeVisible();
+  await scopedSearch.getByRole('searchbox', { name: 'Rechercher dans mon espace' }).fill('fixture.created');
+  await expect(scopedSearch.getByRole('link', { name: /shops · fixture.created/ })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(scopedSearch).toBeHidden();
+  await page.goto('/espace/recherche?q=fixture.created');
+  await expect(page.getByRole('heading', { name: 'Journal de la boutique sélectionnée' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /shops · fixture.created/ })).toBeVisible();
   await page.goto('/espace/journal');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.getByRole('table')).toContainText('fixture.created');

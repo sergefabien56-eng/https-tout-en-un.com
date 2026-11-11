@@ -1,14 +1,16 @@
-/** Recherche P1 bornée aux boutiques autorisées et, si permis globalement, aux comptes. */
+/** Recherche P1 : boutiques RLS, comptes globaux et audit d'une boutique autorisée sélectionnée. */
 import { AppError, ValidationError } from '@/core/errors/app-error';
 import { listOwnShops, type ShopSummary } from '@/modules/identity/shop-catalog';
 import { listAuthorizedUsers, type UserSummary } from '@/modules/identity/user-list';
+import { searchAuthorizedAudit, type AuthorizedAuditHits } from '@/modules/audit/search-audit';
 
-export interface DirectorySearchResult {
+export interface DirectorySearchResult extends AuthorizedAuditHits {
   shops: ShopSummary[];
   users: UserSummary[];
 }
 
-export async function searchAuthorizedDirectory(token: string | undefined, query: string): Promise<DirectorySearchResult> {
+export async function searchAuthorizedDirectory(token: string | undefined, query: string,
+  selectedShop?: string): Promise<DirectorySearchResult> {
   if (typeof query !== 'string' || query.length > 80 || [...query].some((char) => char.charCodeAt(0) < 32))
     throw new ValidationError('Recherche invalide.');
   const q = query.trim();
@@ -21,5 +23,6 @@ export async function searchAuthorizedDirectory(token: string | undefined, query
   catch (error) {
     if (!(error instanceof AppError && error.httpStatus === 403)) throw error;
   }
-  return { shops, users };
+  const auditHits = await searchAuthorizedAudit(token, q, selectedShop);
+  return { shops, users, ...auditHits };
 }

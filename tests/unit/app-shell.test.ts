@@ -41,7 +41,9 @@ describe('coquille UI — état prêt et états indisponibles', () => {
   it('Ctrl+K recherche boutiques et comptes autorisés via une API protégée et ferme avec Échap', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ shops: [
       { id: '7', displayName: 'Boutique CI', countryCode: 'CI', status: 'connected' },
-    ], users: [{ id: '2', displayName: 'Utilisateur CI', email: 'user@ci.invalid' }] }) });
+    ], users: [{ id: '2', displayName: 'Utilisateur CI', email: 'user@ci.invalid' }],
+    audit: [{ id: '9', module: 'shops', action: 'fixture.created', occurredAt: '2026-11-11T10:00:00Z' }],
+    auditShopId: '7' }) });
     vi.stubGlobal('fetch', fetchMock);
     mount();
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
@@ -53,6 +55,8 @@ describe('coquille UI — état prêt et états indisponibles', () => {
     expect(hit.getAttribute('href')).toBe('/espace/boutiques?q=Boutique%20CI');
     const userHit = await within(dialog).findByRole('link', { name: /Utilisateur CI/ });
     expect(userHit.getAttribute('href')).toBe('/espace/utilisateurs/2');
+    const auditHit = await within(dialog).findByRole('link', { name: /shops · fixture.created/ });
+    expect(auditHit.getAttribute('href')).toBe('/espace/journal?shop=7&q=CI');
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/search?q=CI'))).toBe(true);
     fireEvent.keyDown(field, { key: 'Escape' });
     expect(screen.queryByRole('dialog', { name: 'Recherche rapide dans mon espace' })).toBeNull();

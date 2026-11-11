@@ -1,3 +1,5 @@
+- **Phase 1 — recherche audit boutique sélectionnée** (lot local, futur SHA) : catégorie limitée au shop autorisé sous RLS/droit audit:read, API/page/palette ; 49 ciblés/lint/types verts, build/E2E du futur SHA en attente.
+- `9055afb` publié et validé en CI `43067657827` : quatre jobs verts et artifact code présent, non restauré depuis GitHub.
 - **Phase 1 — déconnecter tous les autres appareils** (lot local, SHA à relever) : service transactionnel/audit, route Origin+CSRF, UI confirmée et 43 tests ciblés/lint/types verts ; build/E2E/CI du futur SHA en attente. Aucun SQL.
 - `a78a901` : CI `43065395902` quatre jobs verts, artifact code présent mais non restauré depuis GitHub.
 - **Correctif filtres notifications** (local, futur SHA) : filtres via navigation document native, E2E `href` + attente 15 s ; `e4c4678` avait qualité/PG16 verts et 1 flaky E2E notifications, archive skipped ; validation du futur SHA en attente.

@@ -58,3 +58,7 @@ Run `43063876856` : qualité/PG16 verts, navigateur 9 passed/1 flaky sur clic fi
 ## Lot déconnexion groupée — Phase 1
 
 Le propriétaire a choisi « Déconnecter tous les autres appareils » ; code local descendant de `a78a901`, dont run `43065395902` était vert (4 jobs). Nouveau lot non publié/non validé par ce run. `revokeAllOtherSessions`, route POST Origin/CSRF, bouton confirmation dans Mes sessions, audit transactionnel et tests 43/43 locaux ; lire `RESUME_HERE.md` et `docs/comptes-rendus/phase1-deconnecter-tous-autres-appareils.md`.
+
+## Lot P1 recherche dans le journal de la boutique sélectionnée
+
+Run `43067657827` du SHA `9055afb` : 4 jobs verts, artifact code présent mais non restauré depuis GitHub. Nouveau lot local **non validé** par ce run : `src/modules/audit/search-audit.ts` + API/page/palette ajoutent audit uniquement sous boutique sélectionnée, droit `audit:read` et RLS. 49 tests ciblés/lint/types OK ; E2E ajoutés non exécutés localement. Voir `RESUME_HERE.md` et `docs/comptes-rendus/phase1-recherche-audit-boutique.md`.
