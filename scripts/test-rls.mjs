@@ -34,6 +34,8 @@ try {
   await db.query(`INSERT INTO user_roles (user_id, role_code, shop_id) VALUES
     ($1, 'owner', NULL), ($2, 'manager', $3)`, [userId, limitedId, a]);
   await db.query('INSERT INTO user_shop_access (user_id, shop_id) VALUES ($1, $2)', [limitedId, a]);
+  await db.query(`INSERT INTO user_notifications (user_id,kind,title,message) VALUES
+    ($1,'security_login','Fixture','Compte A'), ($2,'security_login','Fixture','Compte B')`, [userId, limitedId]);
   await db.query(`INSERT INTO audit_log (shop_id, module, action) VALUES
     ($1, 'ci', 'rls-a'), ($2, 'ci', 'rls-b'), (NULL, 'ci', 'rls-global')`, [a, b]);
   const bypass = await db.query("SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = 'toutenun_app'");
@@ -46,6 +48,24 @@ try {
   assert.deepEqual((await read()).rows, [], 'Aucune boutique visible sans contexte RLS');
   const readAudit = () => db.query("SELECT action FROM audit_log WHERE module = 'ci' ORDER BY action");
   assert.deepEqual((await readAudit()).rows, [], 'Aucun audit sans contexte RLS');
+  const readNotices = () => db.query('SELECT message FROM user_notifications ORDER BY id');
+  assert.deepEqual((await readNotices()).rows, [], 'Aucune notification sans contexte utilisateur');
+  await db.query("SELECT set_config('app.notification_user_id', $1, true)", [String(userId)]);
+  assert.deepEqual((await readNotices()).rows.map((r) => r.message), ['Compte A']);
+  await db.query(`INSERT INTO user_notifications (user_id,kind,title,message)
+    VALUES ($1,'security_login','Sécurité','Connexion CI')`, [userId]);
+  await db.query('SAVEPOINT denied_notification');
+  let noticeDenied = false;
+  try {
+    await db.query(`INSERT INTO user_notifications (user_id,kind,title,message)
+      VALUES ($1,'security_login','Sécurité','Interdit')`, [limitedId]);
+  } catch (error) { noticeDenied = error?.code === '42501'; }
+  finally { await db.query('ROLLBACK TO SAVEPOINT denied_notification'); }
+  assert.equal(noticeDenied, true, 'Écriture de notification vers autrui refusée par RLS');
+  await db.query("SELECT set_config('app.notification_user_id', $1, true)", [String(limitedId)]);
+  assert.deepEqual((await readNotices()).rows.map((r) => r.message), ['Compte B']);
+  await db.query("SELECT set_config('app.notification_user_id', '', true)");
+  assert.deepEqual((await readNotices()).rows, [], 'Contexte effacé : aucune notification');
   // Le nouveau contexte de catalogue n'ouvre QUE shops/access et ne révèle pas audit_log.
   await db.query("SELECT set_config('app.list_user_id', $1, true)", [String(userId)]);
   assert.deepEqual((await read()).rows.map((row) => row.id), [a, b], 'Catalogue propriétaire limité par rôle réel');

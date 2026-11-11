@@ -111,6 +111,11 @@ export async function login(input: {
       WHERE id = $1`, [user.id, counter ?? Number(user.totp_last_counter), now, remaining]);
     await db.query(`INSERT INTO sessions (user_id, token_hash, expires_at, user_agent)
       VALUES ($1, $2, $3, $4)`, [user.id, hash, expiresAt, input.userAgent?.slice(0, 256) ?? null]);
+    // Notification de sécurité réelle, atomique avec la session. Aucun jeton, IP,
+    // code TOTP ou User-Agent n'est enregistré dans la notification.
+    await db.query("SELECT set_config('app.notification_user_id', $1, true)", [user.id]);
+    await db.query(`INSERT INTO user_notifications (user_id, kind, title, message)
+      VALUES ($1, 'security_login', 'Nouvelle connexion', 'Une connexion sécurisée a été établie sur votre compte.')`, [user.id]);
     return { token, expiresAt };
   });
   if (!result) throw new InvalidCredentials();

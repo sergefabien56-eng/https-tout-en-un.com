@@ -75,7 +75,7 @@ export const navigation: readonly NavGroup[] = [
     soon('automation.mimi', 'Assistante MIMI', '/mimi', Sparkles, 'mimi:use'),
     soon('automation.rules', 'Règles', '/regles', Workflow, 'settings:manage'),
     soon('automation.jobs', 'Tâches planifiées', '/taches', Activity, 'system:manage'),
-    soon('automation.notifications', 'Notifications', '/notifications', Bell, 'dashboard:read'),
+    { id: 'automation.notifications', label: 'Notifications', href: '/espace/notifications', icon: Bell, permission: 'dashboard:read', availability: 'ready' },
   ] },
   { id: 'admin', label: 'Administration', icon: Settings, children: [
     { id: 'admin.users', label: 'Utilisateurs', href: '/espace/utilisateurs', icon: Users, permission: 'users:read', availability: 'ready', scope: 'global' },

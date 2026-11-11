@@ -18,6 +18,15 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   await page.getByRole('button', { name: 'Se connecter' }).click();
   await expect(page).toHaveURL(/\/espace$/);
   await expect(page.locator('.topbar-user')).toHaveText('Propriétaire CI');
+  await page.getByRole('link', { name: 'Mes notifications' }).click();
+  await expect(page.getByRole('heading', { name: 'Mes notifications' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nouvelle connexion' })).toBeVisible();
+  const noticeResponse = await page.request.get('/api/notifications');
+  expect(noticeResponse.status()).toBe(200);
+  const notices = await noticeResponse.json() as { notifications: { kind: string; message: string }[] };
+  expect(notices.notifications.some((n) => n.kind === 'security_login')).toBe(true);
+  expect(JSON.stringify(notices)).not.toMatch(/token_hash|totp_secret|user_agent/);
+  await page.goto('/espace');
 
   if (testInfo.project.name === 'mobile-375') {
     await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
@@ -57,7 +66,7 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number };
   expect(health.database).toBe('ok');
-  expect(health.migrationsApplied).toBe(8);
+  expect(health.migrationsApplied).toBe(9);
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();

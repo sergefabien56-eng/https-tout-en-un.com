@@ -92,6 +92,11 @@ describe('authentification — requêtes et session contre PostgreSQL WASM', () 
       'SELECT octet_length(token_hash) AS bytes FROM sessions WHERE user_id=$1', [userId],
     );
     expect(dbSession.rows[0]!.bytes).toBe(32);
+    const notices = await db.query<{ kind: string; message: string }>(
+      'SELECT kind, message FROM user_notifications WHERE user_id=$1', [userId]);
+    expect(notices.rows).toHaveLength(1);
+    expect(notices.rows[0]?.kind).toBe('security_login');
+    expect(JSON.stringify(notices.rows)).not.toMatch(/token|totp|mot de passe|agent|adresse ip/i);
     await db.query('UPDATE sessions SET expires_at = now() + interval \'1 hour\'');
     expect(await getSession(session.token)).toEqual({ userId, displayName: 'Propriétaire de test' });
     await revokeSession(session.token);

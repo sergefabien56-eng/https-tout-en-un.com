@@ -10,6 +10,7 @@ import { GET as adminUserDetailGet } from '@/app/api/admin/users/[id]/route';
 import { GET as adminRolesGet } from '@/app/api/admin/roles/route';
 import { GET as deepHealthGet } from '@/app/api/health/deep/route';
 import { GET as sessionsGet } from '@/app/api/auth/sessions/route';
+import { GET as notificationsGet } from '@/app/api/notifications/route';
 import { GET as shopAuditGet } from '@/app/api/shops/[shopId]/audit/route';
 import { GET as auditExportGet } from '@/app/api/shops/[shopId]/audit/export/route';
 import { GET as shopsGet } from '@/app/api/shops/route';
@@ -105,6 +106,10 @@ describe('routes auth — barrières exécutées avant tout accès base', () => 
   it('GET export audit sans cookie est refusé', async () => {
     const request = new NextRequest('https://app.example.com/api/shops/1/audit/export');
     expect((await auditExportGet(request, { params: Promise.resolve({ shopId: '1' }) })).status).toBe(401);
+  });
+  it('GET notifications sans session refuse les détails du compte', async () => {
+    const request = new NextRequest('https://app.example.com/api/notifications');
+    expect((await notificationsGet(request)).status).toBe(401);
   });
   it('verrouillage progressif, plafonné', () => {
     const now = new Date('2026-11-10T00:00:00Z');

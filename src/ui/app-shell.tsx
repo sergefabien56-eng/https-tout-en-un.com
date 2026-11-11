@@ -153,7 +153,7 @@ export function AppShell({ userName, selectedShop, permissions, globalPermission
           <ShopSwitcher selectedShop={selectedShop ?? null} />
           <div className="topbar-spacer" />
           <button type="button" className="topbar-disabled" disabled title="Recherche bientôt disponible" aria-label="Recherche bientôt disponible"><Search size={18} /></button>
-          <button type="button" className="topbar-disabled" disabled title="Notifications bientôt disponibles" aria-label="Notifications bientôt disponibles"><Bell size={18} /></button>
+          <Link href="/espace/notifications" className="topbar-notifications" title="Mes notifications" aria-label="Mes notifications"><Bell size={18} /></Link>
           <Button variant="ghost" size="icon" aria-label={`Thème ${theme} : changer le thème`} onClick={changeTheme}>
             {theme === 'dark' ? <Moon size={19} /> : <Sun size={19} />}
           </Button>

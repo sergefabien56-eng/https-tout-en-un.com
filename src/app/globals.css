@@ -196,3 +196,6 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .shop-switcher-panel button:hover, .shop-switcher-panel button:focus-visible { background: var(--bg-app); }
 .shop-switcher-pages { display: flex; justify-content: space-between; }
 @media (max-width: 600px) { .shop-switcher-panel { position: fixed; left: 10px; right: 10px; top: 70px; width: auto; } }
+.notification-list { padding: 0; list-style: none; }
+.notification-list .card h2 { margin: 0 0 8px; }
+.notification-list small { color: var(--text-muted); }
