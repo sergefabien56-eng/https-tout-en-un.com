@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { expectNoSeriousAccessibilityViolations } from './accessibility';
 
 test('page connexion accessible et aucun débordement horizontal', async ({ page }) => {
   await page.goto('/connexion');
@@ -9,6 +10,7 @@ test('page connexion accessible et aucun débordement horizontal', async ({ page
   await expect(page.getByRole('button', { name: 'Se connecter' })).toBeEnabled();
   const sizes = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: window.innerWidth }));
   expect(sizes.content).toBeLessThanOrEqual(sizes.viewport);
+  await expectNoSeriousAccessibilityViolations(page);
 });
 
 test('espace privé inaccessible sans session, côté serveur', async ({ page }) => {
@@ -23,4 +25,5 @@ test('connexion sans vrai compte : aucune donnée métier inventée', async ({ p
   await page.goto('/');
   await expect(page.getByText(/aucun indicateur n’est affiché/i)).toBeVisible();
   await expect(page.getByText(/rien n’est simulé/i)).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
 });

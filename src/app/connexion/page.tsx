@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Connexion' };
 export default function LoginPage() {
   return (
     <main className="login-page">
-      <Link href="/" className="brand-link" aria-label="Retour à l’accueil">{appConfig.shortName}</Link>
+      <Link href="/" className="brand-link" aria-label={`${appConfig.shortName} — Retour à l’accueil`}>{appConfig.shortName}</Link>
       <section className="card login-card" aria-labelledby="login-title">
         <span className="tag">Accès réservé</span>
         <h1 id="login-title">Connexion à votre espace</h1>

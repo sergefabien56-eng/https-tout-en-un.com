@@ -6,13 +6,15 @@
   --brand-blue: #1765f5;
   --brand-orange: #f57c1f;
   --brand-green: #12855b;
+  --ok-text: #12855b;
+  --soon-text: #955009;
   --brand-red: #c4342b;
   --bg-app: #f6f8fb;
   --bg-surface: #ffffff;
   --border-subtle: #e3e8f0;
   --text-primary: #101c39;
   --text-secondary: #4c5a75;
-  --text-muted: #6b7891;
+  --text-muted: #58637b;
   --radius-md: 10px;
   --shadow-sm: 0 1px 2px rgba(16, 28, 57, 0.06);
   --sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
@@ -25,7 +27,9 @@
     --border-subtle: #243049;
     --text-primary: #edf1f8;
     --text-secondary: #a9b4c9;
-    --text-muted: #8593ad;
+    --text-muted: #a2b0c8;
+    --ok-text: #59c99a;
+    --soon-text: #ffb064;
   }
 }
 
@@ -67,10 +71,10 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px
   border: 1px solid var(--border-subtle);
   color: var(--text-muted);
 }
-.tag.ok { color: var(--brand-green); border-color: rgba(18, 133, 91, 0.35); }
-.tag.soon { color: var(--brand-orange); border-color: rgba(245, 124, 31, 0.35); }
+.tag.ok { color: var(--ok-text); border-color: rgba(18, 133, 91, 0.35); }
+.tag.soon { color: var(--soon-text); border-color: rgba(245, 124, 31, 0.35); }
 .muted { color: var(--text-muted); font-size: 12.5px; }
-a { color: var(--brand-blue); }
+a { color: var(--brand-blue); text-decoration: underline; text-underline-offset: 2px; }
 
 /* Connexion : lisibilité et contrôles utilisables dès 375 px. */
 .login-page { max-width: 520px; min-height: 100svh; padding-top: clamp(28px, 8vh, 96px); }
@@ -90,11 +94,13 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 :root { --sidebar-bg: var(--brand-navy); --sidebar-text: #e6ebf5; --sidebar-muted: #aab7ce; }
 :root[data-theme="dark"] {
   --bg-app: #0a1020; --bg-surface: #131b2e; --border-subtle: #243049;
-  --text-primary: #edf1f8; --text-secondary: #a9b4c9; --text-muted: #8593ad;
+  --text-primary: #edf1f8; --text-secondary: #a9b4c9; --text-muted: #a2b0c8;
+  --ok-text: #59c99a; --soon-text: #ffb064;
 }
 :root[data-theme="light"] {
   --bg-app: #f6f8fb; --bg-surface: #ffffff; --border-subtle: #e3e8f0;
-  --text-primary: #101c39; --text-secondary: #4c5a75; --text-muted: #6b7891;
+  --text-primary: #101c39; --text-secondary: #4c5a75; --text-muted: #58637b;
+  --ok-text: #12855b; --soon-text: #955009;
 }
 .workspace { --sidebar-width: 264px; display: flex; min-height: 100svh; width: 100%; }
 .workspace-rail { --sidebar-width: 72px; }

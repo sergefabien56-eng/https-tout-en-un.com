@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { expectNoSeriousAccessibilityViolations } from './accessibility';
 
 // Seulement en CI : utilisateur et codes FICTIFS créés dans une base PostgreSQL jetable.
 // Jamais exécuté contre une base réelle de production.
@@ -28,6 +29,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await notificationLink.click();
   await expect(page.getByRole('heading', { name: 'Mes notifications' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Nouvelle connexion' }).first()).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
   const noticeResponse = await page.request.get('/api/notifications');
   expect(noticeResponse.status()).toBe(200);
   const notices = await noticeResponse.json() as { notifications: { id: string; kind: string; message: string; readAt: string | null }[] };
@@ -66,6 +68,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page).toHaveURL(/\/espace\/utilisateurs$/);
   await expect(page.getByRole('heading', { name: 'Utilisateurs' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
+  await expectNoSeriousAccessibilityViolations(page);
   const response = await page.request.get('/api/admin/users');
   expect(response.status()).toBe(200);
   const result = await response.json() as { users: { id: string; email: string }[] };
@@ -108,6 +111,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.getByRole('link', { name: 'Système' }).click();
   await expect(page.getByRole('heading', { name: 'Système' })).toBeVisible();
   await expect(page.getByText(/File de tâches/)).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
   const deep = await page.request.get('/api/health/deep');
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number };
@@ -116,6 +120,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
   const shopsResponse = await page.request.get('/api/shops');
   expect(shopsResponse.status()).toBe(200);
   const shopList = await shopsResponse.json() as { shops: { id: string; displayName: string }[] };
