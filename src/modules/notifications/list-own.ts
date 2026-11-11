@@ -7,10 +7,16 @@ export interface NotificationSummary {
   id: string; kind: 'security_login'; title: string; message: string;
   createdAt: string; readAt: string | null;
 }
-export async function listOwnNotifications(token: string | undefined, page = 1): Promise<{
+export type NotificationReadFilter = 'all' | 'unread' | 'read';
+export function isNotificationReadFilter(value: string): value is NotificationReadFilter {
+  return value === 'all' || value === 'unread' || value === 'read';
+}
+
+export async function listOwnNotifications(token: string | undefined, page = 1, filter: NotificationReadFilter = 'all'): Promise<{
   notifications: NotificationSummary[]; nextPage: number | null;
 }> {
   if (!Number.isSafeInteger(page) || page < 1 || page > 10_000) throw new ValidationError('Page invalide.');
+  if (!isNotificationReadFilter(filter)) throw new ValidationError('Filtre invalide.');
   if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token))
     throw new AppError('UNAUTHENTICATED', { userMessage: 'Connexion nécessaire.' });
   return withIdentityTransaction(async (db) => {
@@ -25,8 +31,10 @@ export async function listOwnNotifications(token: string | undefined, page = 1):
       id: string; kind: 'security_login'; title: string; message: string;
       created_at: Date | string; read_at: Date | string | null;
     }>(`SELECT id::text, kind, title, message, created_at, read_at
-      FROM user_notifications WHERE user_id = $1 ORDER BY created_at DESC, id DESC
-      LIMIT $2 OFFSET $3`, [userId, 21, (page - 1) * 20]);
+      FROM user_notifications WHERE user_id = $1
+      AND ($2::text = 'all' OR ($2::text = 'unread' AND read_at IS NULL)
+        OR ($2::text = 'read' AND read_at IS NOT NULL))
+      ORDER BY created_at DESC, id DESC LIMIT $3 OFFSET $4`, [userId, filter, 21, (page - 1) * 20]);
     return { notifications: rows.rows.slice(0, 20).map((r) => ({
       id: String(r.id), kind: r.kind, title: r.title, message: r.message,
       createdAt: new Date(r.created_at).toISOString(),

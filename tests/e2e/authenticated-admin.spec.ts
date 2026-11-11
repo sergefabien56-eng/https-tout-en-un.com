@@ -30,6 +30,11 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   // Une mutation réelle est appliquée à la première notification, puis confirmée via l’API.
   const firstNotice = notices.notifications[0];
   expect(firstNotice?.id).toMatch(/^[1-9]\d*$/);
+  expect((await page.request.get('/api/notifications?filter=incorrect')).status()).toBe(400);
+  const initialFilter = firstNotice?.readAt ? 'read' : 'unread';
+  const initialFiltered = await page.request.get(`/api/notifications?filter=${initialFilter}`);
+  expect(initialFiltered.status()).toBe(200);
+  expect((await initialFiltered.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
   const action = page.locator('.notification-list > li').first().getByRole('button',
     { name: firstNotice?.readAt ? 'Marquer comme non lue' : 'Marquer comme lue' });
   await action.click();
@@ -38,6 +43,13 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
     const data = await result.json() as { notifications: { id: string; readAt: string | null }[] };
     return Boolean(data.notifications.find((n) => n.id === firstNotice?.id)?.readAt);
   }).toBe(!firstNotice?.readAt);
+  const targetFilter = firstNotice?.readAt ? 'unread' : 'read';
+  await page.getByRole('navigation', { name: 'Filtrer les notifications' }).getByRole('link',
+    { name: firstNotice?.readAt ? 'Non lues' : 'Lues' }).click();
+  await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}`));
+  await expect(page.locator('.notification-list > li').first()).toBeVisible();
+  const afterFilter = await page.request.get(`/api/notifications?filter=${targetFilter}`);
+  expect((await afterFilter.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
   await page.goto('/espace');
 
   if (testInfo.project.name === 'mobile-375') {

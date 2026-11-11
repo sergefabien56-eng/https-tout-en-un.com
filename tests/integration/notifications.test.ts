@@ -67,6 +67,22 @@ describe('notifications personnelles', () => {
     expect((await db.query("SELECT action FROM audit_log WHERE module='notifications' ORDER BY id")).rows)
       .toEqual([{ action: 'mark_read' }, { action: 'mark_unread' }]);
   });
+  it('filtres lus/non lus : compte et pagination restent imposés côté SQL/RLS', async () => {
+    const created = await db.query<{ id: string }>(`INSERT INTO user_notifications (user_id,kind,title,message)
+      VALUES (1,'security_login','Connexion','A lue') RETURNING id::text`);
+    const readId = created.rows[0]!.id;
+    await setOwnNotificationRead(first.token, readId, true);
+    const unread = (await listOwnNotifications(first.token, 1, 'unread')).notifications;
+    const read = (await listOwnNotifications(first.token, 1, 'read')).notifications;
+    expect(unread.map((n) => n.message)).toContain('A');
+    expect(unread.map((n) => n.id)).not.toContain(readId);
+    expect(read.map((n) => n.id)).toContain(readId);
+    expect(read.map((n) => n.message)).not.toContain('B');
+    expect((await listOwnNotifications(second.token, 1, 'read')).notifications).toEqual([]);
+    expect((await listOwnNotifications(second.token, 1, 'unread')).notifications.map((n) => n.message)).toEqual(['B']);
+    expect((await listOwnNotifications(first.token, 2, 'read')).notifications).toEqual([]);
+    await expect(listOwnNotifications(first.token, 1, 'autrui' as 'all')).rejects.toMatchObject({ httpStatus: 400 });
+  });
   it('jeton absent ou périmé ne donne aucune donnée', async () => {
     await expect(setOwnNotificationRead(undefined, '1', true)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(setOwnNotificationRead(createSessionToken().token, '1', true)).rejects.toMatchObject({ httpStatus: 401 });
