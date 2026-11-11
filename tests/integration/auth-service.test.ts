@@ -35,7 +35,9 @@ const OLD_SESSION = process.env.SESSION_SECRET;
 const testKey = randomBytes(32).toString('base64');
 const totpSecret = randomBytes(20);
 let userId = '';
-const now = new Date('2026-11-10T15:12:00Z');
+// Une date figée finit par expirer la session de 12 h et casse le test de rejeu en CI.
+// Chaque appel réutilise le même instant afin de vérifier le rejet du même compteur TOTP.
+const now = new Date();
 
 beforeAll(async () => {
   process.env.APP_ENC_KEYS = `1:${testKey}`;
