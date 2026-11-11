@@ -62,3 +62,7 @@ Le propriétaire a choisi « Déconnecter tous les autres appareils » ; code lo
 ## Lot P1 recherche dans le journal de la boutique sélectionnée
 
 Run `43067657827` du SHA `9055afb` : 4 jobs verts, artifact code présent mais non restauré depuis GitHub. Nouveau lot local **non validé** par ce run : `src/modules/audit/search-audit.ts` + API/page/palette ajoutent audit uniquement sous boutique sélectionnée, droit `audit:read` et RLS. 49 tests ciblés/lint/types OK ; E2E ajoutés non exécutés localement. Voir `RESUME_HERE.md` et `docs/comptes-rendus/phase1-recherche-audit-boutique.md`.
+
+## Diagnostic du run `43069544036`
+
+Qualité/PG16 verts, E2E bureau/mobile échouent sur lien audit absent de palette (API directe Playwright correcte), archive skipped. Nouveau test local capte la **réponse fetch du navigateur** et l’état UI, sans changer app. Lire `RESUME_HERE.md` et compte rendu ; ne pas présenter le diagnostic comme correctif validé.

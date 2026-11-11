@@ -242,7 +242,22 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.keyboard.press('ControlOrMeta+k');
   const scopedSearch = page.getByRole('dialog', { name: 'Recherche rapide dans mon espace' });
   await expect(scopedSearch).toBeVisible();
-  await scopedSearch.getByRole('searchbox', { name: 'Rechercher dans mon espace' }).fill('fixture.created');
+  // Une requête API Playwright et un fetch du navigateur ne sont pas nécessairement
+  // équivalents (cookies, état de la page, erreurs réseau). Vérifier celui de la palette.
+  const [paletteResponse] = await Promise.all([
+    page.waitForResponse((response) => response.url().includes('/api/search?q=fixture.created')
+      && response.request().method() === 'GET', { timeout: 15_000 }),
+    scopedSearch.getByRole('searchbox', { name: 'Rechercher dans mon espace' }).fill('fixture.created'),
+  ]);
+  expect(paletteResponse.status()).toBe(200);
+  const paletteData = await paletteResponse.json() as { auditShopId: string | null;
+    audit: { action: string; shopId: string }[] };
+  expect(paletteData.auditShopId).toBe(shopId);
+  expect(paletteData.audit.map((entry) => entry.action)).toContain('fixture.created');
+  // Si la réponse est bonne mais pas l'UI, le texte de la palette dans l'assertion
+  // localisera l'état (chargement, erreur ou résultats vides) sans exposer de secrets.
+  await expect.poll(() => scopedSearch.innerText(), { timeout: 15_000 })
+    .toContain('shops · fixture.created');
   await expect(scopedSearch.getByRole('link', { name: /shops · fixture.created/ })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(scopedSearch).toBeHidden();

@@ -28,3 +28,5 @@ Enregistrer ici tout bug reproductible avec SHA, environnement, résultat attend
 15. Nouveau lot sessions groupées : 43 tests ciblés/lint/types OK mais suite entière/build/E2E du futur SHA non exécutés localement ; l'ancien run `43065395902` de `a78a901` est vert, pas celui du nouveau code.
 
 16. Recherche audit locale : 49 tests ciblés/lint/types OK ; suite complète/build/E2E du futur SHA non exécutés localement. Le run vert `43067657827` valide uniquement `9055afb`.
+
+17. `43069544036` de `213dca6` : palette audit sans lien bureau/mobile malgré réponse API directe correcte ; le fetch navigateur et l’état UI sont encore inconnus. 8 E2E passés/2 échoués, archive skipped ; diagnostic E2E local à publier, pas un correctif métier.

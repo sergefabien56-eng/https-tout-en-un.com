@@ -8,3 +8,9 @@ Base publiée `9055afbf5cb65aad74e6c9d9d40e2d07bb5cf076` ; CI `43067657827` comp
 - Aucune migration ni fonctionnalité existante retirée. Snapshot avant lot `*avant-p1-recherche-audit*` copié sous `/home/user/continuity-backups/` et SHA vérifiés.
 
 **Validation locale** : 49/49 tests ciblés, lint, typage et découverte Playwright (10 tests) ; suite complète/build/E2E réels du **nouveau SHA** en attente de CI. Archive de code et fixtures CI ne sont pas une sauvegarde indépendante chiffrée/restaurée des données PostgreSQL réelles. Aucun aperçu Arena ne vaut hébergement de production.
+
+## Échec CI et diagnostic de la palette
+
+Run `43069544036` de `213dca6` : qualité/tests/build et PG16 verts ; **8 E2E passés, 2 échecs reproductibles** (bureau/mobile, retries compris) : après sélection de la boutique, l'appel direct `page.request.get('/api/search?q=fixture.created')` contient l'audit autorisé, mais le lien `shops · fixture.created` n'apparaît pas dans `Ctrl/Cmd+K` en 5 s. L'archive code validé est skipped, seul artifact `e2e-traces` présent ; sa restauration publique exige une authentification. Les messages de session absente dans le log webServer sont attendus sur le test public et ne prouvent pas la cause de la palette. Le screenshot DNS fourni concerne un **ancien** run et ne décrit pas cet échec.
+
+**Diagnostic local, non validé en CI** : dans l'E2E, intercepter *le fetch propre au navigateur* de la palette et contrôler status, boutique et action renvoyés ; ensuite sonder le texte visible de la palette jusqu'à 15 s et conserver l'assertion du lien. Le test reste bloquant : il distingue absence de requête, réponse API incorrecte et panne de rendu client sans publier de jeton dans les assertions. Aucun contournement ou désactivation du scénario. Après publication du nouveau SHA, exploiter son résultat pour corriger la cause ; ne pas prétendre que ce diagnostic règle déjà le défaut.

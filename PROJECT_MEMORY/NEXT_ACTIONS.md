@@ -1,6 +1,5 @@
-# Actions suivantes — Phase 1 recherche audit boutique
+# Actions suivantes — diagnostic palette audit
 
-1. Finaliser le lot local descendant de `9055afb` : audit **uniquement boutique sélectionnée** via permission serveur/RLS ; préserver boutiques/comptes. 49 tests ciblés/lint/types/découverte Playwright locaux OK ; contrôler mémoire/diff/secrets, puis commit, snapshot après/empreintes, archive Desktop vérifiée par extraction propre. Snapshot avant `*avant-p1-recherche-audit*` déjà vérifié.
-2. Publier normalement sans force push ; sur **nouveau SHA**, confirmer quatre jobs GitHub verts (lint/types/tous tests/build, migrations PG16, E2E bureau/mobile palette/page/permissions, archive code) et artifact du bon SHA. Les anciens jobs verts de `9055afb` ne valident pas ce lot.
-3. Télécharger/restaurer artifact GitHub et conserver code indépendant hors GitHub ; planifier hébergement/SMTP et backup chiffré/restauré de la **vraie** base avec informations non secrètes du propriétaire. Aucun aperçu Arena n'est production.
-4. Choisir après validation le prochain petit lot P1 ; MIMI/Jumia hors phase.
+1. Vérifier le test E2E diagnostique local (`tests/e2e/authenticated-admin.spec.ts`) : lint/types/découverte Playwright, contrôles mémoire/diff ; committer descendant de `213dca6`, snapshot après vérifié et archive Desktop restaurée en clone propre.
+2. Après publication normale sans force, lire l'annotation/les traces du **nouveau SHA** : si pas de fetch navigateur → corriger déclenchement ; si réponse API erronée → isoler cookie/permission ; si réponse correcte mais UI absente → corriger rendu/état client. Ne pas neutraliser le test ni simplement augmenter son délai. Exiger ensuite quatre jobs verts sur le SHA du correctif métier, pas sur le SHA de diagnostic seul.
+3. Télécharger/restaurer l'artifact code GitHub quand quatre jobs verts et conserver copie hors GitHub. Indépendamment, planifier backup chiffré/restauré de la vraie base PostgreSQL avec hébergeur et stockage distinct ; aucun backup réel vérifié.
