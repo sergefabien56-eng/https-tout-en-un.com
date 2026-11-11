@@ -11,6 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const q = request.nextUrl.searchParams;
     const csv = await exportShopAudit({ token: request.cookies.get('toutenun_session')?.value, shopId,
       ...(q.get('module') ? { module: q.get('module')! } : {}),
+      ...(q.get('q') ? { q: q.get('q')! } : {}),
       ...(q.get('actorId') ? { actorId: q.get('actorId')! } : {}),
       ...(q.get('from') ? { from: q.get('from')! } : {}),
       ...(q.get('to') ? { to: q.get('to')! } : {}) });

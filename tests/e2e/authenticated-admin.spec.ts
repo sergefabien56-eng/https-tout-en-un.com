@@ -137,6 +137,20 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toContainText('Préférence : Boutique CI fictive');
   await page.goto('/espace/journal');
   await expect(page.getByRole('table')).toContainText('fixture.created');
+  const searchedAudit = await page.request.get(`/api/shops/${shopId}/audit?q=fixture.created`);
+  expect(searchedAudit.status()).toBe(200);
+  expect((await searchedAudit.json() as { events: { action: string }[] }).events.map((e) => e.action))
+    .toEqual(['fixture.created']);
+  await page.getByRole('searchbox', { name: 'Rechercher une action ou un module' }).fill('fixture.created');
+  await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
+  await expect(page.getByRole('table')).toContainText('fixture.created');
+  await expect(page.getByRole('table')).not.toContainText('=cmd');
+  const filteredCsvUrl = await page.getByRole('link', { name: 'Exporter cette sélection en CSV' }).getAttribute('href');
+  expect(filteredCsvUrl).toContain('q=fixture.created');
+  const filteredCsv = await page.request.get(filteredCsvUrl!);
+  expect(filteredCsv.status()).toBe(200);
+  expect(await filteredCsv.text()).not.toContain(`"'=cmd"`);
+  await page.goto('/espace/journal');
   const exportResponse = await page.request.get(`/api/shops/${shopId}/audit/export`);
   expect(exportResponse.status()).toBe(200);
   expect(exportResponse.headers()['content-type']).toContain('text/csv');

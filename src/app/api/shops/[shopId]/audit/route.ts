@@ -9,6 +9,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const q = request.nextUrl.searchParams;
   const page = q.get('page') ?? '1';
   const module = q.get('module') || null;
+  const search = q.get('q') || null;
   const actorId = q.get('actorId') || null;
   const from = q.get('from') || null; const to = q.get('to') || null;
   const headers = { 'Cache-Control': 'no-store' };
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { shopId } = await params;
     const events = await listShopAudit({ token: request.cookies.get('toutenun_session')?.value,
       shopId, page: Number(page), ...(module !== null ? { module } : {}),
-      ...(actorId !== null ? { actorId } : {}), ...(from !== null ? { from } : {}),
+      ...(search !== null ? { q: search } : {}), ...(actorId !== null ? { actorId } : {}), ...(from !== null ? { from } : {}),
       ...(to !== null ? { to } : {}) });
     return NextResponse.json(events, { headers });
   } catch (error) {

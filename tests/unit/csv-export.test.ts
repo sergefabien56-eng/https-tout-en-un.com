@@ -15,5 +15,8 @@ describe('export audit : données hostiles et périodes', () => {
     expect(parseAuditFilters({ from: '2026-11-01', to: '2026-11-10' })).toMatchObject({ from: '2026-11-01' });
     expect(() => parseAuditFilters({ from: '2026-02-30' })).toThrow();
     expect(() => parseAuditFilters({ from: '2026-11-11', to: '2026-11-10' })).toThrow();
+    expect(() => parseAuditFilters({ q: 'a'.repeat(81) })).toThrow();
+    expect(() => parseAuditFilters({ q: 'a\n' })).toThrow();
+    expect(parseAuditFilters({ q: '=cmd' })).toMatchObject({ q: '=cmd' });
   });
 });

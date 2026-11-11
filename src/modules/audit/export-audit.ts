@@ -26,8 +26,9 @@ export async function exportShopAudit(input: { token: string | undefined; shopId
         FROM audit_log WHERE ${auditWhere} ORDER BY occurred_at DESC, id DESC LIMIT 10001`,
       auditQueryParams(ctx.shopId, filters));
       if (rows.rows.length > 10_000) throw new ValidationError('Export trop volumineux. Réduisez la période.');
-      const header = ['Boutique', 'Période début UTC', 'Période fin UTC', 'Exporté le UTC'];
-      const meta = [ctx.shopId, filters.from ?? 'Non filtrée', filters.to ?? 'Non filtrée', new Date().toISOString()];
+      const header = ['Boutique', 'Période début UTC', 'Période fin UTC', 'Exporté le UTC', 'Recherche action/module'];
+      const meta = [ctx.shopId, filters.from ?? 'Non filtrée', filters.to ?? 'Non filtrée',
+        new Date().toISOString(), filters.q?.trim() || 'Non filtrée'];
       const columns = ['Identifiant', 'Date UTC', 'Acteur', 'Module', 'Action', 'Entité', 'Résultat'];
       const lines = [header.map(safeCsvCell).join(','), meta.map(safeCsvCell).join(','), '', columns.map(safeCsvCell).join(',')];
       for (const r of rows.rows) lines.push([r.id, new Date(r.occurred_at).toISOString(),

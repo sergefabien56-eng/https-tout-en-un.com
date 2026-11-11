@@ -6,9 +6,9 @@ import { AppError } from '@/core/errors/app-error';
 
 export const dynamic = 'force-dynamic';
 export default async function AuditPage({ searchParams }: {
-  searchParams: Promise<{ shop?: string; page?: string; module?: string; actorId?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ shop?: string; page?: string; q?: string; module?: string; actorId?: string; from?: string; to?: string }>;
 }) {
-  const { shop: requestedShop, page: raw = '1', module, actorId, from, to } = await searchParams;
+  const { shop: requestedShop, page: raw = '1', q, module, actorId, from, to } = await searchParams;
   const cookieStore = await cookies();
   const shop = requestedShop ?? cookieStore.get('toutenun_shop')?.value;
   const token = cookieStore.get('toutenun_session')?.value;
@@ -16,7 +16,7 @@ export default async function AuditPage({ searchParams }: {
     <h1>Choisissez une boutique</h1><p>Le journal exige une boutique autorisée. Aucun événement multi-boutiques n’est affiché sans périmètre vérifié.</p>
     <Link href="/espace/boutiques">Choisir dans mes boutiques</Link></main>;
   if (!/^[1-9]\d{0,18}$/.test(shop) || !/^[1-9]\d{0,4}$/.test(raw)) notFound();
-  const filters = { ...(module ? { module } : {}), ...(actorId ? { actorId } : {}),
+  const filters = { ...(q ? { q } : {}), ...(module ? { module } : {}), ...(actorId ? { actorId } : {}),
     ...(from ? { from } : {}), ...(to ? { to } : {}) };
   const link = (targetPage?: number, exportFile = false) => {
     const params = new URLSearchParams({ shop, ...filters });
@@ -34,6 +34,8 @@ export default async function AuditPage({ searchParams }: {
     <h1>Événements de la boutique</h1><p><Link href="/espace/boutiques">Changer de boutique</Link></p>
     <form action="/espace/journal" method="get" className="shop-filters" role="search">
       <input name="shop" type="hidden" value={shop} />
+      <label htmlFor="audit-query">Rechercher une action ou un module</label>
+      <input id="audit-query" name="q" type="search" maxLength={80} defaultValue={q ?? ''} />
       <label htmlFor="audit-module">Module</label><input id="audit-module" name="module" defaultValue={module ?? ''} placeholder="ex. shops" />
       <label htmlFor="audit-actor">Acteur (ID)</label><input id="audit-actor" name="actorId" defaultValue={actorId ?? ''} inputMode="numeric" />
       <label htmlFor="audit-from">Du (UTC)</label><input id="audit-from" name="from" type="date" defaultValue={from ?? ''} />

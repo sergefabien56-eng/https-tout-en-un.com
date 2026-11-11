@@ -22,7 +22,7 @@ Une boutique absente ou un état vide ne doit pas être interprété comme « z�
 
 ## 4. Consulter le journal d'activité
 
-Sur **Journal d'activité** (`/espace/journal`), choisissez d'abord une boutique autorisée. Filtrez les événements par module, identifiant d'acteur et période **UTC**. L'export **CSV** reprend la sélection autorisée ; les cellules dangereuses pour un tableur sont neutralisées. Si aucun événement n'existe, la page le dit explicitement. Une tentative d'accès à un autre périmètre doit être refusée.
+Sur **Journal d'activité** (`/espace/journal`), choisissez d'abord une boutique autorisée. Recherchez une action ou un module, puis filtrez si besoin par module exact, identifiant d'acteur et période **UTC**. L'export **CSV** reprend les mêmes filtres (y compris la recherche) dans la boutique autorisée ; les cellules dangereuses pour un tableur sont neutralisées. Si aucun événement n'existe, la page le dit explicitement. Une tentative d'accès à un autre périmètre doit être refusée.
 
 La page n'affiche pas encore la comparaison complète avant/après de chaque événement. N'utilisez pas l'export comme une sauvegarde de la base.
 

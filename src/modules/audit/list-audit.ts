@@ -27,7 +27,7 @@ export async function listShopAudit(input: {
       }>(`SELECT id::text, shop_id::text, occurred_at, actor_user_id::text,
            module, action, entity_type, result FROM audit_log
            WHERE ${auditWhere}
-           ORDER BY occurred_at DESC, id DESC LIMIT $6 OFFSET $7`,
+           ORDER BY occurred_at DESC, id DESC LIMIT $7 OFFSET $8`,
       [...auditQueryParams(ctx.shopId, filters), size + 1, (page - 1) * size]);
       return { events: rows.rows.slice(0, size).map((r) => ({
         id: String(r.id), shopId: String(r.shop_id), occurredAt: new Date(r.occurred_at).toISOString(),

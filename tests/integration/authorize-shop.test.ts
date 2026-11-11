@@ -126,6 +126,12 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     expect(a.events.map((entry) => entry.action)).not.toContain('test.b');
     expect((await listShopAudit({ token: owner.token, shopId: shop2, page: 1 })).events.map((entry) => entry.action)).toContain('test.b');
     expect((await listShopAudit({ token: manager.token, shopId: shop1, page: 1, module: 'shops' })).events.length).toBeGreaterThan(0);
+    expect((await listShopAudit({ token: owner.token, shopId: shop1, page: 1, q: 'RENAME' })).events.map((e) => e.action))
+      .toEqual(['shops.rename']);
+    expect((await listShopAudit({ token: owner.token, shopId: shop2, page: 1, q: 'rename' })).events).toEqual([]);
+    expect((await listShopAudit({ token: owner.token, shopId: shop1, page: 2, q: 'rename' })).events).toEqual([]);
+    await expect(listShopAudit({ token: manager.token, shopId: shop2, page: 1, q: 'rename' })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(listShopAudit({ token: owner.token, shopId: shop1, page: 1, q: 'a'.repeat(81) })).rejects.toMatchObject({ httpStatus: 400 });
     await expect(listShopAudit({ token: manager.token, shopId: shop2, page: 1 })).rejects.toMatchObject({ httpStatus: 403 });
     await expect(listShopAudit({ token: assistant.token, shopId: shop2, page: 1 })).rejects.toMatchObject({ httpStatus: 403 });
     await expect(listShopAudit({ token: undefined, shopId: shop1, page: 1 })).rejects.toMatchObject({ httpStatus: 401 });
@@ -161,6 +167,12 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     expect(csv).toContain(`"'@hostile"`);
     expect(csv).not.toContain('test.b');
     expect(csv).not.toContain('rls-global');
+    const searched = await exportShopAudit({ token: manager.token, shopId: shop1, q: '=cmd' });
+    expect(searched).toContain('Recherche action/module');
+    expect(searched).toContain(`"'=cmd"`);
+    expect(searched).not.toContain('shops.rename');
+    expect(searched).not.toContain('test.b');
+    await expect(exportShopAudit({ token: manager.token, shopId: shop2, q: '=cmd' })).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportShopAudit({ token: manager.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
     // Un rôle ayant audit:read mais pas reports:export ne peut télécharger le journal.
     await db.exec("INSERT INTO role_permissions(role_code,permission_code) VALUES('stock_manager','audit:read');");
