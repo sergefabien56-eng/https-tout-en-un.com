@@ -1,12 +1,12 @@
-# État Phase 1 — filtres d'administration, publication attendue
+# État Phase 1 — incident archive CI corrigé localement
 
-| Élément | État et preuve |
+| Élément | Preuve / statut |
 |---|---|
-| v34 notifications | `0226bd0`, run `43009896449` : 3 jobs verts, 10 E2E passés |
-| Mémoire publiée | `bf706f1` sur `main`, run `43013341355` : 3 jobs verts |
-| Archive automatique du code | commit local `8833d4c` : nouveau job CI après 3 validations ; **non encore publié/vérifié sur GitHub**. Artifact temporaire 30 jours demandés, pas backup indépendant. |
-| Filtre de statut utilisateurs | présent lot : `src/modules/identity/user-list.ts`, API et page, recherche combinée ; **check, lint, typecheck, 161 Vitest et build verts localement**. E2E ajoutés mais non encore exécutés sur ce SHA. |
-| Schéma et sécurité | 10 migrations, autorisation globale `users:read` maintenue ; pas de schéma changé. Test base CI fictive, aucune sauvegarde chiffrée de données réelles. |
-| Produit | application P1 partielle ; Jumia API, finance, worker, SMTP, domaine/VPS et restauration prod non validés. |
+| GitHub publié | `main` `c882cb4970eeaa35083ddf3a0d7a7f595adb8455` ; run `43016471668` **failure** à cause de l'upload artifact seul |
+| Fonction utilisateur | Filtre statut + recherche et pagination : job qualité + intégration et E2E bureau/mobile **success** sur ce SHA ; ne pas déclarer le run global vert |
+| Base CI | Migrations PostgreSQL 16, rollback, restauration de fixtures : job **success** |
+| Archive code | Création et vérification réussies dans le job CI, puis `actions/upload-artifact@v4` : **aucun fichier trouvé dans dossier caché `.project-backups/`** ; 0 artifact publié |
+| Correctif | dossier visible `code-archive-upload/` avec uniquement bundle, ZIP, SHA256 ; **nouveau run CI à vérifier après push** |
+| Données réelles | aucune sauvegarde PostgreSQL chiffrée hors serveur, aucun hébergement de production vérifié |
 
-**Blocage immédiat** : publier le nouveau commit descendant et attendre quatre jobs verts sur le **nouveau** SHA, puis restaurer artifact ; ne pas réutiliser le succès de `43013341355` pour cette fonctionnalité. Le Git local historique `/home/user` diverge : travailler depuis un clone propre. Aucun identifiant réel dans Git.
+Tests locaux du correctif : YAML analysé, contrôle mémoire, lint, typage et **161/161 Vitest** OK ; simulation sur clone propre : création des archives, empreintes vérifiées, exactement 3 fichiers dans le dossier visible, bundle restauré et SHA comparé. L’envoi effectif via GitHub Actions **reste non testé**. Les 3 jobs verts du SHA `c882cb4` ne prouvent pas que le quatrième fonctionnera après correction. Secrets interdits dans archive/CI. Voir `NEXT_ACTIONS.md`.

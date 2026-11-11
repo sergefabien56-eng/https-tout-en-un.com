@@ -25,3 +25,6 @@ tout-en-un-github-desktop*.zip
 # Archives de continuité locales (code seulement ; ne pas versionner)
 .project-backups/
 continuity-backups/
+
+# Dossier temporaire de transfert des archives de code validées en CI
+code-archive-upload/

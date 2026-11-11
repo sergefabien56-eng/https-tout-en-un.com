@@ -26,3 +26,7 @@ La CI ajoute `code_archive` dépendant de `quality`, `migrations`, `e2e`, seulem
 ## Présent lot P1
 
 La liste utilisateurs ajoute `status` (`all/active/suspended/invited`) combiné à `q` côté SQL, API et UI, avec liens de pagination préservant les deux filtres. Lire `docs/comptes-rendus/phase1-filtre-statut-utilisateurs.md`. Tests locaux 161 Vitest/lint/types/build verts ; E2E ajoutés mais non exécutés sur PostgreSQL réel localement, valider via CI du prochain SHA. Deux commits restent éventuellement à pousser selon `git ls-remote`; ne pas déclarer l'archive CI opérationnelle sans artifact restauré.
+
+## Incident upload artifact
+
+`43016471668` : 3 validations vertes, création/verify snapshot vert, upload échoué « No files were found ... .project-backups/* ». Le correctif staged `code-archive-upload/` demande une nouvelle CI + téléchargement/restauration avant de déclarer archive automatique fonctionnelle.

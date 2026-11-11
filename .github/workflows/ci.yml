@@ -175,10 +175,16 @@ jobs:
           cd .project-backups
           sha256sum -c ./*.sha256
           for bundle in ./*.bundle; do git -C .. bundle verify ".project-backups/${bundle#./}"; done
+          cd ..
+          # upload-artifact@v4 ignore les dossiers cachés par défaut : ne copier que
+          # les trois fichiers contrôlés vers un dossier visible et temporaire.
+          mkdir -p code-archive-upload
+          cp .project-backups/*.bundle .project-backups/*.zip .project-backups/*.sha256 code-archive-upload/
+          test "$(find code-archive-upload -maxdepth 1 -type f | wc -l)" -eq 3
       - name: Conserver l'archive vérifiée (stockage GitHub temporaire)
         uses: actions/upload-artifact@v4
         with:
           name: code-valide-${{ github.sha }}
-          path: .project-backups/*
+          path: code-archive-upload/
           if-no-files-found: error
           retention-days: 30

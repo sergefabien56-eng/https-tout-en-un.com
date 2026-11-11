@@ -10,3 +10,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Jalon Phase 1 archive : job Actions après trois validations sur push `main`, avec artifact temporaire de code sans secret et sans base ; aucune prétention de backup hors GitHub ni de backup production. Déploiement réel différé sans informations opérateur.
 
 - Lot P1 administration : ajouter un filtre de statut validé côté serveur aux comptes existants, combinable à la recherche, sans migration, sans changer l'autorisation globale ni divulguer de secrets. Le SQL est paramétré ; les E2E doivent encore confirmer le navigateur réel.
+
+- Après échec d'`upload-artifact@v4` sur `.project-backups/*` (`43016471668`), conserver le snapshot local ignoré par Git et copier uniquement les trois archives validées dans un dossier non caché pour l'upload ; ne pas activer l'option globale d'inclusion de fichiers cachés afin de ne pas élargir le périmètre par inadvertance.
