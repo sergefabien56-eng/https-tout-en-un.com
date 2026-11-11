@@ -22,10 +22,12 @@ export default async function NotificationsPage({ searchParams }: { searchParams
     <h1>Mes notifications</h1>
     <p>Événements enregistrés pour votre compte. Les notifications Jumia et l’envoi par e-mail ne sont pas encore disponibles.</p>
     <p>Cette liste ne s’actualise pas automatiquement. <a href={`/espace/notifications?filter=${filter}&page=${page}`}>Actualiser les notifications</a></p>
+    {/* Les filtres relisent le serveur par navigation complète : un router.refresh() issu de la
+        mutation précédente ne doit pas annuler le changement de filtre en cours. */}
     <nav aria-label="Filtrer les notifications" className="pagination">
-      <Link href="/espace/notifications?filter=all" aria-current={filter === 'all' ? 'page' : undefined}>Toutes</Link>
-      <Link href="/espace/notifications?filter=unread" aria-current={filter === 'unread' ? 'page' : undefined}>Non lues</Link>
-      <Link href="/espace/notifications?filter=read" aria-current={filter === 'read' ? 'page' : undefined}>Lues</Link>
+      <a href="/espace/notifications?filter=all" aria-current={filter === 'all' ? 'page' : undefined}>Toutes</a>
+      <a href="/espace/notifications?filter=unread" aria-current={filter === 'unread' ? 'page' : undefined}>Non lues</a>
+      <a href="/espace/notifications?filter=read" aria-current={filter === 'read' ? 'page' : undefined}>Lues</a>
     </nav>
     {result.notifications.length === 0 ? <div className="card" role="status"><h2>Aucune notification</h2>
       <p>{filter === 'all' ? 'Aucun événement de sécurité n’a encore été enregistré pour ce compte.' :

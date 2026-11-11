@@ -1,3 +1,4 @@
+- **Correctif filtres notifications** (local, futur SHA) : filtres via navigation document native, E2E `href` + attente 15 s ; `e4c4678` avait qualité/PG16 verts et 1 flaky E2E notifications, archive skipped ; validation du futur SHA en attente.
 - **Correction E2E sessions** (local, SHA futur) : remplacer assertion globale 0 boutons par assertion sur session courante ; attente URL/fiche utilisateur 15 s après flaky. Run précédent `43053514712` : 2e tentative E2E failure (2 failed, 1 flaky, 7 passed), qualité et PG16 verts, archive skipped.
 - **Phase 1 — révocation ciblée des autres sessions** (lot local ; CI du nouveau SHA en attente) : route Origin/CSRF, propriétaire + appareil courant protégés, audit atomique, UI confirmée ; 38 tests ciblés/lint/types OK. Aucun schéma modifié.
 - `cbbe950` publié et validé par le run `43026793436` : 4 jobs verts, artifact code présent mais non restauré depuis GitHub.

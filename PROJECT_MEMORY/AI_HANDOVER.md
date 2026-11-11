@@ -50,3 +50,7 @@ Le run `43026793436` de `cbbe950` est vert (4 jobs), mais **ce nouveau lot ne l�
 ## Incident CI `43053514712` — second essai réellement analysé
 
 Le premier échec était DNS `security.ubuntu.com` pendant installation Chromium ; le second a installé le navigateur et **révélé un test sessions faux** (attend 0 boutons alors que plusieurs sessions parallèles légitimes), plus une attente fiche utilisateur flaky 5 s. Correctif local dans `tests/e2e/authenticated-admin.spec.ts`, ne pas confondre avec une CI verte. Voir `RESUME_HERE.md` et compte rendu.
+
+## Correctif filtres notifications (après `e4c4678`)
+
+Run `43063876856` : qualité/PG16 verts, navigateur 9 passed/1 flaky sur clic filtre notifications, archive skipped ; traces présentes sur GitHub mais non téléchargées. Correctif local : navigation document native pour les trois filtres et attente URL 15 s. Hypothèse de concurrence router.refresh/Link, non prouvée. Lire `RESUME_HERE.md` et `docs/comptes-rendus/phase1-correctif-navigation-notifications.md`.

@@ -22,3 +22,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Choix du propriétaire : prochain petit lot P1 = **Sécurité des sessions**. Un appareil peut révoquer une autre session du même compte, jamais lui-même via cette action ; Origin/CSRF, filtre serveur et audit dans la transaction ; pas de bouton « tout révoquer » dans ce lot.
 
 - CI sessions : les scénarios parallèles et retries produisent légitimement plusieurs sessions. Tester l’absence de bouton **sur la session courante**, pas zéro bouton global ; garder le refus serveur 404 et `failOnFlakyTests`.
+
+- Après `e4c4678` : ne pas supprimer `failOnFlakyTests` pour obtenir une CI verte ; les filtres des notifications passent par navigation document normale après `router.refresh()` afin de conserver une URL/périmètre serveur cohérents. Examiner traces si échec persistant.

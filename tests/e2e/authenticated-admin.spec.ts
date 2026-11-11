@@ -69,9 +69,11 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.locator(`.notification-list > li[data-notification-id="${visibleId}"]`))
     .toContainText(firstNotice?.readAt ? 'Non lue' : 'Lue');
   const targetFilter = firstNotice?.readAt ? 'unread' : 'read';
-  await page.getByRole('navigation', { name: 'Filtrer les notifications' }).getByRole('link',
-    { name: firstNotice?.readAt ? 'Non lues' : 'Lues', exact: true }).click();
-  await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}`));
+  const filterLink = page.getByRole('navigation', { name: 'Filtrer les notifications' }).getByRole('link',
+    { name: firstNotice?.readAt ? 'Non lues' : 'Lues', exact: true });
+  await expect(filterLink).toHaveAttribute('href', `/espace/notifications?filter=${targetFilter}`);
+  await filterLink.click();
+  await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}`), { timeout: 15_000 });
   await expect(page.locator('.notification-list > li').first()).toBeVisible();
   const refreshFiltered = page.getByRole('link', { name: 'Actualiser les notifications' });
   await expect(refreshFiltered).toHaveAttribute('href', `/espace/notifications?filter=${targetFilter}&page=1`);
