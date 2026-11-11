@@ -90,3 +90,7 @@ Run `43082146651` du SHA `0f04914` : **quatre jobs verts**, artifact code prése
 ## Lot écran Apparence personnelle — installation PC en pause
 
 GitHub `main` `75ee3b2`, run `43110029953` quatre jobs verts, artifact code présent non restauré. Propriétaire a choisi l'écran d'apparence personnel Système/Clair/Sombre, tout en gardant Windows 10/WSL/Docker **en pause**. Nouveau lot local non validé en CI : même `localStorage` que le bouton barre, synchronisation événement locale, aucune préférence serveur ni paramètres admin généraux. Lire `RESUME_HERE.md` et `docs/comptes-rendus/phase1-apparence-personnelle.md` ; ne pas attribuer CI précédente au nouveau lot.
+
+## Run `43111774881` — contrat navigation obsolète
+
+SHA `bfe33db` publié ; PG16 success, qualité failure sur deux assertions `tests/unit/navigation-config.test.ts` obsolètes (45 feuilles / route Apparence absente), E2E/archive skipped. Test corrigé localement vers 46 feuilles et liste réelle ; ne pas attribuer cette CI au correctif. Voir `RESUME_HERE.md`.

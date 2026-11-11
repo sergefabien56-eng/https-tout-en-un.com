@@ -4,12 +4,12 @@ import { join } from 'node:path';
 import { navigation, visibleNavigation } from '@/ui/navigation.config';
 
 describe('configuration unique de navigation', () => {
-  it('contient exactement 8 sections et 45 entrées sans doublon', () => {
+  it('contient exactement 8 sections et 46 entrées sans doublon', () => {
     expect(navigation).toHaveLength(8);
     const leaves = navigation.flatMap((group) => group.children);
-    expect(leaves).toHaveLength(45);
-    expect(new Set(leaves.map((l) => l.id)).size).toBe(45);
-    expect(new Set(leaves.map((l) => l.href)).size).toBe(45);
+    expect(leaves).toHaveLength(46);
+    expect(new Set(leaves.map((l) => l.id)).size).toBe(46);
+    expect(new Set(leaves.map((l) => l.href)).size).toBe(46);
   });
   it('chaque lien prêt pointe vers une vraie page ; tout lien absent est désactivé', () => {
     for (const leaf of navigation.flatMap((group) => group.children)) {
@@ -19,7 +19,7 @@ describe('configuration unique de navigation', () => {
       }
     }
     expect(navigation.flatMap((g) => g.children).filter((l) => l.availability === 'ready').map((l) => l.href))
-      .toEqual(['/espace', '/espace/recherche', '/espace/boutiques', '/espace/notifications', '/espace/utilisateurs', '/espace/roles', '/espace/journal', '/espace/systeme']);
+      .toEqual(['/espace', '/espace/recherche', '/espace/apparence', '/espace/boutiques', '/espace/notifications', '/espace/utilisateurs', '/espace/roles', '/espace/journal', '/espace/systeme']);
   });
   it('aucun accès non autorisé ne reste visible, même comme « bientôt »', () => {
     expect(visibleNavigation(new Set())).toEqual([]);
