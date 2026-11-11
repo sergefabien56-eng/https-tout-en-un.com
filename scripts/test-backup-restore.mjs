@@ -58,7 +58,7 @@ try {
     (SELECT count(*)::int FROM pg_policies WHERE schemaname = 'public') AS policies,
     (SELECT relforcerowsecurity FROM pg_class WHERE oid = 'public.shops'::regclass) AS force_rls`;
   const before = (await source.query(statsSql)).rows[0];
-  assert.equal(before.migrations, 9); assert.equal(before.shops, 1);
+  assert.equal(before.migrations, 10); assert.equal(before.shops, 1);
   assert.equal(before.audit, 1); assert.equal(before.force_rls, true);
   pgTool('pg_dump', [...common, '--format=custom', '--file', dump, '--dbname', url.pathname.slice(1)]);
   const archive = await readFile(dump);

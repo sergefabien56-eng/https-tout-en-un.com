@@ -24,9 +24,20 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   await expect(page.getByRole('heading', { name: 'Nouvelle connexion' }).first()).toBeVisible();
   const noticeResponse = await page.request.get('/api/notifications');
   expect(noticeResponse.status()).toBe(200);
-  const notices = await noticeResponse.json() as { notifications: { kind: string; message: string }[] };
+  const notices = await noticeResponse.json() as { notifications: { id: string; kind: string; message: string; readAt: string | null }[] };
   expect(notices.notifications.some((n) => n.kind === 'security_login')).toBe(true);
   expect(JSON.stringify(notices)).not.toMatch(/token_hash|totp_secret|user_agent/);
+  // Une mutation réelle est appliquée à la première notification, puis confirmée via l’API.
+  const firstNotice = notices.notifications[0];
+  expect(firstNotice?.id).toMatch(/^[1-9]\d*$/);
+  const action = page.locator('.notification-list > li').first().getByRole('button',
+    { name: firstNotice?.readAt ? 'Marquer comme non lue' : 'Marquer comme lue' });
+  await action.click();
+  await expect.poll(async () => {
+    const result = await page.request.get('/api/notifications');
+    const data = await result.json() as { notifications: { id: string; readAt: string | null }[] };
+    return Boolean(data.notifications.find((n) => n.id === firstNotice?.id)?.readAt);
+  }).toBe(!firstNotice?.readAt);
   await page.goto('/espace');
 
   if (testInfo.project.name === 'mobile-375') {
@@ -67,7 +78,7 @@ test('propriétaire CI : connexion 2FA et liste utilisateurs autorisée', async 
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number };
   expect(health.database).toBe('ok');
-  expect(health.migrationsApplied).toBe(9);
+  expect(health.migrationsApplied).toBe(10);
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();

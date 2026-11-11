@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { AppError } from '@/core/errors/app-error';
 import { listOwnNotifications } from '@/modules/notifications/list-own';
+import { NotificationReadButton } from '@/ui/notification-read-button';
 
 export const dynamic = 'force-dynamic';
 export default async function NotificationsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
@@ -21,7 +22,9 @@ export default async function NotificationsPage({ searchParams }: { searchParams
     {result.notifications.length === 0 ? <div className="card" role="status"><h2>Aucune notification</h2>
       <p>Aucun événement de sécurité n’a encore été enregistré pour ce compte.</p></div>
       : <ul className="notification-list">{result.notifications.map((n) => <li key={n.id} className="card">
-        <h2>{n.title}</h2><p>{n.message}</p><small>{new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(n.createdAt))} UTC</small>
+        <h2>{n.title}</h2><p>{n.message}</p><p>{n.readAt ? 'Lue' : 'Non lue'}</p>
+        <small>{new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(n.createdAt))} UTC</small>
+        <NotificationReadButton id={n.id} read={n.readAt !== null} />
       </li>)}</ul>}
     <nav aria-label="Pagination des notifications" className="pagination">
       {page > 1 && <Link href={`/espace/notifications?page=${page - 1}`}>Page précédente</Link>}

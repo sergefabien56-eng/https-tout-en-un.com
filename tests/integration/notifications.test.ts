@@ -17,6 +17,7 @@ vi.mock('@/core/db/client', () => ({
   },
 }));
 const { listOwnNotifications } = await import('@/modules/notifications/list-own');
+const { setOwnNotificationRead } = await import('@/modules/notifications/set-read');
 const first = createSessionToken(), second = createSessionToken();
 beforeAll(async () => {
   db = await PGlite.create();
@@ -26,7 +27,7 @@ beforeAll(async () => {
     ('a@fixture.invalid','hash','A'),('b@fixture.invalid','hash','B');
     CREATE ROLE app_user NOLOGIN;
     GRANT USAGE ON SCHEMA public TO app_user;
-    GRANT SELECT,INSERT ON ALL TABLES IN SCHEMA public TO app_user;
+    GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public TO app_user;
     GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user;`);
   for (const [id, token] of [[1,first],[2,second]] as const)
     await db.query("INSERT INTO sessions(user_id,token_hash,expires_at) VALUES($1,$2,now()+interval '1 hour')", [id,token.hash]);
@@ -51,7 +52,25 @@ describe('notifications personnelles', () => {
       await db.exec('ROLLBACK TO SAVEPOINT denied_write');
     } finally { await db.exec('ROLLBACK'); }
   });
+  it('lu/non lu : seul le propriétaire peut modifier ; répétition idempotente et audit atomique', async () => {
+    const own = (await listOwnNotifications(first.token)).notifications[0];
+    const foreign = (await listOwnNotifications(second.token)).notifications[0];
+    expect(own?.id).toBeDefined(); expect(foreign?.id).toBeDefined();
+    await expect(setOwnNotificationRead(first.token, foreign!.id, true)).rejects.toMatchObject({ httpStatus: 404 });
+    expect((await setOwnNotificationRead(first.token, own!.id, true)).readAt).not.toBeNull();
+    expect((await listOwnNotifications(first.token)).notifications[0]?.readAt).not.toBeNull();
+    await setOwnNotificationRead(first.token, own!.id, true);
+    expect((await db.query("SELECT action FROM audit_log WHERE module='notifications'")).rows).toHaveLength(1);
+    expect((await setOwnNotificationRead(first.token, own!.id, false)).readAt).toBeNull();
+    expect((await listOwnNotifications(first.token)).notifications[0]?.readAt).toBeNull();
+    expect((await listOwnNotifications(second.token)).notifications[0]?.readAt).toBeNull();
+    expect((await db.query("SELECT action FROM audit_log WHERE module='notifications' ORDER BY id")).rows)
+      .toEqual([{ action: 'mark_read' }, { action: 'mark_unread' }]);
+  });
   it('jeton absent ou périmé ne donne aucune donnée', async () => {
+    await expect(setOwnNotificationRead(undefined, '1', true)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(setOwnNotificationRead(createSessionToken().token, '1', true)).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(setOwnNotificationRead(first.token, '1 OR 1=1', true)).rejects.toMatchObject({ httpStatus: 400 });
     await expect(listOwnNotifications(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnNotifications(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
     await expect(listOwnNotifications(first.token, 0)).rejects.toMatchObject({ httpStatus: 400 });
