@@ -1,8 +1,8 @@
 # Passation à une autre IA / fin de session
 
-## État actuel prioritaire
+## État actuel prioritaire — pause nocturne
 
-GitHub `main=1dd5c4f` run `43316483281` completed success quatre jobs verts. Nouveau lot local : export CSV boutiques visibles RLS + `reports:export` par boutique, filtres/tri et neutralisation formules, 10 000 lignes. Types/lint/7 unités/découverte E2E OK ; tests intégration/E2E futurs non exécutés localement. Livrer archive Drive au propriétaire, il publie, vérifier quatre jobs AVANT nouveau développement. MIMI souhaitée après L10 mais sa position par rapport à L11/L12 reste à clarifier. Lire `RESUME_HERE.md` / `NEXT_ACTIONS.md` ; notes historiques ci-dessous peuvent être périmées.
+GitHub `main=d5bed04` run `43319039406` completed success quatre jobs verts ; export boutiques validé CI. Maquette fictive autonome `/home/user/maquette-interactive-l10.html` livrée (JS syntaxe vérifiée) ; ne pas confondre avec code réel ou production. Propriétaire dort, reprendre demain après lecture `RESUME_HERE.md` et `NEXT_ACTIONS.md`. Notes de pause committées localement seulement, SHA à comparer. Continuer vrais critères L10, workflow archive Drive → publication propriétaire → quatre jobs CI ; MIMI souhaitée après L10 mais L11/L12 restent à positionner. Anciennes notes ci-dessous historiques.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.
