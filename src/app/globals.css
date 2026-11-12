@@ -217,6 +217,17 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .shop-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 20px 0; }
 .shop-filters input, .shop-filters select { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px; min-height: 40px; }
 .shop-filters button { min-height: 40px; padding: 7px 12px; cursor: pointer; }
+.shop-view-switch { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.shop-view-switch a { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); text-decoration: none; }
+.shop-view-switch a[aria-current="page"] { background: var(--brand-blue); color: white; border-color: var(--brand-blue); }
+.shop-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; margin-bottom: 20px; }
+.shop-card { margin: 0; min-width: 0; padding: 0; }
+.shop-card summary { cursor: pointer; min-height: 64px; padding: 16px; }
+.shop-card summary strong { display: block; overflow-wrap: anywhere; }
+.shop-card summary span { display: block; color: var(--text-secondary); font-size: 12px; margin-top: 4px; }
+.shop-card summary:focus-visible { outline: 3px solid var(--brand-blue); outline-offset: 2px; }
+.shop-card-content { border-top: 1px solid var(--border-subtle); padding: 16px; overflow-wrap: anywhere; }
+.shop-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; }
 .shop-switcher { position: relative; min-width: 0; }
 .shop-switcher .shop-context { color: var(--text-primary); cursor: pointer; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 36px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .shop-switcher-panel { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: min(350px, calc(100vw - 20px)); max-height: min(75vh, 530px); overflow: auto; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: 0 12px 24px rgba(8,15,32,.18); padding: 12px; }

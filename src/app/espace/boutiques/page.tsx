@@ -6,12 +6,16 @@ import { isShopSort, listOwnShops } from '@/modules/identity/shop-catalog';
 import { AppError } from '@/core/errors/app-error';
 
 export const dynamic = 'force-dynamic';
-export default async function ShopsPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string; status?: string; sort?: string }> }) {
+export default async function ShopsPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string; status?: string; sort?: string; view?: string }> }) {
   const params = await searchParams;
   const raw = params.page ?? '1';
   const sort = params.sort ?? 'recent';
-  if (!/^[1-9]\d{0,4}$/.test(raw) || !isShopSort(sort)) notFound();
+  const view = params.view ?? 'table';
+  if (!/^[1-9]\d{0,4}$/.test(raw) || !isShopSort(sort) || (view !== 'table' && view !== 'cards')) notFound();
   const page = Number(raw);
+  const hrefFor = (targetView: 'table' | 'cards', targetPage = page) =>
+    `/espace/boutiques?${new URLSearchParams({ page: String(targetPage), q: params.q ?? '',
+      status: params.status ?? '', sort, view: targetView })}`;
   const activeId = (await cookies()).get('toutenun_shop')?.value;
   let result: Awaited<ReturnType<typeof listOwnShops>>;
   try { result = await listOwnShops((await cookies()).get('toutenun_session')?.value, page,
@@ -27,6 +31,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
     <h1>Toutes les boutiques autorisées</h1>
     <p>Liste issue de la base et filtrée par vos droits. Aucun chiffre de vente n’est disponible avant la connexion Jumia.</p>
     <form action="/espace/boutiques" method="get" className="shop-filters" role="search">
+      <input name="view" type="hidden" value={view} />
       <label htmlFor="shop-search">Rechercher une boutique</label>
       <input id="shop-search" name="q" type="search" maxLength={80} defaultValue={params.q ?? ''} placeholder="Nom de boutique" />
       <label htmlFor="shop-status">État</label>
@@ -44,10 +49,14 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
         <option value="name-desc">Nom Z à A</option>
       </select><button type="submit">Filtrer</button>
     </form>
+    <nav aria-label="Affichage des boutiques" className="shop-view-switch">
+      <Link href={hrefFor('table')} aria-current={view === 'table' ? 'page' : undefined}>Tableau</Link>
+      <Link href={hrefFor('cards')} aria-current={view === 'cards' ? 'page' : undefined}>Cartes repliables</Link>
+    </nav>
     {activeId && <p><ShopSelectButton shopId="all" label="toutes les boutiques autorisées" selected={false} /></p>}
     {result.shops.length === 0 ? <div className="card" role="status">
       <h2>Aucune boutique accessible</h2><p>{params.q || params.status ? 'Aucune boutique autorisée ne correspond à ces filtres.' : 'Aucune boutique n’est actuellement visible pour votre compte.'}</p>
-    </div> : <div className="card users-list" role="region" aria-label="Tableau des boutiques défilant horizontalement" tabIndex={0}><table>
+    </div> : view === 'table' ? <div className="card users-list" role="region" aria-label="Tableau des boutiques défilant horizontalement" tabIndex={0}><table>
       <caption>Boutiques réelles — page {page}</caption>
       <thead><tr><th scope="col">Boutique</th><th scope="col">Pays</th><th scope="col">Devise</th><th scope="col">État</th><th scope="col">Sélection</th><th scope="col">Journal</th></tr></thead>
       <tbody>{result.shops.map((shop) => <tr key={shop.id}><th scope="row">{shop.displayName}</th>
@@ -55,10 +64,23 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
         <td><ShopSelectButton shopId={shop.id} label={shop.displayName} selected={activeId === shop.id} /></td>
         <td><Link href={`/espace/journal?shop=${shop.id}`}>Voir le journal de {shop.displayName}</Link></td>
       </tr>)}</tbody>
-    </table></div>}
+    </table></div> : <div className="shop-cards" aria-label="Cartes des boutiques autorisées">
+      {result.shops.map((shop) => <details key={shop.id} className="card shop-card">
+        <summary><strong>{shop.displayName}</strong><span>{shop.countryCode} · {shop.status}</span></summary>
+        <div className="shop-card-content">
+          <dl className="detail-list"><dt>Pays</dt><dd>{shop.countryCode}</dd>
+            <dt>Devise</dt><dd>{shop.currency}</dd><dt>État</dt><dd>{shop.status}</dd>
+            <dt>Ventes et commandes</dt><dd>— · Indisponibles : aucune donnée Jumia</dd></dl>
+          <div className="shop-card-actions">
+            <ShopSelectButton shopId={shop.id} label={shop.displayName} selected={activeId === shop.id} />
+            <Link href={`/espace/journal?shop=${shop.id}`}>Voir le journal de {shop.displayName}</Link>
+          </div>
+        </div>
+      </details>)}
+    </div>}
     <nav aria-label="Pagination des boutiques" className="pagination">
-      {page > 1 && <Link href={`/espace/boutiques?page=${page - 1}&q=${encodeURIComponent(params.q ?? '')}&status=${encodeURIComponent(params.status ?? '')}&sort=${sort}`}>Page précédente</Link>}
-      {result.nextPage !== null && <Link href={`/espace/boutiques?page=${result.nextPage}&q=${encodeURIComponent(params.q ?? '')}&status=${encodeURIComponent(params.status ?? '')}&sort=${sort}`}>Page suivante</Link>}
+      {page > 1 && <Link href={hrefFor(view, page - 1)}>Page précédente</Link>}
+      {result.nextPage !== null && <Link href={hrefFor(view, result.nextPage)}>Page suivante</Link>}
     </nav>
   </main>;
 }
