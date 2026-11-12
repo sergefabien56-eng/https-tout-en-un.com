@@ -1,5 +1,9 @@
 # Passation à une autre IA / fin de session
 
+## État actuel vérifié après publication
+
+`main=e6f087dac64683c56ee56f352f4f2039b62349a7` : run `43274481957` completed success, quatre jobs verts dont navigateur bureau/mobile et archive. Vue cartes boutiques validée en CI ; ancien run `43272897889` du SHA `4be5473` reste rouge. Archive CI non restaurée, Phase 1 encore incomplète, Windows en pause. Lire `RESUME_HERE.md` et `NEXT_ACTIONS.md` pour l’état prioritaire ; les anciennes sections historiques ci-dessous peuvent décrire des lots locaux depuis publiés.
+
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.
 2. Exécuter `git status --short`, `git log -3 --oneline`, `git rev-parse HEAD`, `git ls-remote origin refs/heads/main`, `node scripts/project-memory.mjs check` ; comparer preuves, code (`src/`, `drizzle/`, tests) et mémoire, signaler tout écart. Ne pas se baser sur les anciennes affirmations du README Phase 0.

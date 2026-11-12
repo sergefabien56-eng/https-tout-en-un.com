@@ -9,3 +9,7 @@ GitHub `main` `4be54738ffa0dd9c42c49373535b73d9d22dcb93`, [run `43272897889`](ht
 Dans le parcours navigateur existant, naviguer vers le mode invalide et vérifier la **présence visible des titres 404 et « This page could not be found. »**, ainsi que l'absence du tableau. Revenir ensuite sur une vraie page boutique et vérifier qu'elle reste fonctionnelle ; poursuivre l'accessibilité et les autres assertions existantes. **Aucun code d'autorisation, de validation de `view`, de RLS, de service ni de migration modifié.** Le test n'est pas supprimé ni désactivé ; il observe l'effet utilisateur du refus même si le transport est déjà en flux. Les API restent soumises à leurs propres contrôles HTTP.
 
 Local : TypeScript/lint, 27/27 tests unitaires ciblés, découverte des 10 E2E et mémoire/diff **OK** sur ce correctif ; **vrais E2E PG16 non exécutés localement** (sandbox limité). Seule la CI du **futur SHA** peut valider le correctif ; le run `43272897889` demeure rouge. Snapshot avant correction vérifié hors dépôt. Aucune production/donnée réelle.
+
+## Validation après publication
+
+`e6f087dac64683c56ee56f352f4f2039b62349a7` publié sur GitHub `main` : [run `43274481957`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43274481957) completed success, quatre jobs verts (qualité/build, migrations PG16, navigateur bureau/mobile 375 px, archive). Ceci valide le correctif en CI, pas une installation ou production. Archive CI non restaurée ; ancien run rouge inchangé.
