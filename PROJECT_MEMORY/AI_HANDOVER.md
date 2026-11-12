@@ -2,7 +2,7 @@
 
 ## État actuel prioritaire
 
-`main=62fe694` : run `43293637526` completed failure (qualité et PG16 success ; navigateur bureau/mobile failure ligne 211, archive skipped). Le locator Playwright `getByRole('heading', {name:'Système'})` trouve désormais h1 + h2 ; correctif local exact niveau 1, CI du prochain SHA nécessaire. Dernier SHA validé `cc0335d` / run `43290713784` quatre jobs verts. Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md` et `docs/comptes-rendus/phase1-correctif-compteurs-systeme.md`. Flux propriétaire : archive Drive → publication par lui → quatre jobs → continuer développement. Les notes historiques ci-dessous peuvent décrire des lots locaux depuis publiés.
+GitHub `main=6ef965c` run `43314247752` completed success : quatre jobs verts ; l'ancien run rouge de `62fe694` reste rouge. Nouveau lot local : gestion du statut des comptes existants avec droits globaux, CSRF, protections propriétaire/soi/invitation, révocation de sessions et audit atomique. Types/lint/7 unitaires et découverte E2E OK ; vrais E2E/CI du futur SHA en attente. Livrer archive Drive au propriétaire, il publie, vérifier quatre jobs AVANT autre développement. Lire `RESUME_HERE.md` et `NEXT_ACTIONS.md` ; les notes historiques ci-dessous peuvent être périmées.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.

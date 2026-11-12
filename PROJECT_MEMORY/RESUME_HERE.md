@@ -1,15 +1,15 @@
-# Reprendre ici — correctif E2E Système, Phase 1 L10
+# Reprendre ici — Phase 1 L10, statut utilisateurs
 
 ## GitHub vérifié
 
-`main=62fe69486d27b6f97a57edf05a3553b678928d0a` publié ; [run `43293637526`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43293637526) **completed failure** : qualité/tests/build et migrations PG16 success ; navigateur bureau/mobile failure, archive skipped. Annotations du job navigateur `131447118325` à `tests/e2e/authenticated-admin.spec.ts:211` : sélecteur de titre « Système » ambigu avec le nouveau h2 « Événements système globaux enregistrés », sur deux tailles et retries. Ne pas déclarer ce run vert. Dernier SHA à quatre jobs verts : `cc0335d`, run `43290713784` (Paramètres et export rôles).
+`main=6ef965c5385d28e6daf60c8d0c69ef8775a1ef33`, [run `43314247752`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43314247752) **completed success**, quatre jobs verts : qualité/tests/build, migrations PG16, navigateur bureau/mobile, archive CI. Le lot Système et son correctif sont donc validés en CI ; l'ancien run rouge `43293637526` du SHA `62fe694` reste rouge. Archive CI non restaurée, aucune production/installation PC.
 
-## Correction locale, validation en attente
+## Nouveau lot local L10 (CI en attente)
 
-Assertion E2E conservée et rendue exacte : titre principal niveau 1 « Système ». Aucun code produit, droit, RLS ou migration changé. Compte rendu `docs/comptes-rendus/phase1-correctif-compteurs-systeme.md`. Snapshot avant correction `62fe694` exporté et vérifié sous `/home/user/continuity-backups/`. Types/lint, 6 tests unitaires ciblés, découverte 10 E2E, contrôle mémoire/diff OK ; vrais E2E PG16 non exécutés localement. Suite : commit descendant du SHA rouge, snapshot après et ZIP GitHub Desktop vérifiés, transfert privé Drive au propriétaire ; publication normale par celui-ci, puis **contrôle des quatre jobs du nouveau SHA avant tout développement supplémentaire**.
+Gestion du statut d'un autre compte actif/suspendu sur la fiche utilisateur : droit `users:write` global, Origin+CSRF, refus soi/Propriétaire/invitation, sessions révoquées à la suspension dans la même transaction que mise à jour et audit. Aucun envoi SMTP ni activation d'invitation. Voir `docs/comptes-rendus/phase1-gestion-statut-utilisateurs.md`. Snapshot avant sur `6ef965c` vérifié hors dépôt. Types/lint ciblé, 7 tests unitaires ciblés, découverte 10 E2E, mémoire/diff OK ; intégration PG16 et E2E du futur SHA non exécutés localement. Suite : relire diff, commit descendant, snapshot après/ZIP GitHub Desktop vérifiés et transfert privé Drive ; propriétaire publie puis vérifier **quatre jobs du nouveau SHA avant autre lot**.
 
-## Contexte et garde-fous
+## Cadre
 
-Le propriétaire veut travailler par cycles **code préparé → archive envoyée → il publie → nous vérifions quatre jobs → lot suivant**, sans empiler de lots non validés ni menu de micro-améliorations. L10/P1 incomplets : SMTP/invitations, devise à décider, exports restants et autres critères ; L11 HTTPS/restauration chiffrée réelle et L12 revue/démo non faits. Windows/WSL/Docker en pause demandée ; pas de production, donnée réelle, installation PC ni sauvegarde PostgreSQL réelle restaurée. Maquette autonome fictive distincte. Ne pas écraser l'ancien dépôt divergent `/home/user`.
+Le propriétaire veut le cycle code → archive envoyée → il publie → nous vérifions CI → lot suivant, sans empiler des lots non validés ou proposer un menu de micro-améliorations. L10/P1 incomplets (SMTP/invitations, devise à décider, autres exports, critères restants ; puis HTTPS/restauration chiffrée réelle, sécurité/démo). Windows/WSL/Docker en pause ; aucune installation PC, vraie donnée, sauvegarde PostgreSQL réelle restaurée ni production. Maquette autonome fictive distincte. Préserver ancien dépôt divergent `/home/user` sans reset/clean/force push.
 
-**Reprise** : « Lis `RESUME_HERE.md`, `AI_HANDOVER.md` et `NEXT_ACTIONS.md`, compare code/CI/docs. `62fe694` publié mais run `43293637526` rouge sur sélecteur E2E ambigu ; correctif local à committer et publier normalement avant une nouvelle CI. Windows en pause ; pas de production. »
+**Reprise** : « Lis `RESUME_HERE.md`, `AI_HANDOVER.md` et `NEXT_ACTIONS.md`, compare Git/code/CI/docs. `6ef965c` est publié avec quatre jobs verts ; statut utilisateurs en travail local à committer/livrer, CI du futur SHA obligatoire. Windows en pause. »

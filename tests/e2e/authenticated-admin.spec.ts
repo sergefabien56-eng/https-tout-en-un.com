@@ -169,6 +169,10 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   const user = await page.request.get(`/api/admin/users/${ownerId}`);
   expect(user.status()).toBe(200);
   expect((await user.json() as { roles: { shopId: string | null }[] }).roles[0]?.shopId).toBeNull();
+  await expect(page.getByRole('button', { name: /Suspendre et déconnecter|Réactiver/ })).toHaveCount(0);
+  // Même le propriétaire connecté ne peut écrire sans Origin et jeton CSRF.
+  expect((await page.request.patch(`/api/admin/users/${ownerId}/status`,
+    { data: { status: 'suspended' } })).status()).toBe(403);
   // Recherche transversale bornée : comptes avec droit global, boutiques filtrées par RLS.
   await page.goto('/espace/recherche');
   await expect(page.getByRole('heading', { name: 'Rechercher dans mon espace' })).toBeVisible();

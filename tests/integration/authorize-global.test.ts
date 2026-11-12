@@ -21,6 +21,7 @@ const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
+const { changeUserStatus } = await import('@/modules/identity/change-user-status');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
 const { revokeOtherSession } = await import('@/modules/identity/revoke-other-session');
 const { revokeAllOtherSessions } = await import('@/modules/identity/revoke-all-other-sessions');
@@ -250,6 +251,38 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect((await db.query('SELECT key, value FROM app_settings')).rows).toEqual([
       { key: 'organization.timezone', value: 'UTC' },
     ]);
+  });
+  it('statut utilisateur : droits globaux, protections owner/soi, sessions révoquées et audit atomique', async () => {
+    const fixture = await db.query<{ id: string }>(`INSERT INTO users (email,password_hash,display_name)
+      VALUES ('statut-mutation@fixture.invalid','SECRET_HASH','Compte modifiable') RETURNING id::text`);
+    const id = fixture.rows[0]!.id;
+    const device = createSessionToken();
+    try {
+      await db.query("INSERT INTO user_roles (user_id,role_code,shop_id) VALUES ($1,'manager',NULL)", [id]);
+      await db.query("INSERT INTO sessions (user_id,token_hash,expires_at) VALUES ($1,$2,now()+interval '1 hour')", [id, device.hash]);
+      await expect(changeUserStatus(scoped.token, id, 'suspended')).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(changeUserStatus(undefined, id, 'suspended')).rejects.toMatchObject({ httpStatus: 401 });
+      await expect(changeUserStatus(owner.token, '1', 'suspended')).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(changeUserStatus(device.token, id, 'suspended')).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(changeUserStatus(owner.token, id, 'invited')).rejects.toMatchObject({ httpStatus: 400 });
+      await db.query("UPDATE users SET status='invited' WHERE id=$1", [id]);
+      await expect(changeUserStatus(owner.token, id, 'active')).rejects.toMatchObject({ httpStatus: 409 });
+      await db.query("UPDATE users SET status='active' WHERE id=$1", [id]);
+      expect(await changeUserStatus(owner.token, id, 'suspended')).toEqual({ id, status: 'suspended', changed: true });
+      expect((await db.query<{ revoked_at: Date | null }>('SELECT revoked_at FROM sessions WHERE user_id = $1', [id])).rows[0]?.revoked_at).not.toBeNull();
+      expect(await changeUserStatus(owner.token, id, 'suspended')).toEqual({ id, status: 'suspended', changed: false });
+      expect(await changeUserStatus(owner.token, id, 'active')).toEqual({ id, status: 'active', changed: true });
+      expect((await db.query<{ revoked_at: Date | null }>('SELECT revoked_at FROM sessions WHERE user_id = $1', [id])).rows[0]?.revoked_at).not.toBeNull();
+      const events = await db.query<{ before: { status: string }; after: { status: string } }>(
+        "SELECT before, after FROM audit_log WHERE action='change_status' AND before->>'userId'=$1 ORDER BY id", [id]);
+      expect(events.rows).toMatchObject([
+        { before: { status: 'active' }, after: { status: 'suspended' } },
+        { before: { status: 'suspended' }, after: { status: 'active' } },
+      ]);
+      expect(JSON.stringify(events.rows)).not.toMatch(/SECRET_HASH|token_hash|password_hash/);
+      await db.query("INSERT INTO user_roles (user_id,role_code,shop_id) VALUES ($1,'owner',NULL)", [id]);
+      await expect(changeUserStatus(owner.token, id, 'suspended')).rejects.toMatchObject({ httpStatus: 403 });
+    } finally { await db.query('DELETE FROM users WHERE id = $1', [id]); }
   });
   it('fiche utilisateur : rôles réels global/boutique, pas de secrets', async () => {
     const scopedUser = await getAuthorizedUser(owner.token, '2');
