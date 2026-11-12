@@ -1,5 +1,9 @@
 # Passation à une autre IA / fin de session
 
+## État actuel prioritaire
+
+`main=cc0335d` run `43290713784` completed success : quatre jobs verts. Lot Système suivant : compteurs globaux `system_events` sur `/api/health/deep` et écran, aucun message/fuite boutique ; local seulement, types/lint/unités OK, PG16/E2E/CI du futur SHA en attente. Propriétaire publie l’archive que nous lui envoyons, puis vérifier quatre jobs AVANT prochain développement. Lire `RESUME_HERE.md`. Les notes historiques ci-dessous peuvent être obsolètes.
+
 ## Nouveau lot local en attente CI
 
 Export CSV de la matrice : rôles/permissions réels, droits globaux cumulés, neutralisation CSV, test unitaire hostile ; intégration et E2E ajoutés mais non exécutés localement. Base paramètres `68bac8b` non publiée au dernier contrôle. Lire `RESUME_HERE.md` et le compte rendu export ; ne pas annoncer CI verte.

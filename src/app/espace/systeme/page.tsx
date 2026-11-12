@@ -30,8 +30,16 @@ export default async function SystemPage() {
         <dt>Durée de la requête de contrôle</dt><dd>{result.databaseQueryMs} ms</dd></dl>
       <p>La durée affichée ne mesure ni le réseau du navigateur ni la disponibilité continue.</p>
     </div>
+    <div className="card"><h2>Événements système globaux enregistrés</h2>
+      {result.globalEventsRecorded === 0
+        ? <p>Aucun événement global enregistré. Ce constat ne prouve pas l’absence d’erreurs : aucun collecteur d’erreurs applicatives n’est encore livré.</p>
+        : <dl className="detail-list"><dt>Événements globaux enregistrés</dt><dd>{result.globalEventsRecorded}</dd>
+          <dt>Critiques non acquittés</dt><dd>{result.globalCriticalOpen}</dd>
+          <dt>Avertissements non acquittés</dt><dd>{result.globalWarningsOpen}</dd></dl>}
+      <p>Ces nombres portent uniquement sur la table des événements globaux (sans boutique). Les événements propres aux boutiques ne sont pas agrégés ici ; ce n’est ni une surveillance continue ni un statut de santé.</p>
+    </div>
     <div className="card"><h2>File de tâches</h2>
-      <p>Indisponible — le worker n’est pas encore livré. Aucun état « OK » n’est simulé.</p>
+      <p>Indisponible — le worker n’est pas encore livré. Aucun état « OK » n’est simulé. Tâches en attente : indisponibles.</p>
     </div>
   </main>;
 }

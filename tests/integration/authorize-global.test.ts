@@ -209,15 +209,25 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     // Le runner crée schema_migrations, le test PGlite applique directement les fichiers.
     await db.exec('CREATE TABLE schema_migrations (version text PRIMARY KEY);');
     await db.exec("INSERT INTO schema_migrations VALUES ('0001'), ('0002');");
-    const health = await getDeepHealth(owner.token);
-    expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, queue: 'indisponible', version: '0.1.0' });
-    expect(['development', 'staging', 'production']).toContain(health.environment);
-    expect(health.databaseQueryMs).toEqual(expect.any(Number));
-    expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
-    expect(Object.keys(health).sort()).toEqual(['checkedAt', 'database', 'databaseQueryMs', 'environment', 'migrationsApplied', 'queue', 'version']);
-    expect(JSON.stringify(health)).not.toMatch(/DATABASE_URL|postgres:\/\/|password|secret|token/i);
-    await expect(getDeepHealth(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
-    await expect(getDeepHealth(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    expect(await getDeepHealth(owner.token)).toMatchObject({ globalEventsRecorded: 0, globalCriticalOpen: 0, globalWarningsOpen: 0 });
+    await db.exec(`INSERT INTO system_events (severity, category, code, message, shop_id) VALUES
+      ('critical', 'test', 'health-global-critical', 'PRIVATE_SENTINEL', NULL),
+      ('warning', 'test', 'health-global-warning', 'PRIVATE_SENTINEL', NULL),
+      ('info', 'test', 'health-global-info', 'PRIVATE_SENTINEL', NULL),
+      ('critical', 'test', 'health-shop-secret', 'PRIVATE_SENTINEL', 1);`);
+    try {
+      const health = await getDeepHealth(owner.token);
+      expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, queue: 'indisponible', version: '0.1.0',
+        globalEventsRecorded: 3, globalCriticalOpen: 1, globalWarningsOpen: 1 });
+      expect(['development', 'staging', 'production']).toContain(health.environment);
+      expect(health.databaseQueryMs).toEqual(expect.any(Number));
+      expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
+      expect(Object.keys(health).sort()).toEqual(['checkedAt', 'database', 'databaseQueryMs', 'environment',
+        'globalCriticalOpen', 'globalEventsRecorded', 'globalWarningsOpen', 'migrationsApplied', 'queue', 'version']);
+      expect(JSON.stringify(health)).not.toMatch(/PRIVATE_SENTINEL|health-shop-secret|DATABASE_URL|postgres:\/\/|password|secret|token/i);
+      await expect(getDeepHealth(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(getDeepHealth(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    } finally { await db.exec("DELETE FROM system_events WHERE category = 'test'"); }
   });
   it('paramètres : autorisation globale, validation, écriture auditée et idempotence', async () => {
     expect(await readOrganizationSettings(owner.token)).toEqual({ timezone: null });
