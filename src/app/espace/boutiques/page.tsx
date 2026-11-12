@@ -4,6 +4,8 @@ import { notFound, redirect } from 'next/navigation';
 import { ShopSelectButton } from '@/ui/shop-select-button';
 import { isShopSort, listOwnShops } from '@/modules/identity/shop-catalog';
 import { AppError } from '@/core/errors/app-error';
+import { getSession } from '@/core/auth/service';
+import { getNavigationPermissions } from '@/ui/navigation-permissions';
 
 export const dynamic = 'force-dynamic';
 export default async function ShopsPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string; status?: string; sort?: string; view?: string }> }) {
@@ -17,8 +19,9 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
     `/espace/boutiques?${new URLSearchParams({ page: String(targetPage), q: params.q ?? '',
       status: params.status ?? '', sort, view: targetView })}`;
   const activeId = (await cookies()).get('toutenun_shop')?.value;
+  const token = (await cookies()).get('toutenun_session')?.value;
   let result: Awaited<ReturnType<typeof listOwnShops>>;
-  try { result = await listOwnShops((await cookies()).get('toutenun_session')?.value, page,
+  try { result = await listOwnShops(token, page,
       { ...(params.q !== undefined ? { q: params.q } : {}),
         ...(params.status !== undefined ? { status: params.status } : {}), sort }); }
   catch (error) {
@@ -26,6 +29,11 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
     if (error instanceof AppError && error.httpStatus === 400) notFound();
     throw error;
   }
+  const session = token ? await getSession(token) : null;
+  if (!session) redirect('/connexion');
+  const grants = await getNavigationPermissions(session.userId);
+  const exportHref = `/api/shops/export?${new URLSearchParams({ q: params.q ?? '',
+    status: params.status ?? '', sort })}`;
   return <main className="workspace-main">
     <span className="tag">Boutiques accessibles</span>
     <h1>Toutes les boutiques autorisées</h1>
@@ -49,6 +57,8 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
         <option value="name-desc">Nom Z à A</option>
       </select><button type="submit">Filtrer</button>
     </form>
+    {grants.permissions.has('reports:export') && <p><a href={exportHref}>Exporter les boutiques autorisées en CSV</a>
+      {' '}(toutes les pages, droits d’export boutique requis ; chiffres Jumia indisponibles).</p>}
     <nav aria-label="Affichage des boutiques" className="shop-view-switch">
       <Link href={hrefFor('table')} aria-current={view === 'table' ? 'page' : undefined}>Tableau</Link>
       <Link href={hrefFor('cards')} aria-current={view === 'cards' ? 'page' : undefined}>Cartes repliables</Link>

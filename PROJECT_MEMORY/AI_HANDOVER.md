@@ -2,7 +2,7 @@
 
 ## État actuel prioritaire
 
-GitHub `main=6ef965c` run `43314247752` completed success : quatre jobs verts ; l'ancien run rouge de `62fe694` reste rouge. Nouveau lot local : gestion du statut des comptes existants avec droits globaux, CSRF, protections propriétaire/soi/invitation, révocation de sessions et audit atomique. Types/lint/7 unitaires et découverte E2E OK ; vrais E2E/CI du futur SHA en attente. Livrer archive Drive au propriétaire, il publie, vérifier quatre jobs AVANT autre développement. Lire `RESUME_HERE.md` et `NEXT_ACTIONS.md` ; les notes historiques ci-dessous peuvent être périmées.
+GitHub `main=1dd5c4f` run `43316483281` completed success quatre jobs verts. Nouveau lot local : export CSV boutiques visibles RLS + `reports:export` par boutique, filtres/tri et neutralisation formules, 10 000 lignes. Types/lint/7 unités/découverte E2E OK ; tests intégration/E2E futurs non exécutés localement. Livrer archive Drive au propriétaire, il publie, vérifier quatre jobs AVANT nouveau développement. MIMI souhaitée après L10 mais sa position par rapport à L11/L12 reste à clarifier. Lire `RESUME_HERE.md` / `NEXT_ACTIONS.md` ; notes historiques ci-dessous peuvent être périmées.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.

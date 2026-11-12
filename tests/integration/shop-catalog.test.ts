@@ -18,6 +18,7 @@ vi.mock('@/core/db/client', () => ({
   },
 }));
 const { listOwnShops } = await import('@/modules/identity/shop-catalog');
+const { exportOwnShops } = await import('@/modules/identity/export-shops');
 const { searchAuthorizedDirectory } = await import('@/modules/identity/directory-search');
 const owner = createSessionToken(), manager = createSessionToken(), limited = createSessionToken();
 beforeAll(async () => {
@@ -75,6 +76,29 @@ describe('catalogue RLS', () => {
       await db.query('DELETE FROM shops WHERE id = $1', [shop.rows[0]!.id]);
       await db.exec("DELETE FROM users WHERE email = 'recherche@fixture.invalid'");
     }
+  });
+  it('export boutiques : même filtre et tri, RLS + droit par boutique, CSV hostile neutralisé', async () => {
+    const fixture = await db.query<{ id: string }>(`INSERT INTO shops
+      (app_id, jumia_shop_sid, business_client_code, country_code, currency, display_name)
+      VALUES (1, gen_random_uuid(), 'csv-hostile', 'CI', 'XOF', '=cmd') RETURNING id::text`);
+    try {
+      const ownerCsv = await exportOwnShops(owner.token, { sort: 'name-asc' });
+      expect(ownerCsv).toContain('"Boutiques accessibles et exportables"');
+      expect(ownerCsv).toContain('"\'=cmd","CI","XOF","connected","—"');
+      expect(ownerCsv).toContain('"A"');
+      expect(ownerCsv).toContain('"B"');
+      expect((await exportOwnShops(owner.token, { q: 'B', status: '', sort: 'name-desc' }))).toContain('"B"');
+      const scoped = await exportOwnShops(limited.token);
+      expect(scoped).toContain('"B"');
+      expect(scoped).not.toContain('"A"');
+      expect(scoped).not.toContain('"\'=cmd"');
+      await expect(exportOwnShops(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+      await expect(exportOwnShops(owner.token, { sort: 'name;DELETE' })).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(exportOwnShops(owner.token, { status: 'bad' })).rejects.toMatchObject({ httpStatus: 400 });
+      await db.exec("DELETE FROM role_permissions WHERE role_code='manager' AND permission_code='reports:export'");
+      try { await expect(exportOwnShops(limited.token)).rejects.toMatchObject({ httpStatus: 403 }); }
+      finally { await db.exec("INSERT INTO role_permissions (role_code,permission_code) VALUES ('manager','reports:export')"); }
+    } finally { await db.query('DELETE FROM shops WHERE id = $1', [fixture.rows[0]!.id]); }
   });
   it('un accès boutique révoqué cache immédiatement cette boutique', async () => {
     await db.exec('UPDATE user_shop_access SET can_view = false WHERE user_id = 2;');

@@ -9,13 +9,13 @@ export interface ShopSummary {
 export type ShopStatus = 'connected' | 'syncing' | 'synced' | 'partial' | 'error' | 'reauth_required' | 'disabled';
 const statuses = new Set<ShopStatus>(['connected','syncing','synced','partial','error','reauth_required','disabled']);
 export type ShopSort = 'recent' | 'name-asc' | 'name-desc';
-const orderBy: Record<ShopSort, string> = {
+export const shopOrderBy: Record<ShopSort, string> = {
   recent: 'id DESC',
   'name-asc': 'lower(display_name) ASC, id DESC',
   'name-desc': 'lower(display_name) DESC, id DESC',
 };
 export function isShopSort(value: string): value is ShopSort {
-  return Object.hasOwn(orderBy, value);
+  return Object.hasOwn(shopOrderBy, value);
 }
 export function parseShopStatus(value: string | undefined): ShopStatus | undefined {
   if (value === undefined || value === '') return undefined;
@@ -23,17 +23,24 @@ export function parseShopStatus(value: string | undefined): ShopStatus | undefin
   return value as ShopStatus;
 }
 
+export function parseShopFilters(filters: { q?: string; status?: string; sort?: string }): {
+  q: string; status: ShopStatus | undefined; sort: ShopSort;
+} {
+  if (filters.q !== undefined && typeof filters.q !== 'string') throw new ValidationError('Filtres invalides.');
+  const q = filters.q?.trim() ?? '';
+  const sort = filters.sort ?? 'recent';
+  const status = parseShopStatus(filters.status);
+  if (q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32) || !isShopSort(sort))
+    throw new ValidationError('Filtres invalides.');
+  return { q, status, sort };
+}
+
 export async function listOwnShops(token: string | undefined, page = 1, filters: { q?: string; status?: string; sort?: string } = {}): Promise<{
   shops: ShopSummary[]; nextPage: number | null;
 }> {
   if (!Number.isSafeInteger(page) || page < 1 || page > 10_000) throw new ValidationError('Page invalide.');
-  if (filters.q !== undefined && typeof filters.q !== 'string') throw new ValidationError('Filtres invalides.');
-  const q = filters.q?.trim() ?? '';
-  const sort = filters.sort ?? 'recent';
   // Le formulaire GET soumet status='' pour « Tous les états » : absence de filtre, pas erreur.
-  const status = parseShopStatus(filters.status);
-  if (q.length > 80 || [...q].some((char) => char.charCodeAt(0) < 32) || !isShopSort(sort))
-    throw new ValidationError('Filtres invalides.');
+  const { q, sort, status } = parseShopFilters(filters);
   if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token))
     throw new AppError('UNAUTHENTICATED', { userMessage: 'Connexion nécessaire.' });
   return withIdentityTransaction(async (db) => {
@@ -53,7 +60,7 @@ export async function listOwnShops(token: string | undefined, page = 1, filters:
        WHERE deleted_at IS NULL
          AND ($3::text IS NULL OR position(lower($3) in lower(display_name)) > 0)
          AND ($4::text IS NULL OR status = $4)
-       ORDER BY ${orderBy[sort]} LIMIT $1 OFFSET $2`, [51, (page - 1) * 50, q || null, status ?? null]);
+       ORDER BY ${shopOrderBy[sort]} LIMIT $1 OFFSET $2`, [51, (page - 1) * 50, q || null, status ?? null]);
     return { shops: result.rows.slice(0, 50).map((r) => ({ id: String(r.id), displayName: r.display_name,
       countryCode: r.country_code, currency: r.currency, status: r.status })),
       nextPage: result.rows.length > 50 ? page + 1 : null };

@@ -255,6 +255,14 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect((await page.request.get('/api/shops?status=&sort=name-asc')).status()).toBe(200);
   expect((await page.request.get('/api/shops?status=malicious&sort=name-asc')).status()).toBe(400);
   expect((await page.request.get('/api/shops?sort=name%3BDELETE')).status()).toBe(400);
+  await expect(page.getByRole('link', { name: 'Exporter les boutiques autorisées en CSV' }))
+    .toHaveAttribute('href', /\/api\/shops\/export\?.*sort=name-asc/);
+  const shopsCsv = await page.request.get('/api/shops/export?status=&sort=name-asc');
+  expect(shopsCsv.status()).toBe(200);
+  expect(shopsCsv.headers()['content-type']).toContain('text/csv');
+  expect(shopsCsv.headers()['cache-control']).toBe('no-store');
+  expect(await shopsCsv.text()).toContain('"Boutique CI fictive","CI","XOF","connected","—"');
+  expect((await page.request.get('/api/shops/export?sort=invalid')).status()).toBe(400);
   await page.getByRole('navigation', { name: 'Affichage des boutiques' }).getByRole('link', { name: 'Cartes repliables' }).click();
   await expect(page).toHaveURL(/view=cards/);
   await expect(page).toHaveURL(/sort=name-asc/);
