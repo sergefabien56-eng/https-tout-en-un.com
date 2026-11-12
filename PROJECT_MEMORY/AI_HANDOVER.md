@@ -122,3 +122,7 @@ Dernier code GitHub validé `d5e8215` ; run `43122127408` quatre jobs verts, pre
 ## Reprise L10 après pause — cartes boutiques
 
 À la reprise, GitHub `main` encore `d5e8215` (run `43122127408` quatre jobs verts), clone local `cc7e49f` docs-only non publié, arbre propre. Aperçu réel de test précédent arrêté/base fictive détruite ; maquette interactive HTML autonome reste fictive. Nouveau sous-lot local : tableau Boutiques conservé par défaut, lien vers cartes natives `<details>` repliables avec pays/devise/état réels et métriques Jumia « — », mêmes RLS/filtres/tri/page. Types/lint, 27 tests unitaires ciblés/découverte 10 E2E OK ; E2E effectifs non exécutés localement. Voir `RESUME_HERE.md`, `NEXT_ACTIONS.md`, compte rendu ; nouveau commit/CI obligatoires, ne pas attribuer run `d5e8215` au lot. Windows toujours en pause.
+
+## Run rouge cartes boutiques — test sur soft 404 Next.js
+
+GitHub `main` `4be5473`, run `43272897889` completed failure : qualité/PG16 success, E2E bureau/mobile failure, archive skipped. Annotations : `page.request.get('/espace/boutiques?view=invalid').status()` reçu 200, test attendait 404 (ligne 244). La page appelle `notFound()` mais layout déjà streamé peut conserver 200 ; fallback Next 15 contient titres `404` et `This page could not be found.`. Correctif **local non publié** : E2E vérifie ces titres visibles, absence du tableau et retour au vrai catalogue, sans changer code produit/droits/RLS. Voir `RESUME_HERE.md`, `NEXT_ACTIONS.md`, compte rendu ; CI du futur SHA obligatoire. Windows reste en pause.

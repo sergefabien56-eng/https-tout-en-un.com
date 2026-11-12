@@ -241,7 +241,15 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expectNoSeriousAccessibilityViolations(page);
   await page.getByRole('navigation', { name: 'Affichage des boutiques' }).getByRole('link', { name: 'Tableau' }).click();
   await expect(page.getByRole('table')).toContainText('Boutique CI fictive');
-  expect((await page.request.get('/espace/boutiques?view=invalid')).status()).toBe(404);
+  // Next.js peut déjà avoir commencé le flux du layout : notFound() affiche alors
+  // la page 404 avec un statut HTTP 200 (« soft 404 »). Vérifier le refus visible,
+  // pas uniquement le code de transport d'une réponse streamée.
+  await page.goto('/espace/boutiques?view=invalid');
+  await expect(page.getByRole('heading', { name: '404', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'This page could not be found.' })).toBeVisible();
+  await expect(page.getByRole('table')).toHaveCount(0);
+  await page.goto('/espace/boutiques?sort=name-desc');
+  await expect(page.getByRole('table')).toContainText('Boutique CI fictive');
   await expectNoSeriousAccessibilityViolations(page);
   await page.getByRole('button', { name: 'Thème system : changer le thème' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
