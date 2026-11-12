@@ -1,4 +1,5 @@
 /** Matrice de permissions réelles. Les cinq rôles système sont immuables hors migrations. */
+import type { PoolClient } from 'pg';
 import { withAuthorizedGlobalTransaction } from '@/core/auth/authorize-global';
 
 export interface RoleMatrix {
@@ -8,7 +9,11 @@ export interface RoleMatrix {
 }
 
 export async function getRoleMatrix(token: string | undefined): Promise<RoleMatrix> {
-  return withAuthorizedGlobalTransaction({ token, permission: 'roles:manage' }, async (db) => {
+  return withAuthorizedGlobalTransaction({ token, permission: 'roles:manage' }, loadRoleMatrix);
+}
+
+/** Même projection pour l'écran et l'export, chargée dans la transaction autorisée. */
+export async function loadRoleMatrix(db: PoolClient): Promise<RoleMatrix> {
     const roles = await db.query<{ code: string; label: string; is_system: boolean }>(
       'SELECT code, label, is_system FROM roles ORDER BY code',
     );
@@ -26,5 +31,4 @@ export async function getRoleMatrix(token: string | undefined): Promise<RoleMatr
       permissions: permissions.rows,
       grants,
     };
-  });
 }

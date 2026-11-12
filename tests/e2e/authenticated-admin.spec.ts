@@ -196,6 +196,16 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByRole('table')).toContainText('Propriétaire');
   const roles = await page.request.get('/api/admin/roles');
   expect(roles.status()).toBe(200);
+  await expect(page.getByRole('link', { name: 'Exporter la matrice en CSV' }))
+    .toHaveAttribute('href', '/api/admin/roles/export');
+  const rolesCsv = await page.request.get('/api/admin/roles/export');
+  expect(rolesCsv.status()).toBe(200);
+  expect(rolesCsv.headers()['content-type']).toContain('text/csv');
+  expect(rolesCsv.headers()['cache-control']).toBe('no-store');
+  const rolesCsvText = await rolesCsv.text();
+  expect(rolesCsvText).toContain('"Organisation — droits globaux"');
+  expect(rolesCsvText).toContain('"Rôle : Propriétaire (owner)"');
+  expect(rolesCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
   if (testInfo.project.name === 'mobile-375') await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
   await page.getByRole('link', { name: 'Système' }).click();
   await expect(page.getByRole('heading', { name: 'Système' })).toBeVisible();

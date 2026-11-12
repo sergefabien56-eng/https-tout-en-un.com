@@ -18,6 +18,7 @@ const { listAuthorizedUsers, getAuthorizedUser } = await import('@/modules/ident
 const { exportAuthorizedUsers } = await import('@/modules/identity/export-users');
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
+const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
@@ -186,6 +187,23 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(matrix.grants['manager']).not.toContain('system:manage');
     await expect(getRoleMatrix(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
     await expect(getRoleMatrix(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+  });
+  it('export des rôles : même matrice, droit global additionnel et refus sans session', async () => {
+    const csv = await exportRoleMatrix(owner.token);
+    expect(csv).toContain('"Organisation — droits globaux"');
+    expect(csv).toContain('"shops","shops:read"');
+    expect(csv).toContain('"Rôle : Propriétaire (owner)"');
+    expect(csv).not.toMatch(/password_hash|totp_secret|token_hash/);
+    await expect(exportRoleMatrix(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportRoleMatrix(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportRoleMatrix(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    await db.query("DELETE FROM role_permissions WHERE role_code = 'owner' AND permission_code = 'reports:export'");
+    try {
+      await expect(exportRoleMatrix(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+      expect((await getRoleMatrix(owner.token)).roles).toHaveLength(5);
+    } finally {
+      await db.query("INSERT INTO role_permissions (role_code, permission_code) VALUES ('owner', 'reports:export')");
+    }
   });
   it('santé profonde : propriétaire uniquement, nombre réel de migrations', async () => {
     // Le runner crée schema_migrations, le test PGlite applique directement les fichiers.

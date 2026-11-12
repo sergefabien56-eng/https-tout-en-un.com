@@ -1,5 +1,9 @@
 # Passation à une autre IA / fin de session
 
+## Nouveau lot local en attente CI
+
+Export CSV de la matrice : rôles/permissions réels, droits globaux cumulés, neutralisation CSV, test unitaire hostile ; intégration et E2E ajoutés mais non exécutés localement. Base paramètres `68bac8b` non publiée au dernier contrôle. Lire `RESUME_HERE.md` et le compte rendu export ; ne pas annoncer CI verte.
+
 ## Travail local postérieur à `e6f087d`
 
 Sous-lot paramètres d’organisation : page/API fuseau borné, droits globaux, CSRF et audit ; test d’intégration ajouté mais worker PGlite local tué par manque de mémoire. Typage, lint ciblé, tests nav, découverte E2E OK ; build et CI du futur SHA non effectués. Lire `RESUME_HERE.md` pour suite ; ne pas déclarer ce lot publié.

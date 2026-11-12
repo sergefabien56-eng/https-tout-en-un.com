@@ -17,6 +17,7 @@ export default async function RolesPage() {
     <span className="tag">Administration</span>
     <h1>Rôles et permissions</h1>
     <p>Les droits ci-dessous proviennent de la base. Les rôles système ne sont pas modifiables depuis cette page.</p>
+    <p><a href="/api/admin/roles/export">Exporter la matrice en CSV</a> (droits d’export globaux requis).</p>
     {matrix.roles.length === 0 || matrix.permissions.length === 0
       ? <div role="status" className="card"><h2>Rôles indisponibles</h2>
         <p>Aucun rôle ou permission n’a été configuré.</p></div>
