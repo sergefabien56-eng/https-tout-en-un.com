@@ -83,7 +83,7 @@ export const navigation: readonly NavGroup[] = [
     { id: 'admin.users', label: 'Utilisateurs', href: '/espace/utilisateurs', icon: Users, permission: 'users:read', availability: 'ready', scope: 'global' },
     { id: 'admin.roles', label: 'Rôles', href: '/espace/roles', icon: ShieldCheck, permission: 'roles:manage', availability: 'ready', scope: 'global' },
     { id: 'admin.audit', label: "Journal d'activité", href: '/espace/journal', icon: ScrollText, permission: 'audit:read', availability: 'ready' },
-    soon('admin.settings', 'Paramètres', '/administration/parametres', SlidersHorizontal, 'settings:read'),
+    { id: 'admin.settings', label: 'Paramètres', href: '/espace/parametres', icon: SlidersHorizontal, permission: 'settings:read', availability: 'ready', scope: 'global' },
     { id: 'admin.system', label: 'Système', href: '/espace/systeme', icon: Activity, permission: 'system:manage', availability: 'ready', scope: 'global' },
   ] },
 ] as const;

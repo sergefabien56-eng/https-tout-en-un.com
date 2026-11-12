@@ -213,6 +213,16 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByText('Préproduction', { exact: true })).toBeVisible();
   await expect(page.getByText(String(health.migrationsApplied), { exact: true })).toBeVisible();
   await expect(page.getByText('le worker n’est pas encore livré', { exact: false })).toBeVisible();
+  await page.goto('/espace/parametres');
+  await expect(page.getByRole('heading', { name: 'Paramètres', exact: true })).toBeVisible();
+  await expect(page.getByText('Devise de référence : non configurée', { exact: false })).toBeVisible();
+  await expect(page.getByText('les dates des écrans existants restent en UTC', { exact: false })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+  const settings = await page.request.get('/api/admin/settings');
+  expect(settings.status()).toBe(200);
+  expect(Object.keys(await settings.json() as object)).toEqual(['timezone']);
+  // Aucun changement de paramètre sans Origin et CSRF, même avec la session propriétaire.
+  expect((await page.request.put('/api/admin/settings', { data: { timezone: 'UTC' } })).status()).toBe(403);
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();

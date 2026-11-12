@@ -19,6 +19,7 @@ const { exportAuthorizedUsers } = await import('@/modules/identity/export-users'
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
+const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
 const { revokeOtherSession } = await import('@/modules/identity/revoke-other-session');
 const { revokeAllOtherSessions } = await import('@/modules/identity/revoke-all-other-sessions');
@@ -199,6 +200,28 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(JSON.stringify(health)).not.toMatch(/DATABASE_URL|postgres:\/\/|password|secret|token/i);
     await expect(getDeepHealth(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
     await expect(getDeepHealth(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+  });
+  it('paramètres : autorisation globale, validation, écriture auditée et idempotence', async () => {
+    expect(await readOrganizationSettings(owner.token)).toEqual({ timezone: null });
+    await expect(readOrganizationSettings(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(updateOrganizationTimezone(scoped.token, 'UTC')).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(updateOrganizationTimezone(undefined, 'UTC')).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(updateOrganizationTimezone(owner.token, '=cmd')).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(updateOrganizationTimezone(owner.token, { key: 'secret' })).rejects.toMatchObject({ httpStatus: 400 });
+    expect(await readOrganizationSettings(globalManager.token)).toEqual({ timezone: null });
+    expect(await updateOrganizationTimezone(owner.token, 'Africa/Abidjan')).toEqual({ timezone: 'Africa/Abidjan' });
+    expect(await readOrganizationSettings(globalManager.token)).toEqual({ timezone: 'Africa/Abidjan' });
+    expect(await updateOrganizationTimezone(owner.token, 'Africa/Abidjan')).toEqual({ timezone: 'Africa/Abidjan' });
+    expect(await updateOrganizationTimezone(globalManager.token, 'UTC')).toEqual({ timezone: 'UTC' });
+    const events = await db.query<{ actor_user_id: string; before: { timezone: string | null }; after: { timezone: string } }>(
+      "SELECT actor_user_id::text, before, after FROM audit_log WHERE action = 'update_timezone' ORDER BY id");
+    expect(events.rows).toEqual([
+      { actor_user_id: '1', before: { timezone: null }, after: { timezone: 'Africa/Abidjan' } },
+      { actor_user_id: '3', before: { timezone: 'Africa/Abidjan' }, after: { timezone: 'UTC' } },
+    ]);
+    expect((await db.query('SELECT key, value FROM app_settings')).rows).toEqual([
+      { key: 'organization.timezone', value: 'UTC' },
+    ]);
   });
   it('fiche utilisateur : rôles réels global/boutique, pas de secrets', async () => {
     const scopedUser = await getAuthorizedUser(owner.token, '2');

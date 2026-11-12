@@ -19,7 +19,7 @@ describe('configuration unique de navigation', () => {
       }
     }
     expect(navigation.flatMap((g) => g.children).filter((l) => l.availability === 'ready').map((l) => l.href))
-      .toEqual(['/espace', '/espace/recherche', '/espace/apparence', '/espace/boutiques', '/espace/notifications', '/espace/utilisateurs', '/espace/roles', '/espace/journal', '/espace/systeme']);
+      .toEqual(['/espace', '/espace/recherche', '/espace/apparence', '/espace/boutiques', '/espace/notifications', '/espace/utilisateurs', '/espace/roles', '/espace/journal', '/espace/parametres', '/espace/systeme']);
   });
   it('aucun accès non autorisé ne reste visible, même comme « bientôt »', () => {
     expect(visibleNavigation(new Set())).toEqual([]);
