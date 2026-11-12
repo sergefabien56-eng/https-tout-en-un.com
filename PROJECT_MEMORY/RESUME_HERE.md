@@ -1,17 +1,15 @@
-# Reprendre ici — Phase 1, interface et administration L10
+# Reprendre ici — correctif E2E Système, Phase 1 L10
 
-## État GitHub vérifié
+## GitHub vérifié
 
-GitHub `main` = `cc0335dae85935fba4bb2358a26d8a79ce29f56e` au dernier contrôle. [Run `43290713784`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43290713784) **completed success** : qualité/tests/build, migrations PostgreSQL 16, navigateur bureau/mobile, archive CI, quatre jobs verts. Les sous-lots Paramètres `68bac8b` et export rôles `cc0335d` sont donc publiés et validés en CI. Dernier SHA vert `cc0335d`. Archive CI présente mais non téléchargée/restaurée ; aucune production ni installation PC.
+`main=62fe69486d27b6f97a57edf05a3553b678928d0a` publié ; [run `43293637526`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43293637526) **completed failure** : qualité/tests/build et migrations PG16 success ; navigateur bureau/mobile failure, archive skipped. Annotations du job navigateur `131447118325` à `tests/e2e/authenticated-admin.spec.ts:211` : sélecteur de titre « Système » ambigu avec le nouveau h2 « Événements système globaux enregistrés », sur deux tailles et retries. Ne pas déclarer ce run vert. Dernier SHA à quatre jobs verts : `cc0335d`, run `43290713784` (Paramètres et export rôles).
 
-## Nouveau sous-lot local L10 — Système
+## Correction locale, validation en attente
 
-Compteurs d'événements globaux enregistrés, critiques et avertissements non acquittés ; API deep et écran propriétaire alignés, requête `shop_id IS NULL` et RLS, aucun message ni événement boutique exposé. Aucun collecteur d'erreurs/tâches livré : zéro n'est pas présenté comme santé OK. Voir `docs/comptes-rendus/phase1-compteurs-systeme.md`. TypeScript, lint ciblé, 6 tests unitaires ciblés, découverte 10 E2E, mémoire/diff OK ; test d'intégration ajouté mais non exécuté localement (mémoire sandbox), build/E2E/CI du futur SHA en attente. Snapshot avant sur `cc0335d` vérifié hors dépôt. Suivre le protocole code → archive → publication propriétaire → quatre jobs du futur SHA avant prochain lot.
+Assertion E2E conservée et rendue exacte : titre principal niveau 1 « Système ». Aucun code produit, droit, RLS ou migration changé. Compte rendu `docs/comptes-rendus/phase1-correctif-compteurs-systeme.md`. Snapshot avant correction `62fe694` exporté et vérifié sous `/home/user/continuity-backups/`. Types/lint, 6 tests unitaires ciblés, découverte 10 E2E, contrôle mémoire/diff OK ; vrais E2E PG16 non exécutés localement. Suite : commit descendant du SHA rouge, snapshot après et ZIP GitHub Desktop vérifiés, transfert privé Drive au propriétaire ; publication normale par celui-ci, puis **contrôle des quatre jobs du nouveau SHA avant tout développement supplémentaire**.
 
-## Suite du chantier
+## Contexte et garde-fous
 
-Le propriétaire souhaite finir les **vrais critères Interface et administration L10** sans menu de micro-améliorations. Lire `docs/phase-1-plan.md`, `NEXT_ACTIONS.md`, comparer Git/code/docs et avancer sur le prochain critère faisable sans secrets. La vue cartes réduites/dépliées est publiée et validée en CI, avec tableau/filtres/tri/pagination conservés, boutiques autorisées uniquement, agrégats indisponibles signalés par « — ». Le plan global L10/Phase 1 reste incomplet (notamment invitations liées à SMTP fiable, paramètres administratifs et autres critères ; puis HTTPS, restauration chiffrée réelle, sécurité/démo). Ne pas confondre CI et production.
+Le propriétaire veut travailler par cycles **code préparé → archive envoyée → il publie → nous vérifions quatre jobs → lot suivant**, sans empiler de lots non validés ni menu de micro-améliorations. L10/P1 incomplets : SMTP/invitations, devise à décider, exports restants et autres critères ; L11 HTTPS/restauration chiffrée réelle et L12 revue/démo non faits. Windows/WSL/Docker en pause demandée ; pas de production, donnée réelle, installation PC ni sauvegarde PostgreSQL réelle restaurée. Maquette autonome fictive distincte. Ne pas écraser l'ancien dépôt divergent `/home/user`.
 
-La maquette `/home/user/maquette-interactive-phase1.html` est fictive ; l’ancien aperçu réel sur données fictives a été arrêté et détruit. Windows/WSL/Docker **en pause à la demande du propriétaire** ; aucune installation PC, donnée réelle, sauvegarde PostgreSQL réelle restaurée ni production. Préserver l’ancien dépôt divergent `/home/user` sans reset/clean/force push.
-
-**Reprise** : « Lis `RESUME_HERE.md` et `AI_HANDOVER.md`, vérifie `main=cc0335d` / run `43290713784` quatre jobs verts. Termine le lot Système local : commit, archive privée au propriétaire, puis attends sa publication et la CI du nouveau SHA avant tout autre lot L10. Windows en pause ; pas de production. »
+**Reprise** : « Lis `RESUME_HERE.md`, `AI_HANDOVER.md` et `NEXT_ACTIONS.md`, compare code/CI/docs. `62fe694` publié mais run `43293637526` rouge sur sélecteur E2E ambigu ; correctif local à committer et publier normalement avant une nouvelle CI. Windows en pause ; pas de production. »

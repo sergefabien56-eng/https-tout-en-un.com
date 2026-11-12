@@ -208,7 +208,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(rolesCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
   if (testInfo.project.name === 'mobile-375') await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
   await page.getByRole('link', { name: 'Système' }).click();
-  await expect(page.getByRole('heading', { name: 'Système' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Système', exact: true })).toBeVisible();
   await expect(page.getByText(/File de tâches/)).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
   const deep = await page.request.get('/api/health/deep');
