@@ -28,6 +28,7 @@ const { withAuthorizedShopTransaction, withAuditedShopMutation } = await import(
 const { listShopAudit } = await import('@/modules/audit/list-audit');
 const { searchAuthorizedAudit } = await import('@/modules/audit/search-audit');
 const { exportShopAudit } = await import('@/modules/audit/export-audit');
+const { manageShopRole } = await import('@/modules/identity/manage-shop-role');
 const { POST: selectShop } = await import('@/app/api/preferences/shop/route');
 const { GET: auditGet } = await import('@/app/api/shops/[shopId]/audit/route');
 const { GET: auditExportGet } = await import('@/app/api/shops/[shopId]/audit/export/route');
@@ -83,6 +84,30 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
   it('gestionnaire global mais limité à A ne voit jamais B, même avec sa permission', async () => {
     expect(await name(manager.token, shop1, 'shops:read')).toBe('Boutique A');
     await expect(name(manager.token, shop2, 'shops:read')).rejects.toThrow(/Boutique introuvable ou non autorisée/);
+  });
+  it('propriétaire attribue/retire un rôle boutique avec accès RLS et audit dans une transaction', async () => {
+    const input = { token: owner.token, userId: '3', shopId: shop1, roleCode: 'assistant', grant: true };
+    await expect(manageShopRole({ ...input, roleCode: 'owner' })).rejects.toMatchObject({ httpStatus: 400 });
+    await expect(manageShopRole({ ...input, userId: '1' })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(manageShopRole({ ...input, token: manager.token })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(manageShopRole({ ...input, token: undefined })).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(name(assistant.token, shop1, 'shops:read')).rejects.toMatchObject({ httpStatus: 403 });
+    expect(await manageShopRole(input)).toMatchObject({ granted: true, changed: true, shopId: shop1 });
+    expect(await name(assistant.token, shop1, 'shops:read')).toBe('Boutique A');
+    expect(await manageShopRole(input)).toMatchObject({ granted: true, changed: false });
+    expect(await manageShopRole({ ...input, grant: false })).toMatchObject({ granted: false, changed: true });
+    await expect(name(assistant.token, shop1, 'shops:read')).rejects.toMatchObject({ httpStatus: 403 });
+    expect(await manageShopRole({ ...input, grant: false })).toMatchObject({ granted: false, changed: false });
+    const audit = await db.query<{ before: { granted: boolean }; after: { granted: boolean } }>(
+      "SELECT before, after FROM audit_log WHERE action = 'manage_shop_role' AND shop_id = $1 ORDER BY id", [shop1]);
+    expect(audit.rows).toMatchObject([
+      { before: { granted: false }, after: { granted: true } },
+      { before: { granted: true }, after: { granted: false } },
+    ]);
+    expect(JSON.stringify(audit.rows)).not.toMatch(/token_hash|password_hash|secret/i);
+    await db.query("INSERT INTO user_roles (user_id, role_code, shop_id) VALUES (3, 'owner', NULL)");
+    try { await expect(manageShopRole(input)).rejects.toMatchObject({ httpStatus: 403 }); }
+    finally { await db.query("DELETE FROM user_roles WHERE user_id = 3 AND role_code = 'owner' AND shop_id IS NULL"); }
   });
   it('gestionnaire ne peut pas administrer le système, même sur A', async () => {
     await expect(name(manager.token, shop1, 'system:manage')).rejects.toThrow(/Action non autorisée/);

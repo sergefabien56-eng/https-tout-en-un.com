@@ -1,15 +1,15 @@
-# Reprendre ici — pause nocturne, Phase 1 L10
+# Reprendre ici — Phase 1 L10, rôles boutique
 
-## État vérifié
+## GitHub vérifié
 
-GitHub `main=d5bed045fa1668d88cbf73faff37c396057d6eb3`. [Run `43319039406`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43319039406) **completed success**, quatre jobs verts : qualité/tests/build, migrations PostgreSQL 16, navigateur bureau/mobile, archive CI. Export CSV boutiques validé en CI ; archive CI présente mais non téléchargée/restaurée. L'ancien `1dd5c4f` run `43316483281` est aussi vert. Aucun nouveau code produit depuis `d5bed04`.
+GitHub `main=d5bed045fa1668d88cbf73faff37c396057d6eb3`, [run `43319039406`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43319039406) **completed success**, quatre jobs verts. Export CSV boutiques validé en CI, archive CI non restaurée. Commit documentaire de pause `fb082dd` local non publié mais descendant de `d5bed04` ; il fait partie de l'ascendance du présent lot.
 
-## Pause demandée et maquette
+## Nouveau lot local (publication et CI en attente)
 
-Le propriétaire part dormir et souhaite reprendre demain. Maquette autonome **fictive** `/home/user/maquette-interactive-l10.html` : navigation L10, utilisateurs fictifs suspendables, cartes/tableau, filtres, CSV fictif local, rôles, journal, paramètres, Système, liste des critères restants et thème. HTML/JS autonomes ; syntaxe JS `node --check` OK et SHA256 `37989cd24b8fd03211b5ab64127a7903a27536bfc3a571f7457dfec02b2c845b`. Pas de base, API, production, donnée réelle ou publication GitHub. Ne pas confondre avec la vraie application ni l'ancienne maquette `/home/user/maquette-interactive-phase1.html`. Travail de documentation de pause committé **localement uniquement** (SHA à relever dans Git) ; GitHub demeure sur `d5bed04` jusqu'à publication éventuelle.
+Attribution/retrait par Propriétaire d'un rôle **boutique** à un compte existant, avec accès can_view sur attribution, RLS et audit atomique ; refuse rôle owner/global, auto-gestion, compte Propriétaire, invitation et boutique non autorisée. Recherche et pagination boutiques sur la fiche. Le retrait d'un rôle n'annule pas les autres rôles ni l'accès indépendant résiduel. Rôles globaux et gestion explicite des accès indépendants des rôles restent non livrés. Voir `docs/comptes-rendus/phase1-attribution-role-boutique.md`. Snapshot avant `fb082dd` vérifié hors dépôt. Types/lint ciblé, 8 tests unitaires ciblés, découverte 10 E2E, mémoire/diff OK ; intégration PGlite et E2E PG16 du futur SHA ajoutés mais non exécutés localement. Suite : commit, snapshot/ZIP après, transfert Drive privé, publication par propriétaire, vérifier **quatre jobs du nouveau SHA** avant autre lot.
 
-## Suite
+## Cadre
 
-Reprendre les **vrais critères L10** de `docs/phase-1-plan.md`, sans menu de micro-améliorations : attribution rôles/accès boutiques, invitations avec SMTP fiable, paramètres/devise/fuseau réellement exploité, état de file/erreurs réel, exports Excel/PDF et validation finale. Le propriétaire a exprimé vouloir MIMI après L10 ; préciser avant ce changement si L11/L12 passent avant ou après MIMI. Ne jamais déclarer Phase 1 terminée tant que HTTPS, sauvegarde chiffrée restaurée, sécurité/démo manquent. Protocole voulu : code → archive envoyée via Drive privé → il publie → contrôle quatre jobs CI → prochain lot. Windows/WSL/Docker en pause ; aucune production, installation PC, sauvegarde PostgreSQL réelle restaurée ni donnée commerciale vérifiée. Ancien dépôt divergent `/home/user` à préserver.
+Maquette `/home/user/maquette-interactive-l10.html` fictive distincte. Propriétaire veut finir les vrais critères L10 sans menu de micro-améliorations, puis souhaite MIMI ; préciser si L11/L12 passent avant ou après MIMI. Phase 1 reste incomplète sans HTTPS/restauration chiffrée réelle/sécurité/démo. Cycle convenu : code → archive Drive → il publie → quatre jobs CI → lot suivant. Windows/WSL/Docker en pause ; aucune production, donnée réelle, sauvegarde PostgreSQL réelle restaurée ni installation PC. Préserver ancien dépôt divergent `/home/user`.
 
-**Reprise** : « Lis `RESUME_HERE.md`, `AI_HANDOVER.md`, `NEXT_ACTIONS.md`, compare Git/code/CI/docs. `main=d5bed04` run `43319039406` quatre jobs verts ; maquette `/home/user/maquette-interactive-l10.html` fictive livrée, propriétaire en pause jusqu'à demain. Reprends L10 sans supposer MIMI ou production prêts. »
+**Reprise** : « Lis `RESUME_HERE.md`, `AI_HANDOVER.md`, `NEXT_ACTIONS.md` ; compare Git/code/CI/docs. `d5bed04` quatre jobs verts ; attribution rôle boutique locale et commit documentaire `fb082dd` descendants non publiés à livrer ensemble. CI du futur SHA obligatoire. »

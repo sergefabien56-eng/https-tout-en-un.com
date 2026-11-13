@@ -1,0 +1,11 @@
+# L10 — attribuer un rôle lié à une boutique à un compte existant
+
+## Base et périmètre
+
+GitHub `main=d5bed045fa1668d88cbf73faff37c396057d6eb3` : [run `43319039406`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43319039406) completed success, quatre jobs verts. Un commit documentaire de pause `fb082dd` est son descendant **local non publié** ; ce lot le conserve dans son ascendance. Maquette `/home/user/maquette-interactive-l10.html` fictive, distincte.
+
+Depuis la fiche d'un utilisateur existant et actif/suspendu, un **Propriétaire global** peut chercher une boutique autorisée (pagination) puis lui attribuer ou retirer un rôle **limité à cette boutique** : Gestionnaire, Responsable des stocks, Comptable ou Assistant. Aucun rôle Propriétaire ni rôle global n'est attribuable par cette route. Un compte Propriétaire, son propre compte et les invitations sont protégés. La route POST exige Origin et double-submit CSRF. Le serveur vérifie session, droits `roles:manage`, Propriétaire global et boutique autorisée **dans la transaction scopée RLS** ; attribution du rôle + `user_shop_access.can_view` et audit avant/après atomiques. Aucun état idempotent ne produit de faux audit. Au retrait, les autres rôles et la ligne d'accès existante sont conservés : si un autre rôle autorise la boutique, son accès peut subsister ; ce bouton retire un **rôle**, pas toutes les permissions boutique. L'administration explicite de l'accès indépendamment des rôles et les rôles globaux restent à livrer. Aucun SMTP, aucune création d'utilisateur, aucune migration ou policy changée.
+
+## Contrôles
+
+Snapshot avant `fb082dd` transféré sous `/home/user/continuity-backups/`, SHA et bundle vérifiés. Local : TypeScript, lint ciblé, 8 tests unitaires ciblés, découverte 10 E2E et contrôle diff OK. Intégration PGlite avec RLS/rôle/audit/idempotence et refus owner/manager/self ajoutée, E2E refus sans CSRF sur compte propriétaire ajouté ; **vrais tests d'intégration et parcours navigateur du nouveau SHA non exécutés localement** (sandbox mémoire limitée). Build et CI du futur SHA à vérifier après publication. Pas de production ni données réelles. Windows demeure en pause ; L10 et Phase 1 incomplets.
