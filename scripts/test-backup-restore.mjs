@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -58,7 +59,11 @@ try {
     (SELECT count(*)::int FROM pg_policies WHERE schemaname = 'public') AS policies,
     (SELECT relforcerowsecurity FROM pg_class WHERE oid = 'public.shops'::regclass) AS force_rls`;
   const before = (await source.query(statsSql)).rows[0];
-  assert.equal(before.migrations, 10); assert.equal(before.shops, 1);
+  // Le nombre attendu suit les migrations versionnées, sans valeur figée.
+  const expectedMigrations = readdirSync(join(process.cwd(), 'drizzle'))
+    .filter((name) => /^\d{4}_.+\.up\.sql$/.test(name)).length;
+  assert.ok(expectedMigrations > 0, 'Migrations versionnées attendues.');
+  assert.equal(before.migrations, expectedMigrations); assert.equal(before.shops, 1);
   assert.equal(before.audit, 1); assert.equal(before.force_rls, true);
   pgTool('pg_dump', [...common, '--format=custom', '--file', dump, '--dbname', url.pathname.slice(1)]);
   const archive = await readFile(dump);

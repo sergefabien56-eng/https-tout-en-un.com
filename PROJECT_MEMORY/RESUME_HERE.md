@@ -1,15 +1,13 @@
-# Reprendre ici — Phase 1 L10, rôles globaux
+# Reprendre ici — correctif CI rôles globaux
 
-## Dernière base publiée et validée
+## GitHub et CI
 
-GitHub `main=2572013d1cd622c542e1bf0ad3fbddf04249916a`, run `43487610108` : quatre jobs verts (qualité, migrations PG16, navigateur, archive) ; artifact présent mais non restauré. Preuves `/home/user/continuity-backups/verification-publication-2572013.md`.
+`3e41b85d19b99d12b613f726bc15287bb336bb45` est publié ; [run `43490763384`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43490763384) completed failure : qualité verte, job migrations échoué à l'étape sauvegarde/restauration, navigateur et archive skipped. La dernière base aux quatre jobs verts reste `2572013` run `43487610108`.
 
-## Lot suivant préparé localement — à publier et valider
+## Correctif préparé
 
-Ce commit ajoute attribution/retrait par le Propriétaire d'un rôle global non-owner, avec audit atomique et migration réversible 0011. Aucun accès boutique créé implicitement. Voir `docs/comptes-rendus/phase1-roles-globaux.md`. Local : 209 tests, lint complet, types et build réussis ; contrôles PostgreSQL 16 réels et Playwright ajoutés non exécutés localement. Ne pas confondre ces résultats avec la CI du présent commit.
+`scripts/test-backup-restore.mjs` exigeait 10 migrations alors que 0011 porte le total à 11 ; cause **probable** de l'échec de restauration, logs détaillés refusés par GitHub (403). Le correctif compare au nombre réel des fichiers up versionnés et conserve la comparaison des données/policies restaurées. Voir `docs/comptes-rendus/phase1-correctif-restauration-ci-0011.md`. Tests locaux et publication de ce correctif ne prouvent pas la restauration PG16 : vérifier les **quatre jobs de son propre SHA** après publication.
 
-Relever le SHA local et vérifier `git ls-remote` : cycle imposé ZIP GitHub Desktop sur Drive privé → publication du propriétaire sans force push → vérifier **quatre jobs CI de ce SHA** avant tout autre lot. En l'absence de publication, attendre ; si échec, diagnostiquer et corriger.
+Cycle : snapshot → ZIP Drive privé → publication propriétaire sans force → quatre jobs CI avant tout lot suivant. Lire `AI_HANDOVER.md`, `PROJECT_STATUS.md`, `NEXT_ACTIONS.md` et comparer code et plan. Ensuite seulement : accès des comptes à rôle global (409). Phase 1 non terminée, Windows en pause, aucun secret ni donnée réelle.
 
-## Suite et cadre
-
-Lire `AI_HANDOVER.md`, `PROJECT_STATUS.md`, `NEXT_ACTIONS.md` et comparer le code au plan. Prochain lot après validation : accès des comptes à rôle global (lever le 409 de manière explicite). Invitations SMTP bloquées par prérequis serveur SMTP ; paramètres/devise/notifications, santé réelle, Excel/PDF et validation restent à faire. MIMI souhaitée après L10, ordre avec L11/L12 à préciser. Phase 1 non terminée ; Windows/WSL/Docker en pause ; aucune production ou donnée réelle. Ne jamais publier secret, `.env`, dump ni jeton.
+Maquette générale interactive fictive : `/home/user/maquette-generale-tout-en-un.html`, séparée du code applicatif ; elle n'implémente ni Jumia ni MIMI.

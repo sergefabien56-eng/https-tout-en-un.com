@@ -1,5 +1,5 @@
-# Actions suivantes — Phase 1 L10
+# Actions suivantes — correctif CI
 
-1. Vérifier `git status`, SHA local et `git ls-remote`. Dernière base publiée vérifiée `2572013`, run `43487610108` quatre jobs verts. Lot rôles globaux du présent commit préparé localement : consulter `docs/comptes-rendus/phase1-roles-globaux.md`.
-2. Suivre le cycle imposé : snapshot, ZIP GitHub Desktop sur Drive privé, publication par le propriétaire sans force, puis vérifier **les quatre jobs du SHA publié** (qualité, migrations PG16, navigateur et archive). Ne pas passer au lot suivant avant validation ; corriger tout échec. Le navigateur et le test RLS PG16 du présent lot n'ont pas été exécutés localement.
-3. Après validation seulement : gérer explicitement les accès des comptes à rôle global (lever le 409 « non géré sur cet écran »), puis invitations SMTP (prérequis serveur SMTP), paramètres/devise/notifications, santé réelle, Excel/PDF et validation. MIMI après L10 souhaitée ; ordre avec L11/L12 à préciser. Phase 1 non terminée. Windows en pause ; ne publier aucun secret.
+1. Base GitHub `3e41b85` publiée, run `43490763384` échec migrations à l'étape restauration, qualité verte, navigateur et archive skipped. Dernier SHA quatre jobs verts `2572013` (run `43487610108`).
+2. Livrer le correctif de `scripts/test-backup-restore.mjs` via ZIP Drive et publication par le propriétaire sans force ; vérifier **les quatre jobs du nouveau SHA** avant de continuer. Diagnostic probable : 10 migrations figées alors que 11 existent ; logs détaillés GitHub refusés 403, confirmation attendue en CI. Voir `docs/comptes-rendus/phase1-correctif-restauration-ci-0011.md`.
+3. Après validation seulement : gérer les accès des comptes à rôle global (lever le 409), puis autres critères L10 : invitations SMTP, paramètres/devise/notifications, santé réelle, Excel/PDF et validation. MIMI après L10 souhaitée ; ordre avec L11/L12 à préciser. Phase 1 non terminée, Windows en pause, aucun secret.
