@@ -21,7 +21,8 @@ async function loginOwner(page: Page, testInfo: TestInfo, scenario: 0 | 1): Prom
 }
 
 test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs', async ({ page }, testInfo) => {
-  test.setTimeout(90_000);
+  // Laisser une marge aux navigations Next dev sous charge CI ; les assertions restent strictes.
+  test.setTimeout(120_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   await loginOwner(page, testInfo, 0);
   await page.getByRole('button', { name: 'Actions rapides' }).click();

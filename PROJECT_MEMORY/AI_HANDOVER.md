@@ -2,7 +2,7 @@
 
 ## État actuel prioritaire
 
-GitHub `main=2584616` publié, run `43511441768` qualité/PG16 verts, navigateur rouge (1 flaky), archive sautée. Trace Playwright transmise par le propriétaire : navigation vers sessions HTTP 200 après ~5,1 s, alors que l'attente du titre était limitée à 5 s ; voir `docs/comptes-rendus/phase1-correctif-ci-navigation-sessions.md`. Correctif E2E ciblé dans ce commit, non encore validé CI. Base antérieure `611cecb` quatre jobs verts. Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md` ; ZIP Drive → publication → fournir lien CI dès « publié » → quatre jobs verts avant lot suivant. Traces confidentielles exclues du dépôt. Windows en pause ; MIMI après L10 souhaitée, ordre avec L11/L12 à préciser. Notes historiques ci-dessous potentiellement périmées.
+GitHub `main=4148ac6` publié, run `43518057115` qualité/PG16 verts, navigateur rouge (1 flaky fiche utilisateur après attente URL 5 s), archive sautée. Ancien run 43511441768 : trace propriétaire confirmait navigation sessions ~5,1 s, correctif ciblé inclus dans 4148ac6. Nouveau correctif des délais Playwright dans ce commit, hypothèse et limites dans `docs/comptes-rendus/phase1-delais-assertions-e2e.md`. 220 tests, lint/types locaux OK, E2E réel non exécuté. ZIP Drive → publication → lien CI dès « publié » → vérifier quatre jobs avant lot suivant ; si encore rouge inspecter trace. Windows en pause ; MIMI après L10 souhaitée, ordre avec L11/L12 à préciser. Notes historiques ci-dessous potentiellement périmées.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.
