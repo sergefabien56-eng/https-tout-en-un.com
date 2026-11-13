@@ -28,3 +28,5 @@ Pour chaque nouvelle décision : date, auteur/validation, options, raison, impac
 - Choix du propriétaire : après révocation ciblée, ajouter « Déconnecter tous les autres appareils » sans déconnecter l'appareil courant ; audit agrégé par nombre et transaction, 0 idempotent ; ne pas exécuter de mutation groupée dans des scénarios E2E parallèles partageant le compte fictif.
 
 - Choix du propriétaire : prochain lot P1 = recherche dans journal. Aucun audit multi-boutiques : `toutenun_shop` sélectionné doit être valide et autorisé `audit:read` ; sinon catégorie vide sans révéler boutique. Réutiliser `listShopAudit` et exclure `before`/`after`.
+
+- Accès indépendants (L10) : révoquer une ligne `user_shop_access` sans rôle la **supprime** (pas `can_view=false`) avec audit avant/après scopé ; un accès porté par un rôle boutique ou global renvoie 409 — les rôles restent l'unique voie d'administration de leurs propres accès. Listing en deux contextes RLS locaux (cible puis Propriétaire) dans la même transaction d'identité, jamais hors RLS ; aucun nom de boutique supprimée divulgué (nom `null` si `deleted_at`).

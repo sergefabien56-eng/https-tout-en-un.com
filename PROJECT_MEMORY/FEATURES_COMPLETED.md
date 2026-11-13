@@ -18,3 +18,5 @@
 - Déconnexion ciblée d’un autre appareil et navigation filtres notifications validées en CI sur `a78a901` (4 jobs verts). Déconnexion groupée du nouveau lot **non encore validée en CI**.
 
 - Déconnexion de tous les autres appareils : `9055afb`, CI `43067657827` quatre jobs verts ; artifact code présent non restauré depuis GitHub. Le lot recherche audit ci-dessus est seulement local, **pas encore validé en CI**.
+
+- Attribution/retrait de rôle boutique par le Propriétaire sur la fiche utilisateur : `0c07ff0e`, CI `43477886804` quatre jobs verts ; artifact archive non restauré depuis GitHub. Accès boutiques indépendants (provenance + révocation des lignes résiduelles) seulement en code local, **pas encore validé en CI du futur SHA**.

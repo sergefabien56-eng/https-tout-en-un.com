@@ -173,6 +173,10 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.getByRole('heading', { name: 'Attribuer un rôle boutique' })).toHaveCount(0);
   expect((await page.request.post(`/api/admin/users/${ownerId}/shop-roles`,
     { data: { shopId: '1', roleCode: 'manager', grant: true } })).status()).toBe(403);
+  // Accès indépendants : carte absente sur un compte protégé, révocation refusée sans Origin/CSRF.
+  await expect(page.getByRole('heading', { name: 'Accès boutiques' })).toHaveCount(0);
+  expect((await page.request.delete(`/api/admin/users/${ownerId}/shop-access`,
+    { data: { shopId: '1' } })).status()).toBe(403);
   // Même le propriétaire connecté ne peut écrire sans Origin et jeton CSRF.
   expect((await page.request.patch(`/api/admin/users/${ownerId}/status`,
     { data: { status: 'suspended' } })).status()).toBe(403);

@@ -18,3 +18,5 @@ Une entrée de menu « bientôt » ou une maquette ne vaut jamais réalisation. 
 - Déconnexion de tous les autres appareils : code local, 43 tests ciblés, **CI du futur SHA en attente**. Déploiement durable, SMTP, invitations et backup PostgreSQL indépendant restent à faire.
 
 - Recherche audit boutique sélectionnée : code local, 49 tests ciblés, CI du futur SHA en attente. Recherche audit multi-boutiques non livrée, pas de commandes/produits/Jumia/MIMI.
+
+- Accès boutiques indépendants : listing avec provenance et révocation des lignes résiduelles en code local (suite complète Vitest 204/204 sérielle, 5 nouveaux tests), **CI du futur SHA en attente** ; rôles globaux modifiables, accès des comptes à rôle global et invitations SMTP non livrés.

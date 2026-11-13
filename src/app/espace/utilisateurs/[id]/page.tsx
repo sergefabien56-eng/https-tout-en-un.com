@@ -7,12 +7,19 @@ import { getSession } from '@/core/auth/service';
 import { getNavigationPermissions } from '@/ui/navigation-permissions';
 import { ChangeUserStatusButton } from '@/ui/change-user-status-button';
 import { listOwnShops } from '@/modules/identity/shop-catalog';
+import { listUserShopAccess, type ShopAccessEntry, type ShopAccessOrigin } from '@/modules/identity/shop-access';
 import { GrantShopRoleForm, RevokeShopRoleButton } from '@/ui/manage-shop-role-form';
+import { RevokeShopAccessButton } from '@/ui/revoke-shop-access-button';
 import { SCOPED_ROLES, type ScopedRole } from '@/modules/identity/scoped-roles';
 
 export const dynamic = 'force-dynamic';
 
 const STATUS: Record<string, string> = { active: 'Actif', suspended: 'Suspendu', invited: 'Invité' };
+const ORIGIN_LABELS: Record<ShopAccessOrigin, string> = {
+  scoped_role: 'issu d’un rôle boutique',
+  global_role: 'issu d’un rôle global',
+  independent: 'indépendant — aucun rôle',
+};
 export default async function UserDetailPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ shopQuery?: string; shopPage?: string }>;
@@ -36,8 +43,14 @@ export default async function UserDetailPage({ params, searchParams }: {
   const mayChangeStatus = grants.globalPermissions.has('users:write') && !protectedAccount && user.status !== 'invited';
   const mayManageShopRoles = grants.globalPermissions.has('roles:manage') && !protectedAccount && user.status !== 'invited';
   let shops: Awaited<ReturnType<typeof listOwnShops>> | null = null;
+  let accesses: ShopAccessEntry[] = [];
   if (mayManageShopRoles) {
     try { shops = await listOwnShops(token, Number(rawShopPage), { q: shopQuery, sort: 'name-asc' }); }
+    catch (error) {
+      if (error instanceof AppError && error.httpStatus === 400) notFound();
+      throw error;
+    }
+    try { accesses = (await listUserShopAccess(token, id)).accesses; }
     catch (error) {
       if (error instanceof AppError && error.httpStatus === 400) notFound();
       throw error;
@@ -62,6 +75,18 @@ export default async function UserDetailPage({ params, searchParams }: {
         </li>)}</ul>}
       <p>Les rôles globaux restent en consultation seule. Seul un Propriétaire peut attribuer ou retirer un rôle boutique ci-dessous.</p>
     </div>
+    {mayManageShopRoles && <div className="card"><h2>Accès boutiques</h2>
+      {accesses.length === 0 ? <p>Aucun accès boutique n’est enregistré pour ce compte.</p> :
+        <ul>{accesses.map((access) => {
+          const shopLabel = access.shopName ?? `la boutique n° ${access.shopId}`;
+          return <li key={access.shopId}>
+            {access.shopName ?? `Boutique n° ${access.shopId}`} — {access.canView ? 'accès actif' : 'accès désactivé'} · {ORIGIN_LABELS[access.origin]}
+            {access.origin === 'independent' &&
+              <> <RevokeShopAccessButton userId={id} shopId={access.shopId} shopLabel={shopLabel} /></>}
+          </li>;
+        })}</ul>}
+      <p>Retirer un rôle conserve la ligne d’accès : une ligne indépendante est un accès résiduel qui ne donne à lui seul aucune permission. La révoquer ne retire aucun rôle ; les accès issus d’un rôle se gèrent par les rôles.</p>
+    </div>}
     {mayManageShopRoles && <div className="card"><h2>Attribuer un rôle boutique</h2>
       <p>Choisissez une boutique autorisée. Cette action active aussi l’accès à cette boutique pour ce rôle ; les autres rôles du compte restent inchangés.</p>
       <form action={`/espace/utilisateurs/${id}`} method="get" className="shop-filters" role="search">
