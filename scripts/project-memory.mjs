@@ -18,7 +18,7 @@ function check() {
     const file = join(root, 'PROJECT_MEMORY', name);
     if (!existsSync(file) || statSync(file).size < 100) errors.push(`Document manquant/vide : ${name}`);
   }
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 11; i++) {
     const prefix = `drizzle/${String(i).padStart(4, '0')}_`;
     const tracked = run('git', ['ls-files', '--', 'drizzle/']).split('\n');
     for (const suffix of ['.up.sql', '.down.sql'])
@@ -36,7 +36,7 @@ function check() {
   const pending = readFileSync(join(root, 'PROJECT_MEMORY/RESUME_HERE.md'), 'utf8');
   if (!pending.includes('NEXT_ACTIONS.md') || !pending.includes('AI_HANDOVER.md')) errors.push('Reprise incomplète');
   if (errors.length) { console.error(errors.join('\n')); process.exitCode = 1; }
-  else console.log('Cohérence de base OK : 13 documents, 10 paires SQL, code cité et garde-fous vérifiés. Ne remplace pas tests/CI/revue humaine.');
+  else console.log('Cohérence de base OK : 13 documents, 11 paires SQL, code cité et garde-fous vérifiés. Ne remplace pas tests/CI/revue humaine.');
 }
 function snapshot(label) {
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,60}$/.test(label ?? ''))

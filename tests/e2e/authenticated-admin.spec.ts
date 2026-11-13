@@ -173,6 +173,10 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.getByRole('heading', { name: 'Attribuer un rôle boutique' })).toHaveCount(0);
   expect((await page.request.post(`/api/admin/users/${ownerId}/shop-roles`,
     { data: { shopId: '1', roleCode: 'manager', grant: true } })).status()).toBe(403);
+  // Rôles globaux : compte protégé et mutation interdite sans Origin/CSRF.
+  await expect(page.getByRole('heading', { name: 'Attribuer un rôle global' })).toHaveCount(0);
+  expect((await page.request.post(`/api/admin/users/${ownerId}/global-roles`,
+    { data: { roleCode: 'manager', grant: true } })).status()).toBe(403);
   // Accès indépendants : carte absente sur un compte protégé, révocation refusée sans Origin/CSRF.
   await expect(page.getByRole('heading', { name: 'Accès boutiques' })).toHaveCount(0);
   expect((await page.request.delete(`/api/admin/users/${ownerId}/shop-access`,

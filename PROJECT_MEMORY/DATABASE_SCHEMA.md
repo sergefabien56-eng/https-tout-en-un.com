@@ -1,6 +1,6 @@
 # Schéma de données effectivement migré (v34)
 
-**Source de vérité** : `drizzle/0001_*.up.sql` … `0010_*.up.sql` et `.down.sql` ; `docs/database.md` est une conception plus large, **pas** le schéma effectif. L'exécuteur `scripts/migrate.mjs` suit `schema_migrations`, versions et checksums ; vérifier la base cible avant toute commande.
+**Source de vérité** : `drizzle/0001_*.up.sql` … `0011_*.up.sql` et `.down.sql` ; `docs/database.md` est une conception plus large, **pas** le schéma effectif. L'exécuteur `scripts/migrate.mjs` suit `schema_migrations`, versions et checksums ; vérifier la base cible avant toute commande.
 
 | Migrations | Tables / modifications réellement présentes |
 |---|---|
@@ -14,5 +14,6 @@
 | 0008 | lecture catalogue des boutiques limitée au contexte utilisateur authentifié |
 | 0009 | `user_notifications` : `user_id`, `shop_id` facultatif, `kind` actuellement `security_login`, `title`, `message`, `created_at`, `read_at` ; RLS propre utilisateur |
 | 0010 | policy INSERT audit dédiée aux changements lu/non lu de notification personnelle |
+| 0011 | policy INSERT audit limitée aux mutations de rôle global, acteur concordant avec le contexte local ; lecture RLS inchangée |
 
 Aucune table commandes/produits/stocks/finance Jumia réelle migrée à ce stade. **Ne pas publier de données de dump.** Sauvegarde CI sur base jetable : `scripts/test-backup-restore.mjs` ; elle ne concerne ni des données commerciales ni une copie chiffrée externe.

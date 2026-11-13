@@ -1,5 +1,7 @@
 # Fonctionnalités présentes (définition limitée)
 
+- **L10 rôles globaux (local, CI en attente)** : attribution/retrait non-owner protégé, audit atomique et migration 0011 ; tests locaux réussis, publication et quatre jobs du nouveau SHA à vérifier.
+
 - Socle Next/TS, pages publiques et shell d'espace ; thème et adaptation mobile, tests d'accessibilité limités aux scénarios existants.
 - Authentification propriétaire, sessions, TOTP/2FA, contrôles d'accès et rôles ; routes et modules indiqués dans `TECHNICAL_ARCHITECTURE.md`.
 - Catalogue de boutiques et sélection, sans synchronisation Jumia ; journal d'audit boutique et export protégé ; administration utilisateurs/rôles partielle et écran système partiel.

@@ -48,6 +48,28 @@ try {
   assert.deepEqual((await read()).rows, [], 'Aucune boutique visible sans contexte RLS');
   const readAudit = () => db.query("SELECT action FROM audit_log WHERE module = 'ci' ORDER BY action");
   assert.deepEqual((await readAudit()).rows, [], 'Aucun audit sans contexte RLS');
+  // La policy 0011 autorise uniquement l'audit rôle global avec acteur local,
+  // sans ouvrir la lecture et sans ouvrir les autres formes d'audit.
+  const globalAudit = (actor, module, action, entity) => db.query(`INSERT INTO audit_log
+    (actor_user_id, module, action, entity_type) VALUES ($1, $2, $3, $4)`, [actor, module, action, entity]);
+  const expectGlobalDenied = async (actor, module, action, entity) => {
+    await db.query('SAVEPOINT denied_global_audit');
+    let denied = false;
+    try { await globalAudit(actor, module, action, entity); }
+    catch (error) { denied = error?.code === '42501'; }
+    finally { await db.query('ROLLBACK TO SAVEPOINT denied_global_audit'); }
+    assert.equal(denied, true, 'INSERT audit global hors périmètre refusé');
+  };
+  await expectGlobalDenied(userId, 'users', 'manage_global_role', 'user_role');
+  await db.query("SELECT set_config('app.audit_actor_id', $1, true)", [String(userId)]);
+  await expectGlobalDenied(limitedId, 'users', 'manage_global_role', 'user_role');
+  await expectGlobalDenied(userId, 'users', 'other', 'user_role');
+  await expectGlobalDenied(userId, 'other', 'manage_global_role', 'user_role');
+  await expectGlobalDenied(userId, 'users', 'manage_global_role', 'other');
+  await globalAudit(userId, 'users', 'manage_global_role', 'user_role');
+  assert.deepEqual((await db.query('SELECT id FROM audit_log')).rows, [], 'Écriture globale ne donne pas accès en lecture');
+  await db.query("SELECT set_config('app.audit_actor_id', '', true)");
+  await expectGlobalDenied(userId, 'users', 'manage_global_role', 'user_role');
   const readNotices = () => db.query('SELECT message FROM user_notifications ORDER BY id');
   assert.deepEqual((await readNotices()).rows, [], 'Aucune notification sans contexte utilisateur');
   await db.query("SELECT set_config('app.notification_user_id', $1, true)", [String(userId)]);

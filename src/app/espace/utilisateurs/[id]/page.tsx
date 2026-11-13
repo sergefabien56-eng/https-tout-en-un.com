@@ -9,6 +9,7 @@ import { ChangeUserStatusButton } from '@/ui/change-user-status-button';
 import { listOwnShops } from '@/modules/identity/shop-catalog';
 import { listUserShopAccess, type ShopAccessEntry, type ShopAccessOrigin } from '@/modules/identity/shop-access';
 import { GrantShopRoleForm, RevokeShopRoleButton } from '@/ui/manage-shop-role-form';
+import { GrantGlobalRoleForm, RevokeGlobalRoleButton } from '@/ui/manage-global-role-form';
 import { RevokeShopAccessButton } from '@/ui/revoke-shop-access-button';
 import { SCOPED_ROLES, type ScopedRole } from '@/modules/identity/scoped-roles';
 
@@ -69,12 +70,19 @@ export default async function UserDetailPage({ params, searchParams }: {
     <div className="card"><h2>Rôles attribués</h2>
       {user.roles.length === 0 ? <p>Aucun rôle attribué.</p> :
         <ul>{user.roles.map((role) => <li key={`${role.code}-${role.shopId ?? 'global'}`}>
-          {role.label} — {role.shopId === null ? 'Global (toutes les boutiques)' : `Boutique n° ${role.shopId}`}
-          {mayManageShopRoles && role.shopId !== null && SCOPED_ROLES.some((code) => code === role.code) &&
-            <> <RevokeShopRoleButton userId={id} shopId={role.shopId} roleCode={role.code as ScopedRole} /></>}
+          {role.label} — {role.shopId === null ? (role.code === 'owner' ? 'Global (toutes les boutiques)' : 'Global (boutiques autorisées)') : `Boutique n° ${role.shopId}`}
+          {mayManageShopRoles && SCOPED_ROLES.some((code) => code === role.code) &&
+            (role.shopId === null
+              ? <> <RevokeGlobalRoleButton userId={id} roleCode={role.code as ScopedRole} /></>
+              : <> <RevokeShopRoleButton userId={id} shopId={role.shopId} roleCode={role.code as ScopedRole} /></>)}
         </li>)}</ul>}
-      <p>Les rôles globaux restent en consultation seule. Seul un Propriétaire peut attribuer ou retirer un rôle boutique ci-dessous.</p>
+      <p>Seul un Propriétaire peut attribuer ou retirer un rôle global ou un rôle boutique ci-dessous.</p>
     </div>
+    {mayManageShopRoles && <div className="card"><h2>Attribuer un rôle global</h2>
+      <p>Un rôle global s’applique à toute l’organisation ; aucun rôle Propriétaire n’est attribuable. Aucune boutique n’est ajoutée automatiquement : ce rôle ne montre que les boutiques dont l’accès est déjà enregistré pour ce compte.</p>
+      <GrantGlobalRoleForm userId={id} />
+      <p>Retirer un rôle global ne retire ni les rôles boutique ni les lignes d’accès. Une ligne devient indépendante si aucun autre rôle global ou rôle pour cette boutique ne subsiste ; elle reste alors administrable dans « Accès boutiques ».</p>
+    </div>}
     {mayManageShopRoles && <div className="card"><h2>Accès boutiques</h2>
       {accesses.length === 0 ? <p>Aucun accès boutique n’est enregistré pour ce compte.</p> :
         <ul>{accesses.map((access) => {
@@ -100,7 +108,7 @@ export default async function UserDetailPage({ params, searchParams }: {
         {Number(rawShopPage) > 1 && <Link href={`/espace/utilisateurs/${id}?${new URLSearchParams({ shopQuery, shopPage: String(Number(rawShopPage) - 1) })}`}>Page précédente</Link>}
         {shops?.nextPage !== null && shops?.nextPage !== undefined && <Link href={`/espace/utilisateurs/${id}?${new URLSearchParams({ shopQuery, shopPage: String(shops.nextPage) })}`}>Page suivante</Link>}
       </nav>
-      <p>Les invitations et l’attribution des rôles globaux restent indisponibles ; aucun e-mail n’est envoyé.</p>
+      <p>Les invitations restent indisponibles ; aucun e-mail n’est envoyé.</p>
     </div>}
   </main>;
 }
