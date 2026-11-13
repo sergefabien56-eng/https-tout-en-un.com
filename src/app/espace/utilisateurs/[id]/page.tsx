@@ -11,6 +11,7 @@ import { listUserShopAccess, type ShopAccessEntry, type ShopAccessOrigin } from 
 import { GrantShopRoleForm, RevokeShopRoleButton } from '@/ui/manage-shop-role-form';
 import { GrantGlobalRoleForm, RevokeGlobalRoleButton } from '@/ui/manage-global-role-form';
 import { RevokeShopAccessButton } from '@/ui/revoke-shop-access-button';
+import { GrantGlobalShopAccessForm } from '@/ui/grant-global-shop-access-form';
 import { SCOPED_ROLES, type ScopedRole } from '@/modules/identity/scoped-roles';
 
 export const dynamic = 'force-dynamic';
@@ -89,11 +90,17 @@ export default async function UserDetailPage({ params, searchParams }: {
           const shopLabel = access.shopName ?? `la boutique n° ${access.shopId}`;
           return <li key={access.shopId}>
             {access.shopName ?? `Boutique n° ${access.shopId}`} — {access.canView ? 'accès actif' : 'accès désactivé'} · {ORIGIN_LABELS[access.origin]}
-            {access.origin === 'independent' &&
-              <> <RevokeShopAccessButton userId={id} shopId={access.shopId} shopLabel={shopLabel} /></>}
+            {access.origin !== 'scoped_role' &&
+              <> <RevokeShopAccessButton userId={id} shopId={access.shopId} shopLabel={shopLabel} globalRole={access.origin === 'global_role'} /></>}
           </li>;
         })}</ul>}
-      <p>Retirer un rôle conserve la ligne d’accès : une ligne indépendante est un accès résiduel qui ne donne à lui seul aucune permission. La révoquer ne retire aucun rôle ; les accès issus d’un rôle se gèrent par les rôles.</p>
+      <p>Une ligne indépendante ne donne à elle seule aucune permission. Un accès lié à un rôle global peut être révoqué sans retirer ce rôle ; un accès lié à un rôle boutique exige d’abord le retrait de ce rôle.</p>
+      {user.roles.some((role) => role.shopId === null && role.code !== 'owner') && <>
+        <h3>Autoriser une boutique pour les rôles globaux</h3>
+        <p>Sélectionnez une boutique autorisée. La recherche et la pagination des boutiques se trouvent dans la section suivante. Aucun rôle n’est créé ou modifié.</p>
+        {shops?.shops.length ? <GrantGlobalShopAccessForm key={`${shopQuery}-${rawShopPage}`} userId={id} shops={shops.shops} />
+          : <p role="status">Aucune boutique autorisée ne correspond à cette recherche.</p>}
+      </>}
     </div>}
     {mayManageShopRoles && <div className="card"><h2>Attribuer un rôle boutique</h2>
       <p>Choisissez une boutique autorisée. Cette action active aussi l’accès à cette boutique pour ce rôle ; les autres rôles du compte restent inchangés.</p>

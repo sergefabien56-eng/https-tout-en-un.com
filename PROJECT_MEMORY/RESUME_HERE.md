@@ -1,11 +1,11 @@
-# Reprendre ici — correctif navigateur CI
+# Reprendre ici — accès des comptes à rôle global
 
-## GitHub et CI
+## Base publiée et validée
 
-`6a3ab80ef61ba4680c4a2b53a6963f5e28111d51` publié : [run `43506484096`](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43506484096) completed failure. Qualité et migrations PG16 vertes (sauvegarde/restauration réussie) ; navigateur rouge, archive skipped. Annotations publiques : attendu 10 migrations, obtenu 11 sur test Système bureau/mobile ; scénario notifications bureau flaky à la navigation, succès au retry. Logs bruts/artifact inaccessibles sans droits. Preuve `/home/user/continuity-backups/verification-publication-6a3ab80.md`. Dernière base aux quatre jobs verts : `2572013` run `43487610108`.
+GitHub `main=611cecbe1cbc55f08b733be75bfa3405a58040a1`, [run 43508600243](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43508600243) : quatre jobs verts (qualité, PG16, navigateur, archive). Vérification sur la page publique GitHub : graphe HTML `completed successfully` pour chacun ; API anonyme limitée (403). Un artifact présent, non restauré. Preuve `/home/user/continuity-backups/verification-publication-611cecb.md`. Les runs précédents restent rouges dans l'historique.
 
-## Correctif préparé
+## Lot préparé — CI propre à vérifier
 
-Ce commit ne change que les tests E2E : compte des migrations dérivé des fichiers SQL avec égalité stricte ; attente de fin de navigation de filtre avant rafraîchissement notifications. La cause exacte du flaky n'est pas prouvée. Voir `docs/comptes-rendus/phase1-correctif-ci-navigateur-0011.md`. Local : 209 Vitest, lint ciblé, types et découverte Playwright OK ; E2E navigateur non exécutés localement. Vérifier les **quatre jobs de son propre SHA** après publication.
+Ce commit administre les accès des comptes à rôle global : le Propriétaire attribue ou retire explicitement une boutique sans modifier les rôles, audit atomique et Origin/CSRF ; un rôle boutique présent continue de protéger la ligne d'accès. Voir `docs/comptes-rendus/phase1-acces-comptes-role-global.md`. Local : 220 Vitest, lint, types et build réussis ; E2E navigateur découverts mais non exécutés ici. Publication et CI de ce commit non présumées.
 
-Cycle : snapshot → ZIP Drive privé → publication propriétaire sans force → donner lien CI et vérifier les quatre jobs avant tout lot suivant. Lire `AI_HANDOVER.md`, `PROJECT_STATUS.md`, `NEXT_ACTIONS.md` et comparer code et plan. Ensuite seulement : accès des comptes à rôle global (409). Phase 1 non terminée, Windows en pause, aucun secret ni donnée réelle.
+Cycle : snapshot → ZIP Drive privé → publication du propriétaire sans force → fournir immédiatement le lien CI après « publié » → vérifier **quatre jobs du SHA** avant tout lot suivant. Lire `AI_HANDOVER.md`, `PROJECT_STATUS.md`, `NEXT_ACTIONS.md` et le plan. Invitations SMTP et autres critères L10 encore à faire ; Phase 1 non terminée, Windows en pause, ne publier aucun secret ou donnée réelle. MIMI après L10 souhaitée ; ordre avec L11/L12 à préciser.

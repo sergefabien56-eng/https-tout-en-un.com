@@ -1,3 +1,5 @@
+- **L10 accès des comptes à rôle global (local, CI en attente)** : attribution/révocation d’accès par boutique sans modification des rôles, audit atomique, RLS et CSRF ; 220 tests, lint/types/build locaux réussis ; navigateur non exécuté localement. Base `611cecb` publiée et validée sur run `43508600243`, quatre jobs verts observés sur graphe GitHub public, artifact non restauré. Phase 1 incomplète ; Windows en pause.
+
 - **Validation accès boutiques indépendants** : `2572013` publié sur `main`, run `43487610108` completed success, quatre jobs verts vérifiés via l'API GitHub le 2026-11-13 ; artifact `code-valide-2572013…` présent (30 jours), non restauré. ZIP Drive MD5 concordant. Prochain lot : rôles globaux. Pas de production ni données réelles ; Windows en pause.
 
 - **Correctif E2E (local, CI en attente)** : run `43506484096` de `6a3ab80` qualité/PG16 verts, navigateur rouge (compte migrations figé à 10 ; flaky notifications). Compte dynamique strict et attente navigation filtre ajoutés ; cause exacte du flaky non prouvée.

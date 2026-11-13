@@ -1,8 +1,8 @@
 /**
  * Accès boutiques explicites d'un compte : Propriétaire global uniquement.
  * Le retrait d'un rôle boutique conserve la ligne user_shop_access (voir manage-shop-role) ;
- * ce module rend ces lignes visibles avec leur provenance et permet de révoquer
- * les accès indépendants résiduels, sans jamais toucher aux rôles.
+ * ce module rend ces lignes visibles avec leur provenance et permet de gérer
+ * les accès indépendants ou liés à un rôle global, sans jamais toucher aux rôles.
  */
 import { withAuthorizedGlobalTransaction } from '@/core/auth/authorize-global';
 import { withAuthorizedShopTransaction } from '@/core/auth/authorize-shop';
@@ -91,11 +91,12 @@ export async function listUserShopAccess(
 }
 
 /**
- * Révoque une ligne d'accès INDÉPENDANTE (aucun rôle ne la porte) : suppression + audit
+ * Révoque une ligne d'accès indépendante ou liée à un rôle global : suppression + audit
  * atomiques dans la transaction scopée RLS de la boutique. Les accès issus d'un rôle
- * boutique ou d'un rôle global sont refusés : ils se gèrent par les rôles.
+ * boutique sont refusés : ils se gèrent d'abord par le rôle de cette boutique.
+ * Un accès porté par un rôle global peut être retiré sans supprimer ce rôle global.
  */
-export async function revokeIndependentShopAccess(input: {
+export async function revokeShopAccess(input: {
   token: string | undefined; userId: string; shopId: string;
 }): Promise<{ userId: string; shopId: string; revoked: boolean; changed: boolean }> {
   const targetId = parseTargetUserId(input.userId);
@@ -118,8 +119,6 @@ export async function revokeIndependentShopAccess(input: {
     );
     if (origin === 'scoped_role')
       throw new AppError('CONFLICT', { userMessage: 'Cet accès provient d’un rôle boutique : retirez d’abord ce rôle.' });
-    if (origin === 'global_role')
-      throw new AppError('CONFLICT', { userMessage: 'Cet accès provient d’un rôle global, non géré sur cet écran.' });
     const access = await db.query<{ can_view: boolean; created_at: Date | string }>(
       'SELECT can_view, created_at FROM user_shop_access WHERE user_id = $1 AND shop_id = $2 FOR UPDATE',
       [targetId, context.shopId]);
@@ -134,5 +133,42 @@ export async function revokeIndependentShopAccess(input: {
         createdAt: new Date(row.created_at).toISOString() }),
       JSON.stringify({ userId: targetId, shopId: context.shopId, revoked: true })]);
     return { userId: targetId, shopId: context.shopId, revoked: true, changed: true };
+  });
+}
+
+/** Accorder l'accès explicite à une boutique à un compte doté d'un rôle global.
+ * Ne crée ni ne modifie aucun rôle ; la boutique reste protégée par RLS et autorisation.
+ */
+export async function grantGlobalRoleShopAccess(input: {
+  token: string | undefined; userId: string; shopId: string;
+}): Promise<{ userId: string; shopId: string; granted: boolean; changed: boolean }> {
+  const targetId = parseTargetUserId(input.userId);
+  return withAuthorizedShopTransaction({ token: input.token, shopId: input.shopId, permission: 'roles:manage' }, async (db, context) => {
+    await requireGlobalOwner(db, context.userId);
+    if (targetId === context.userId) throw new ForbiddenError('Votre propre compte est protégé.');
+    const target = await db.query<{ status: string }>('SELECT status FROM users WHERE id = $1 FOR UPDATE', [targetId]);
+    if (!target.rows[0]) throw new AppError('NOT_FOUND', { userMessage: 'Utilisateur introuvable.' });
+    if (target.rows[0].status === 'invited')
+      throw new AppError('CONFLICT', { userMessage: 'Les invitations ne sont pas gérées ici.' });
+    const roles = await db.query<{ role_code: string; shop_id: string | null }>(
+      'SELECT role_code, shop_id::text FROM user_roles WHERE user_id = $1 FOR UPDATE', [targetId]);
+    if (roles.rows.some((role) => role.role_code === 'owner'))
+      throw new ForbiddenError('Le compte Propriétaire est protégé.');
+    if (!roles.rows.some((role) => role.shop_id === null))
+      throw new AppError('CONFLICT', { userMessage: 'Ce compte ne possède aucun rôle global.' });
+    const access = await db.query<{ can_view: boolean }>(
+      'SELECT can_view FROM user_shop_access WHERE user_id = $1 AND shop_id = $2 FOR UPDATE',
+      [targetId, context.shopId]);
+    if (access.rows[0]?.can_view === true)
+      return { userId: targetId, shopId: context.shopId, granted: true, changed: false };
+    await db.query(`INSERT INTO user_shop_access (user_id, shop_id, can_view) VALUES ($1, $2, true)
+      ON CONFLICT (user_id, shop_id) DO UPDATE SET can_view = true`, [targetId, context.shopId]);
+    await db.query(`INSERT INTO audit_log
+      (actor_user_id, shop_id, module, action, entity_type, before, after)
+      VALUES ($1, $2, 'users', 'grant_global_shop_access', 'user_shop_access', $3::jsonb, $4::jsonb)`,
+    [context.userId, context.shopId,
+      JSON.stringify({ userId: targetId, shopId: context.shopId, canView: access.rows[0]?.can_view ?? null }),
+      JSON.stringify({ userId: targetId, shopId: context.shopId, canView: true })]);
+    return { userId: targetId, shopId: context.shopId, granted: true, changed: true };
   });
 }

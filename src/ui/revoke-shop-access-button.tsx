@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export function RevokeShopAccessButton({ userId, shopId, shopLabel }: {
-  userId: string; shopId: string; shopLabel: string;
+export function RevokeShopAccessButton({ userId, shopId, shopLabel, globalRole = false }: {
+  userId: string; shopId: string; shopLabel: string; globalRole?: boolean;
 }) {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -11,7 +11,7 @@ export function RevokeShopAccessButton({ userId, shopId, shopLabel }: {
   const router = useRouter();
   useEffect(() => setReady(true), []);
   async function revoke() {
-    if (!window.confirm(`Révoquer l’accès indépendant à ${shopLabel} ? Aucun rôle de ce compte n’est retiré.`)) return;
+    if (!window.confirm(`Révoquer l’accès ${globalRole ? 'lié au rôle global' : 'indépendant'} à ${shopLabel} ? Aucun rôle de ce compte n’est retiré.`)) return;
     setBusy(true); setError(false);
     try {
       const csrf = await fetch('/api/auth/csrf', { credentials: 'same-origin', cache: 'no-store' });
@@ -28,6 +28,6 @@ export function RevokeShopAccessButton({ userId, shopId, shopLabel }: {
     } catch { setError(true); } finally { setBusy(false); }
   }
   return <><button type="button" disabled={!ready || busy} onClick={() => void revoke()}>
-    {busy ? 'Révocation…' : 'Révoquer cet accès indépendant'}
+    {busy ? 'Révocation…' : globalRole ? 'Révoquer cet accès lié au rôle global' : 'Révoquer cet accès indépendant'}
   </button>{error && <span role="alert">Révocation impossible. Actualisez la page et réessayez.</span>}</>;
 }

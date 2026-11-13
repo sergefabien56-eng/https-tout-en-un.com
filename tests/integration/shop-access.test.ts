@@ -35,7 +35,8 @@ vi.mock('@/core/db/client', () => ({
   },
 }));
 
-const { listUserShopAccess, revokeIndependentShopAccess } = await import('@/modules/identity/shop-access');
+const { listUserShopAccess, revokeShopAccess, grantGlobalRoleShopAccess } = await import('@/modules/identity/shop-access');
+const { withAuthorizedShopTransaction } = await import('@/core/auth/authorize-shop');
 const owner = createSessionToken();
 const manager = createSessionToken();
 const assistant = createSessionToken();
@@ -57,8 +58,9 @@ beforeAll(async () => {
       ('owner@test.invalid', 'hash', 'Propriétaire'),
       ('manager@test.invalid', 'hash', 'Gestionnaire'),
       ('assistant@test.invalid', 'hash', 'Assistant'),
-      ('invite@test.invalid', 'hash', 'Invité');
-    INSERT INTO user_roles (user_id, role_code) VALUES (1, 'owner'), (2, 'manager');
+      ('invite@test.invalid', 'hash', 'Invité'),
+      ('owner2@test.invalid', 'hash', 'Autre propriétaire');
+    INSERT INTO user_roles (user_id, role_code) VALUES (1, 'owner'), (2, 'manager'), (5, 'owner');
     UPDATE users SET status = 'invited' WHERE id = 4;
   `);
   const ids = await db.query<{ id: string }>('SELECT id::text FROM shops ORDER BY id');
@@ -106,27 +108,25 @@ describe('listing des accès boutique avec provenance (Propriétaire global seul
 
 describe('révocation d’un accès indépendant (RLS + audit atomique)', () => {
   it('supprime l’accès résiduel, audite une seule fois et préserve rôles et autres accès', async () => {
-    await expect(revokeIndependentShopAccess({ token: manager.token, userId: '3', shopId: shop1 }))
+    await expect(revokeShopAccess({ token: manager.token, userId: '3', shopId: shop1 }))
       .rejects.toMatchObject({ httpStatus: 403 });
-    await expect(revokeIndependentShopAccess({ token: assistant.token, userId: '3', shopId: shop1 }))
+    await expect(revokeShopAccess({ token: assistant.token, userId: '3', shopId: shop1 }))
       .rejects.toMatchObject({ httpStatus: 403 });
-    await expect(revokeIndependentShopAccess({ token: undefined, userId: '3', shopId: shop1 }))
+    await expect(revokeShopAccess({ token: undefined, userId: '3', shopId: shop1 }))
       .rejects.toMatchObject({ httpStatus: 401 });
-    await expect(revokeIndependentShopAccess({ token: owner.token, userId: '1', shopId: shop1 }))
+    await expect(revokeShopAccess({ token: owner.token, userId: '1', shopId: shop1 }))
       .rejects.toMatchObject({ httpStatus: 403 });
-    await expect(revokeIndependentShopAccess({ token: owner.token, userId: '4', shopId: shop1 }))
+    await expect(revokeShopAccess({ token: owner.token, userId: '4', shopId: shop1 }))
       .rejects.toMatchObject({ httpStatus: 409 });
     // Accès issus de rôles : refus explicites, la ligne reste en place.
-    await expect(revokeIndependentShopAccess({ token: owner.token, userId: '3', shopId: shop2 }))
-      .rejects.toMatchObject({ httpStatus: 409 });
-    await expect(revokeIndependentShopAccess({ token: owner.token, userId: '2', shopId: shop1 }))
+    await expect(revokeShopAccess({ token: owner.token, userId: '3', shopId: shop2 }))
       .rejects.toMatchObject({ httpStatus: 409 });
     const before = await db.query<{ n: number }>('SELECT count(*)::int AS n FROM user_shop_access');
     expect(before.rows[0]?.n).toBe(3);
-    expect(await revokeIndependentShopAccess({ token: owner.token, userId: '3', shopId: shop1 }))
+    expect(await revokeShopAccess({ token: owner.token, userId: '3', shopId: shop1 }))
       .toMatchObject({ revoked: true, changed: true, shopId: shop1 });
     // Idempotence : aucune ligne, aucun faux audit au second appel.
-    expect(await revokeIndependentShopAccess({ token: owner.token, userId: '3', shopId: shop1 }))
+    expect(await revokeShopAccess({ token: owner.token, userId: '3', shopId: shop1 }))
       .toMatchObject({ revoked: true, changed: false });
     const audit = await db.query<{ actor_user_id: string; shop_id: string; before: { canView: boolean }; after: { revoked: boolean } }>(
       "SELECT actor_user_id::text, shop_id::text, before, after FROM audit_log WHERE action = 'revoke_shop_access' ORDER BY id");
@@ -139,5 +139,75 @@ describe('révocation d’un accès indépendant (RLS + audit atomique)', () => 
     expect(remaining.rows.map((row) => row.shop_id)).toEqual([shop2]);
     const roles = await db.query<{ n: number }>('SELECT count(*)::int AS n FROM user_roles WHERE user_id = 3');
     expect(roles.rows[0]?.n).toBe(1);
+  });
+});
+
+describe('accès boutique des comptes à rôle global', () => {
+  it('autorise et révoque explicitement une boutique sans modifier le rôle global', async () => {
+    const input = { token: owner.token, userId: '2', shopId: shop2 };
+    const enter = () => withAuthorizedShopTransaction({ token: manager.token, shopId: shop2, permission: 'shops:read' }, async () => true);
+    await expect(enter()).rejects.toMatchObject({ httpStatus: 403 });
+    expect(await grantGlobalRoleShopAccess(input)).toMatchObject({ granted: true, changed: true });
+    await expect(enter()).resolves.toBe(true);
+    expect(await grantGlobalRoleShopAccess(input)).toMatchObject({ granted: true, changed: false });
+    const listed = await listUserShopAccess(owner.token, '2');
+    expect(listed.accesses.find((entry) => entry.shopId === shop2)).toMatchObject({ origin: 'global_role', canView: true });
+    expect(await revokeShopAccess(input)).toMatchObject({ revoked: true, changed: true });
+    await expect(enter()).rejects.toMatchObject({ httpStatus: 403 });
+    expect(await revokeShopAccess(input)).toMatchObject({ revoked: true, changed: false });
+    const roles = await db.query<{ n: number }>("SELECT count(*)::int AS n FROM user_roles WHERE user_id = 2 AND role_code = 'manager' AND shop_id IS NULL");
+    expect(roles.rows[0]?.n).toBe(1);
+    // Vérifie seulement les deux actions de cette boutique et aucun faux audit.
+    const actions = await db.query<{ action: string }>(
+      "SELECT action FROM audit_log WHERE shop_id = $1 AND action IN ('grant_global_shop_access','revoke_shop_access') ORDER BY id", [shop2]);
+    expect(actions.rows.map((row) => row.action)).toEqual(['grant_global_shop_access', 'revoke_shop_access']);
+  });
+  it('réactive une ligne désactivée sans en créer une deuxième', async () => {
+    await db.query('INSERT INTO user_shop_access (user_id, shop_id, can_view) VALUES (2, $1, false)', [shop2]);
+    const input = { token: owner.token, userId: '2', shopId: shop2 };
+    expect(await grantGlobalRoleShopAccess(input)).toMatchObject({ changed: true });
+    const access = await db.query<{ n: number; can_view: boolean }>(
+      'SELECT count(*)::int AS n, bool_and(can_view) AS can_view FROM user_shop_access WHERE user_id = 2 AND shop_id = $1', [shop2]);
+    expect(access.rows[0]).toMatchObject({ n: 1, can_view: true });
+    const audit = await db.query<{ before: { canView: boolean }; after: { canView: boolean } }>(
+      "SELECT before, after FROM audit_log WHERE action = 'grant_global_shop_access' AND shop_id = $1 ORDER BY id DESC LIMIT 1", [shop2]);
+    expect(audit.rows[0]).toMatchObject({ before: { canView: false }, after: { canView: true } });
+    await revokeShopAccess(input);
+  });
+  it('protège un accès quand un rôle boutique coexiste avec le rôle global', async () => {
+    const input = { token: owner.token, userId: '2', shopId: shop1 };
+    await db.query("INSERT INTO user_roles (user_id, role_code, shop_id) VALUES (2, 'assistant', $1)", [shop1]);
+    try {
+      await expect(revokeShopAccess(input)).rejects.toMatchObject({ httpStatus: 409 });
+      const access = await db.query<{ can_view: boolean }>('SELECT can_view FROM user_shop_access WHERE user_id = 2 AND shop_id = $1', [shop1]);
+      expect(access.rows[0]?.can_view).toBe(true);
+    } finally { await db.query("DELETE FROM user_roles WHERE user_id = 2 AND role_code = 'assistant' AND shop_id = $1", [shop1]); }
+  });
+  it('annule l’accès si l’écriture d’audit échoue', async () => {
+    await db.exec(`CREATE FUNCTION test_deny_access_audit() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN RAISE EXCEPTION 'audit indisponible'; END $$;
+      CREATE TRIGGER test_deny_access_audit BEFORE INSERT ON audit_log
+      FOR EACH ROW EXECUTE FUNCTION test_deny_access_audit();`);
+    try {
+      await expect(grantGlobalRoleShopAccess({ token: owner.token, userId: '2', shopId: shop2 }))
+        .rejects.toThrow('audit indisponible');
+      const rows = await db.query<{ n: number }>('SELECT count(*)::int AS n FROM user_shop_access WHERE user_id = 2 AND shop_id = $1', [shop2]);
+      expect(rows.rows[0]?.n).toBe(0);
+    } finally {
+      await db.exec('DROP TRIGGER test_deny_access_audit ON audit_log; DROP FUNCTION test_deny_access_audit();');
+    }
+  });
+  it('refuse les comptes protégés, sans rôle global et les acteurs non autorisés', async () => {
+    const input = { token: owner.token, userId: '2', shopId: shop2 };
+    await expect(grantGlobalRoleShopAccess({ ...input, token: manager.token })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(grantGlobalRoleShopAccess({ ...input, token: undefined })).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(grantGlobalRoleShopAccess({ ...input, userId: '1' })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(grantGlobalRoleShopAccess({ ...input, userId: '5' })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(revokeShopAccess({ ...input, userId: '5' })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(grantGlobalRoleShopAccess({ ...input, userId: '4' })).rejects.toMatchObject({ httpStatus: 409 });
+    await expect(grantGlobalRoleShopAccess({ ...input, userId: '3' })).rejects.toMatchObject({ httpStatus: 409 });
+    await expect(grantGlobalRoleShopAccess({ ...input, userId: '999' })).rejects.toMatchObject({ httpStatus: 404 });
+    await expect(grantGlobalRoleShopAccess({ ...input, shopId: '999' })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(grantGlobalRoleShopAccess({ ...input, shopId: 'abc' })).rejects.toMatchObject({ httpStatus: 400 });
   });
 });

@@ -188,6 +188,8 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.getByRole('heading', { name: 'Accès boutiques' })).toHaveCount(0);
   expect((await page.request.delete(`/api/admin/users/${ownerId}/shop-access`,
     { data: { shopId: '1' } })).status()).toBe(403);
+  expect((await page.request.post(`/api/admin/users/${ownerId}/shop-access`,
+    { data: { shopId: '1' } })).status()).toBe(403);
   // Même le propriétaire connecté ne peut écrire sans Origin et jeton CSRF.
   expect((await page.request.patch(`/api/admin/users/${ownerId}/status`,
     { data: { status: 'suspended' } })).status()).toBe(403);
