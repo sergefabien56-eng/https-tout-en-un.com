@@ -19,4 +19,4 @@ Une entrée de menu « bientôt » ou une maquette ne vaut jamais réalisation. 
 
 - Recherche audit boutique sélectionnée : code local, 49 tests ciblés, CI du futur SHA en attente. Recherche audit multi-boutiques non livrée, pas de commandes/produits/Jumia/MIMI.
 
-- Accès boutiques indépendants : listing avec provenance et révocation des lignes résiduelles en code local (suite complète Vitest 204/204 sérielle, 5 nouveaux tests), **CI du futur SHA en attente** ; rôles globaux modifiables, accès des comptes à rôle global et invitations SMTP non livrés.
+- Accès boutiques indépendants : publiés et validés (`2572013`, run `43487610108` quatre jobs verts). Restent non livrés : rôles globaux modifiables, accès des comptes à rôle global (révocation aujourd'hui 409) et invitations SMTP.
