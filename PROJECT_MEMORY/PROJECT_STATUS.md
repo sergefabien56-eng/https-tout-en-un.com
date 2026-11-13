@@ -1,5 +1,5 @@
 # Statut — Phase 1
 
-- GitHub `3e41b85d19b99d12b613f726bc15287bb336bb45` publié, run `43490763384` échec : qualité verte, migrations échouées à la restauration, navigateur et archive non lancés. Dernier SHA quatre jobs verts : `2572013`, run `43487610108`.
-- Correctif préparé : nombre attendu de migrations dérivé des fichiers au lieu du nombre figé 10. Cause probable mais logs CI détaillés refusés (403), confirmation en attente de la CI du correctif. Voir `docs/comptes-rendus/phase1-correctif-restauration-ci-0011.md`.
-- L10/P1 incomplets : accès des comptes à rôle global (409), invitations SMTP, paramètres/devise/notifications, santé réelle, Excel/PDF et validation restent à livrer. MIMI souhaitée après L10, ordre avec L11/L12 à confirmer. Windows en pause ; aucune production/backup réel/donnée réelle.
+- GitHub `6a3ab80ef61ba4680c4a2b53a6963f5e28111d51` publié, run `43506484096` échec : qualité et migrations PG16 (dont backup/restore) vertes, navigateur rouge, archive skipped. Annotations : attente de 10 migrations au lieu de 11 sur bureau/mobile et flaky notifications bureau au premier essai. Dernier SHA quatre jobs verts `2572013`, run `43487610108`.
+- Correctif E2E préparé : total des migrations dérivé des fichiers et synchronisation navigation filtre notifications. Cause exacte du flaky non prouvée ; navigateur du présent commit à valider en CI. Voir `docs/comptes-rendus/phase1-correctif-ci-navigateur-0011.md`.
+- L10/P1 incomplets : accès des comptes à rôle global (409), invitations SMTP, paramètres/devise/notifications, santé réelle, Excel/PDF et validation. MIMI souhaitée après L10, ordre avec L11/L12 à confirmer. Windows en pause ; aucune production/backup réel/donnée réelle.

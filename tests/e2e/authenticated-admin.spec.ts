@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { expectNoSeriousAccessibilityViolations } from './accessibility';
 
@@ -79,8 +79,15 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   const filterLink = page.getByRole('navigation', { name: 'Filtrer les notifications' }).getByRole('link',
     { name: firstNotice?.readAt ? 'Non lues' : 'Lues', exact: true });
   await expect(filterLink).toHaveAttribute('href', `/espace/notifications?filter=${targetFilter}`);
-  await filterLink.click();
-  await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}`), { timeout: 15_000 });
+  // Les filtres sont des liens document natifs : ne pas cliquer sur Actualiser
+  // tant que la navigation précédente n'a pas réellement terminé son chargement.
+  const [filteredDocument] = await Promise.all([
+    page.waitForNavigation({ url: new RegExp(`/espace/notifications\\?filter=${targetFilter}$`),
+      waitUntil: 'domcontentloaded', timeout: 15_000 }),
+    filterLink.click(),
+  ]);
+  expect(filteredDocument?.status()).toBe(200);
+  await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}$`));
   await expect(page.locator('.notification-list > li').first()).toBeVisible();
   const refreshFiltered = page.getByRole('link', { name: 'Actualiser les notifications' });
   await expect(refreshFiltered).toHaveAttribute('href', `/espace/notifications?filter=${targetFilter}&page=1`);
@@ -231,7 +238,10 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   const health = await deep.json() as { database: string; migrationsApplied: number; version: string; environment: string;
     databaseQueryMs: number; queue: string; globalEventsRecorded: number; globalCriticalOpen: number; globalWarningsOpen: number };
   expect(health.database).toBe('ok');
-  expect(health.migrationsApplied).toBe(10);
+  // La CI doit avoir appliqué toutes les migrations présentes dans le dépôt.
+  const expectedMigrations = readdirSync('drizzle').filter((name) => /^\d{4}_.+\.up\.sql$/.test(name)).length;
+  expect(expectedMigrations).toBeGreaterThan(0);
+  expect(health.migrationsApplied).toBe(expectedMigrations);
   expect(health.queue).toBe('indisponible');
   expect(health.environment).toBe('staging');
   expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);

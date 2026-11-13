@@ -1,5 +1,7 @@
 - **Validation accès boutiques indépendants** : `2572013` publié sur `main`, run `43487610108` completed success, quatre jobs verts vérifiés via l'API GitHub le 2026-11-13 ; artifact `code-valide-2572013…` présent (30 jours), non restauré. ZIP Drive MD5 concordant. Prochain lot : rôles globaux. Pas de production ni données réelles ; Windows en pause.
 
+- **Correctif E2E (local, CI en attente)** : run `43506484096` de `6a3ab80` qualité/PG16 verts, navigateur rouge (compte migrations figé à 10 ; flaky notifications). Compte dynamique strict et attente navigation filtre ajoutés ; cause exacte du flaky non prouvée.
+
 - **Correctif CI restauration (local, CI en attente)** : `3e41b85` publié, run `43490763384` échec à la restauration ; hypothèse nombre de migrations figé à 10, adapté au nombre de fichiers up ; logs détaillés inaccessibles, diagnostic à confirmer.
 
 - **L10 rôles globaux (local, CI en attente)** : attribution/retrait non-owner par le Propriétaire, audit atomique et migration 0011 ; 209 tests, lint/types/build locaux réussis. Base `2572013` validée par quatre jobs ; navigateur/PG16 du nouveau SHA en attente.
