@@ -208,7 +208,8 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
 });
 
 test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page }, testInfo) => {
-  test.setTimeout(90_000);
+  // Parcours long sur serveur Next en mode dev : garder une marge pour les navigations réelles.
+  test.setTimeout(120_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   await loginOwner(page, testInfo, 1);
   if (testInfo.project.name === 'mobile-375') await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
@@ -513,8 +514,13 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect((await page.request.get('/api/shops/999999/audit')).status()).toBe(403);
   expect((await page.request.get(`/api/shops/${shopId}/audit`)).status()).toBe(200);
   await page.goto('/espace');
-  await page.getByRole('link', { name: 'Consulter mes sessions actives' }).click();
-  await expect(page.getByRole('heading', { name: 'Mes sessions' })).toBeVisible();
+  const sessionsLink = page.getByRole('link', { name: 'Consulter mes sessions actives' });
+  await expect(sessionsLink).toHaveAttribute('href', '/espace/sessions');
+  await sessionsLink.click();
+  // Le rendu serveur Next en CI peut dépasser 5 s (trace du run 43511441768 : ~5,1 s).
+  // Attendre l'arrivée sur la bonne route ET le contenu, sans rejouer le clic ni masquer les erreurs.
+  await expect(page).toHaveURL(/\/espace\/sessions$/, { timeout: 20_000 });
+  await expect(page.getByRole('heading', { name: 'Mes sessions' })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole('table')).toContainText('cette session');
   const sessionResponse = await page.request.get('/api/auth/sessions');
   expect(sessionResponse.status()).toBe(200);

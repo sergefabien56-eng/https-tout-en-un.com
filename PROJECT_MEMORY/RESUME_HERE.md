@@ -1,11 +1,9 @@
-# Reprendre ici — accès des comptes à rôle global
+# Reprendre ici — correctif navigation sessions
 
-## Base publiée et validée
+## État GitHub
 
-GitHub `main=611cecbe1cbc55f08b733be75bfa3405a58040a1`, [run 43508600243](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43508600243) : quatre jobs verts (qualité, PG16, navigateur, archive). Vérification sur la page publique GitHub : graphe HTML `completed successfully` pour chacun ; API anonyme limitée (403). Un artifact présent, non restauré. Preuve `/home/user/continuity-backups/verification-publication-611cecb.md`. Les runs précédents restent rouges dans l'historique.
+GitHub main `2584616bb408b13d279d7d85683c7a250a0dc4f8` publié, [run 43511441768](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43511441768) : qualité et migrations PG16 vertes, navigateur rouge (1 flaky réussi au retry), archive sautée. Base précédente `611cecb`, [run 43508600243](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43508600243), quatre jobs verts.
 
-## Lot préparé — CI propre à vérifier
+La trace Playwright fournie par le propriétaire indique navigation sessions HTTP 200 en ~5,1 s, après délai d'assertion de 5 s. Correctif limité au test dans ce commit : attendre URL et titre (20 s), marge du scénario 120 s, sans supprimer assertions ni tolérer flaky. Voir `docs/comptes-rendus/phase1-correctif-ci-navigation-sessions.md`. 220 Vitest, lint/types et cohérence OK ; E2E réel non exécuté localement. Correctif non validé CI.
 
-Ce commit administre les accès des comptes à rôle global : le Propriétaire attribue ou retire explicitement une boutique sans modifier les rôles, audit atomique et Origin/CSRF ; un rôle boutique présent continue de protéger la ligne d'accès. Voir `docs/comptes-rendus/phase1-acces-comptes-role-global.md`. Local : 220 Vitest, lint, types et build réussis ; E2E navigateur découverts mais non exécutés ici. Publication et CI de ce commit non présumées.
-
-Cycle : snapshot → ZIP Drive privé → publication du propriétaire sans force → fournir immédiatement le lien CI après « publié » → vérifier **quatre jobs du SHA** avant tout lot suivant. Lire `AI_HANDOVER.md`, `PROJECT_STATUS.md`, `NEXT_ACTIONS.md` et le plan. Invitations SMTP et autres critères L10 encore à faire ; Phase 1 non terminée, Windows en pause, ne publier aucun secret ou donnée réelle. MIMI après L10 souhaitée ; ordre avec L11/L12 à préciser.
+Snapshot → ZIP Drive privé → publication du propriétaire sans force → lien CI immédiatement après « publié » → vérifier **quatre jobs du nouveau SHA** avant tout lot suivant. Lire `AI_HANDOVER.md`, `PROJECT_STATUS.md`, `NEXT_ACTIONS.md`. Ne pas publier les traces, secrets ou données réelles ; Phase 1 et L10 inachevés, Windows en pause. MIMI après L10 souhaitée ; ordre avec L11/L12 à préciser.

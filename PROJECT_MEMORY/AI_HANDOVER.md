@@ -2,7 +2,7 @@
 
 ## État actuel prioritaire
 
-GitHub `main=611cecb` publié, run `43508600243` quatre jobs verts vérifiés sur le graphe HTML GitHub ; artifact présent non restauré, API anonyme limitée. Lot accès des comptes à rôle global préparé dans ce commit : attribution/révocation explicites, rôles préservés, audit atomique, tests locaux 220/lint/types/build réussis, E2E de son SHA en attente. Voir `docs/comptes-rendus/phase1-acces-comptes-role-global.md`. Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md` ; ZIP Drive → publication → fournir lien CI dès « publié » → quatre jobs verts avant lot suivant. Maquettes fictives hors dépôt `/home/user/maquette-generale-tout-en-un.html` et `/home/user/maquette-fonctions-developpees.html`. Windows en pause ; MIMI après L10 souhaitée, ordre avec L11/L12 à préciser. Notes historiques ci-dessous potentiellement périmées.
+GitHub `main=2584616` publié, run `43511441768` qualité/PG16 verts, navigateur rouge (1 flaky), archive sautée. Trace Playwright transmise par le propriétaire : navigation vers sessions HTTP 200 après ~5,1 s, alors que l'attente du titre était limitée à 5 s ; voir `docs/comptes-rendus/phase1-correctif-ci-navigation-sessions.md`. Correctif E2E ciblé dans ce commit, non encore validé CI. Base antérieure `611cecb` quatre jobs verts. Lire `RESUME_HERE.md`, `NEXT_ACTIONS.md` ; ZIP Drive → publication → fournir lien CI dès « publié » → quatre jobs verts avant lot suivant. Traces confidentielles exclues du dépôt. Windows en pause ; MIMI après L10 souhaitée, ordre avec L11/L12 à préciser. Notes historiques ci-dessous potentiellement périmées.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.
