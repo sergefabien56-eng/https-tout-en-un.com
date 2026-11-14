@@ -165,6 +165,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(usersCsv.headers()['content-type']).toContain('text/csv');
   const usersCsvText = await usersCsv.text();
   expect(usersCsvText).toContain('proprietaire@ci.invalid');
+  expect(usersCsvText).toContain('"Sans période — instantané"');
   expect(usersCsvText).toContain('"active","owner"');
   expect(usersCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
   expect((await directApi(page.request).get('/api/admin/users/export?role=WRONG')).status()).toBe(400);
@@ -243,6 +244,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(rolesCsv.headers()['cache-control']).toBe('no-store');
   const rolesCsvText = await rolesCsv.text();
   expect(rolesCsvText).toContain('"Organisation — droits globaux"');
+  expect(rolesCsvText).toContain('"Sans période — instantané"');
   expect(rolesCsvText).toContain('"Rôle : Propriétaire (owner)"');
   expect(rolesCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
   await expect(page.getByRole('link', { name: 'Exporter la matrice en Excel' }))
@@ -336,7 +338,9 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(shopsCsv.status()).toBe(200);
   expect(shopsCsv.headers()['content-type']).toContain('text/csv');
   expect(shopsCsv.headers()['cache-control']).toBe('no-store');
-  expect(await shopsCsv.text()).toContain('"Boutique CI fictive","CI","XOF","connected","—"');
+  const shopsCsvText = await shopsCsv.text();
+  expect(shopsCsvText).toContain('"Sans période — instantané"');
+  expect(shopsCsvText).toContain('"Boutique CI fictive","CI","XOF","connected","—"');
   expect((await directApi(page.request).get('/api/shops/export?sort=invalid')).status()).toBe(400);
   await expect(page.getByRole('link', { name: 'Exporter les boutiques autorisées en Excel' }))
     .toHaveAttribute('href', /\/api\/shops\/export\/xlsx\?.*sort=name-asc/);
@@ -488,7 +492,10 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(new URL(failurePresetHref!, page.url()).searchParams.get('result')).toBe('failure');
   const failureCsv = await directApi(page.request).get(failureCsvHref!);
   expect(failureCsv.status()).toBe(200);
-  expect(await failureCsv.text()).toContain('fixture.denied');
+  const failureCsvText = await failureCsv.text();
+  expect(failureCsvText).toContain('fixture.denied');
+  expect(failureCsvText).toContain('"Période fin UTC (incluse)"');
+  expect(failureCsvText).toContain('"Module filtré","Acteur filtré"');
   const failureXlsxHref = await page.getByRole('link', { name: 'Exporter cette sélection en Excel' }).getAttribute('href');
   expect(new URL(failureXlsxHref!, page.url()).searchParams.get('result')).toBe('failure');
   const failureXlsx = await directApi(page.request).get(failureXlsxHref!);

@@ -1,4 +1,6 @@
-- **L10 Excel journal boutique (local, CI en attente)** : mêmes filtres, RLS et droits que CSV, textes hostiles neutralisés, before/after exclus ; 257 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `4c55ea5` publiée, run `43644540811` quatre jobs verts.
+- **L10 métadonnées CSV (local, CI en attente)** : instantané explicite sur rôles/utilisateurs/boutiques ; journal dates UTC fin incluse et filtres module/acteur ; colonnes de métadonnées ajoutées, attention aux consommateurs automatiques. 259 Vitest/lint/types/build/audit high OK, 7 modérées ; E2E et PG16 réels du nouveau SHA à valider. Base `4cf4822` publiée, run `43645700922` quatre jobs verts.
+
+- **L10 Excel journal boutique (publié et validé par 4cf4822)** : mêmes filtres, RLS et droits que CSV, textes hostiles neutralisés, before/after exclus ; 257 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `4c55ea5` publiée, run `43644540811` quatre jobs verts.
 
 - **L10 Excel utilisateurs (publié et validé par 4c55ea5)** : mêmes filtres et droits globaux que CSV, texte hostile neutralisé et aucun secret exporté ; 250 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `c6aeddd` publiée, run `43643492681` quatre jobs verts.
 

@@ -42,8 +42,9 @@ export async function loadAuthorizedShopExport(token: string | undefined, filter
 
 export function formatShopExportCsv(data: ShopExport): string {
   const lines = [
-    ['Périmètre', 'Exporté le UTC', 'Recherche', 'État', 'Tri'].map(safeCsvCell).join(','),
-    ['Boutiques accessibles et exportables', data.exportedAt, data.q || 'Non filtrée', data.status ?? 'Tous', data.sort]
+    ['Périmètre', 'Exporté le UTC', 'Recherche', 'État', 'Tri', 'Période'].map(safeCsvCell).join(','),
+    ['Boutiques accessibles et exportables', data.exportedAt, data.q || 'Non filtrée', data.status ?? 'Tous', data.sort,
+      'Sans période — instantané']
       .map(safeCsvCell).join(','), '',
     ['Identifiant', 'Boutique', 'Pays', 'Devise', 'État', 'Ventes et commandes'].map(safeCsvCell).join(','),
   ];

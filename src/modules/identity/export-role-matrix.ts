@@ -9,8 +9,8 @@ export function formatRoleMatrixCsv(matrix: RoleMatrix, exportedAt: string): str
   if (matrix.roles.length > 100 || matrix.permissions.length > 1_000)
     throw new ValidationError('Matrice trop volumineuse pour cet export.');
   const lines = [
-    ['Périmètre', 'Exporté le UTC'].map(safeCsvCell).join(','),
-    ['Organisation — droits globaux', exportedAt].map(safeCsvCell).join(','),
+    ['Périmètre', 'Exporté le UTC', 'Période'].map(safeCsvCell).join(','),
+    ['Organisation — droits globaux', exportedAt, 'Sans période — instantané'].map(safeCsvCell).join(','),
     '',
     ['Module', 'Code permission', 'Permission', ...matrix.roles.map((role) => `Rôle : ${role.label} (${role.code})`)]
       .map(safeCsvCell).join(','),

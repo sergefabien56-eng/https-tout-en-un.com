@@ -28,9 +28,11 @@ export async function loadAuthorizedAuditExport(input: AuditExportInput): Promis
 }
 
 export function formatAuditExportCsv(data: AuditExport): string {
-  const header = ['Boutique', 'Période début UTC', 'Période fin UTC', 'Exporté le UTC', 'Recherche action/module', 'Résultat filtré'];
+  const header = ['Boutique', 'Période début UTC', 'Période fin UTC (incluse)', 'Exporté le UTC',
+    'Recherche action/module', 'Résultat filtré', 'Module filtré', 'Acteur filtré'];
   const meta = [data.shopId, data.filters.from ?? 'Non filtrée', data.filters.to ?? 'Non filtrée',
-    data.exportedAt, data.filters.q?.trim() || 'Non filtrée', data.filters.result ?? 'Tous'];
+    data.exportedAt, data.filters.q?.trim() || 'Non filtrée', data.filters.result ?? 'Tous',
+    data.filters.module ?? 'Tous', data.filters.actorId ?? 'Tous'];
   const columns = ['Identifiant', 'Date UTC', 'Acteur', 'Module', 'Action', 'Entité', 'Résultat'];
   const lines = [header.map(safeCsvCell).join(','), meta.map(safeCsvCell).join(','), '', columns.map(safeCsvCell).join(',')];
   for (const r of data.rows) lines.push([r.id, new Date(r.occurred_at).toISOString(),

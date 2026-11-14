@@ -26,8 +26,9 @@ export async function loadAuthorizedUsersExport(
 }
 
 export function formatUsersExportCsv(data: UserExport): string {
-  const metaColumns = ['Périmètre', 'Exporté le UTC', 'Recherche', 'Statut', 'Rôle'];
-  const meta = ['Organisation — droits globaux', data.exportedAt, data.term || 'Non filtrée', data.status, data.role];
+  const metaColumns = ['Périmètre', 'Exporté le UTC', 'Recherche', 'Statut', 'Rôle', 'Période'];
+  const meta = ['Organisation — droits globaux', data.exportedAt, data.term || 'Non filtrée', data.status, data.role,
+    'Sans période — instantané'];
   const columns = ['Identifiant', 'Nom', 'Adresse e-mail', 'Statut', 'Créé le UTC'];
   const lines = [metaColumns.map(safeCsvCell).join(','), meta.map(safeCsvCell).join(','), '',
     columns.map(safeCsvCell).join(',')];
