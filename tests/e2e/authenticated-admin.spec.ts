@@ -1,5 +1,6 @@
 import { directApi } from './direct-api';
 import { readFileSync, readdirSync } from 'node:fs';
+import ExcelJS from 'exceljs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { expectNoSeriousAccessibilityViolations } from './accessibility';
 
@@ -326,6 +327,18 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(shopsCsv.headers()['cache-control']).toBe('no-store');
   expect(await shopsCsv.text()).toContain('"Boutique CI fictive","CI","XOF","connected","—"');
   expect((await directApi(page.request).get('/api/shops/export?sort=invalid')).status()).toBe(400);
+  await expect(page.getByRole('link', { name: 'Exporter les boutiques autorisées en Excel' }))
+    .toHaveAttribute('href', /\/api\/shops\/export\/xlsx\?.*sort=name-asc/);
+  const shopsXlsx = await directApi(page.request).get('/api/shops/export/xlsx?status=&sort=name-asc');
+  expect(shopsXlsx.status()).toBe(200);
+  expect(shopsXlsx.headers()['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  expect(shopsXlsx.headers()['cache-control']).toBe('no-store');
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(Uint8Array.from(await shopsXlsx.body()).buffer);
+  const sheet = workbook.getWorksheet('Boutiques')!;
+  expect(sheet.getCell('B8').value).toBe('Boutique CI fictive');
+  expect(sheet.getCell('F8').value).toBe('—');
+  expect((await directApi(page.request).get('/api/shops/export/xlsx?sort=invalid')).status()).toBe(400);
   await page.getByRole('navigation', { name: 'Affichage des boutiques' }).getByRole('link', { name: 'Cartes repliables' }).click();
   await expect(page).toHaveURL(/view=cards/);
   await expect(page).toHaveURL(/sort=name-asc/);

@@ -32,8 +32,9 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
   const session = token ? await getSession(token) : null;
   if (!session) redirect('/connexion');
   const grants = await getNavigationPermissions(session.userId);
-  const exportHref = `/api/shops/export?${new URLSearchParams({ q: params.q ?? '',
-    status: params.status ?? '', sort })}`;
+  const exportFilters = new URLSearchParams({ q: params.q ?? '', status: params.status ?? '', sort });
+  const exportHref = `/api/shops/export?${exportFilters}`;
+  const exportXlsxHref = `/api/shops/export/xlsx?${exportFilters}`;
   return <main className="workspace-main">
     <span className="tag">Boutiques accessibles</span>
     <h1>Toutes les boutiques autorisées</h1>
@@ -58,6 +59,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
       </select><button type="submit">Filtrer</button>
     </form>
     {grants.permissions.has('reports:export') && <p><a href={exportHref}>Exporter les boutiques autorisées en CSV</a>
+      {' · '}<a href={exportXlsxHref}>Exporter les boutiques autorisées en Excel</a>
       {' '}(toutes les pages, droits d’export boutique requis ; chiffres Jumia indisponibles).</p>}
     <nav aria-label="Affichage des boutiques" className="shop-view-switch">
       <Link href={hrefFor('table')} aria-current={view === 'table' ? 'page' : undefined}>Tableau</Link>

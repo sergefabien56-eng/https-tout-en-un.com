@@ -1,5 +1,5 @@
-# Actions suivantes — correctif transport CI
+# Actions suivantes — export Excel boutiques
 
-1. `14d046e` publié ; [run 43639821115](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43639821115) qualité/PG16 verts, navigateur rouge sur un ECONNRESET flaky, archive sautée. Cause exacte non prouvée ; trace et logs privés.
-2. Livrer le correctif sur Arena → publication sans force → lien CI immédiatement à « publié » → vérifier les quatre jobs du nouveau SHA. Correctif limité au transport API Playwright, aucun retry, assertions et `failOnFlakyTests` maintenus. 238 Vitest, lint/types/build/audit high locaux OK (7 modérées) ; navigateur et PG16 réels du nouveau SHA non exécutés localement. Réinvestiguer si échec, ne pas masquer l'instabilité ; un run vert seul ne prouve pas la cause initiale.
-3. Uniquement après quatre jobs verts, poursuivre les critères L10 : invitations SMTP, paramètres/devise/notifications, santé réelle, Excel autres écrans/PDF. MIMI souhaitée après L10, ordre avec L11/L12 à confirmer ; P1 incomplète ; Windows en pause ; conserver copie indépendante.
+1. Base `adcdaa3` publiée, [run 43642226784](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43642226784) quatre jobs verts et 10 tests navigateur. Artifact non restauré ; cause exacte ECONNRESET historique inconnue.
+2. Livrer ZIP sur Arena → publication sans force → lien CI immédiatement à « publié » → vérifier les quatre jobs du nouveau SHA avant autre lot. 244 Vitest, lint/types/build/audit high locaux OK (7 modérées) ; 10 E2E listés, navigateur et PG16 réels du nouveau SHA non exécutés localement. Ne pas masquer un échec.
+3. Après validation, continuer critères L10 : invitations SMTP, paramètres/devise/notifications, santé réelle, exports Excel d'autres écrans et PDF. MIMI souhaitée après L10, ordre avec L11/L12 à confirmer ; P1 incomplète, Windows en pause, conserver copie indépendante.
