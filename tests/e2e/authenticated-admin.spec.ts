@@ -1,3 +1,4 @@
+import { directApi } from './direct-api';
 import { readFileSync, readdirSync } from 'node:fs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { expectNoSeriousAccessibilityViolations } from './accessibility';
@@ -38,7 +39,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.getByRole('heading', { name: 'Mes notifications' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Nouvelle connexion' }).first()).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
-  const noticeResponse = await page.request.get('/api/notifications');
+  const noticeResponse = await directApi(page.request).get('/api/notifications');
   expect(noticeResponse.status()).toBe(200);
   const notices = await noticeResponse.json() as { notifications: { id: string; kind: string; message: string; readAt: string | null }[] };
   expect(notices.notifications.some((n) => n.kind === 'security_login')).toBe(true);
@@ -50,9 +51,9 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(visibleId).toMatch(/^[1-9]\d*$/);
   const firstNotice = notices.notifications.find((notice) => notice.id === visibleId);
   expect(firstNotice, 'La notification affichée doit appartenir au compte autorisé').toBeDefined();
-  expect((await page.request.get('/api/notifications?filter=incorrect')).status()).toBe(400);
+  expect((await directApi(page.request).get('/api/notifications?filter=incorrect')).status()).toBe(400);
   const initialFilter = firstNotice?.readAt ? 'read' : 'unread';
-  const initialFiltered = await page.request.get(`/api/notifications?filter=${initialFilter}`);
+  const initialFiltered = await directApi(page.request).get(`/api/notifications?filter=${initialFilter}`);
   expect(initialFiltered.status()).toBe(200);
   expect((await initialFiltered.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
   // Figée par ID si un rafraîchissement remplace entre-temps la première ligne.
@@ -67,7 +68,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(mutation.url()).toContain(`/api/notifications/${firstNotice?.id}/read`);
   expect(mutation.status()).toBe(200);
   await expect.poll(async () => {
-    const result = await page.request.get('/api/notifications');
+    const result = await directApi(page.request).get('/api/notifications');
     const data = await result.json() as { notifications: { id: string; readAt: string | null }[] };
     return Boolean(data.notifications.find((n) => n.id === firstNotice?.id)?.readAt);
   }).toBe(!firstNotice?.readAt);
@@ -102,7 +103,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(refreshedDocument?.status()).toBe(200);
   await expect(page).toHaveURL(new RegExp(`filter=${targetFilter}&page=1$`));
   await expect(page.locator(`.notification-list > li[data-notification-id="${visibleId}"]`)).toBeVisible();
-  const afterFilter = await page.request.get(`/api/notifications?filter=${targetFilter}`);
+  const afterFilter = await directApi(page.request).get(`/api/notifications?filter=${targetFilter}`);
   expect((await afterFilter.json() as { notifications: { id: string }[] }).notifications.some((n) => n.id === firstNotice?.id)).toBe(true);
   await page.goto('/espace');
 
@@ -115,26 +116,26 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.getByRole('heading', { name: 'Utilisateurs' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
   await expectNoSeriousAccessibilityViolations(page);
-  const response = await page.request.get('/api/admin/users');
+  const response = await directApi(page.request).get('/api/admin/users');
   expect(response.status()).toBe(200);
   const result = await response.json() as { users: { id: string; email: string }[] };
   expect(result.users[0]?.email).toBe('proprietaire@ci.invalid');
-  const filteredUsers = await page.request.get('/api/admin/users?q=proprietaire');
+  const filteredUsers = await directApi(page.request).get('/api/admin/users?q=proprietaire');
   expect(filteredUsers.status()).toBe(200);
   expect((await filteredUsers.json() as { users: { email: string }[] }).users.map((u) => u.email))
     .toEqual(['proprietaire@ci.invalid']);
-  expect((await page.request.get('/api/admin/users?q=%0A')).status()).toBe(400);
-  const activeUsers = await page.request.get('/api/admin/users?status=active&q=proprietaire');
+  expect((await directApi(page.request).get('/api/admin/users?q=%0A')).status()).toBe(400);
+  const activeUsers = await directApi(page.request).get('/api/admin/users?status=active&q=proprietaire');
   expect((await activeUsers.json() as { users: { email: string }[] }).users.map((u) => u.email))
     .toEqual(['proprietaire@ci.invalid']);
-  expect((await page.request.get('/api/admin/users?status=invited')).status()).toBe(200);
-  expect((await page.request.get('/api/admin/users?status=unexpected')).status()).toBe(400);
-  const ownerRole = await page.request.get('/api/admin/users?role=owner&status=active');
+  expect((await directApi(page.request).get('/api/admin/users?status=invited')).status()).toBe(200);
+  expect((await directApi(page.request).get('/api/admin/users?status=unexpected')).status()).toBe(400);
+  const ownerRole = await directApi(page.request).get('/api/admin/users?role=owner&status=active');
   expect(ownerRole.status()).toBe(200);
   expect((await ownerRole.json() as { users: { email: string }[] }).users.map((u) => u.email))
     .toEqual(['proprietaire@ci.invalid']);
-  expect((await page.request.get('/api/admin/users?role=manager')).status()).toBe(200);
-  expect((await page.request.get('/api/admin/users?role=invalid')).status()).toBe(400);
+  expect((await directApi(page.request).get('/api/admin/users?role=manager')).status()).toBe(200);
+  expect((await directApi(page.request).get('/api/admin/users?role=invalid')).status()).toBe(400);
   await page.getByRole('searchbox', { name: 'Rechercher un utilisateur' }).fill('proprietaire');
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page).toHaveURL(/q=proprietaire/);
@@ -157,7 +158,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.getByRole('table')).toContainText('proprietaire@ci.invalid');
   const usersExportLink = page.getByRole('link', { name: /Exporter les utilisateurs correspondant aux filtres en CSV/ });
   await expect(usersExportLink).toHaveAttribute('href', /status=active&role=owner/);
-  const usersCsv = await page.request.get(await usersExportLink.getAttribute('href') ?? '');
+  const usersCsv = await directApi(page.request).get(await usersExportLink.getAttribute('href') ?? '');
   expect(usersCsv.status()).toBe(200);
   expect(usersCsv.headers()['cache-control']).toBe('no-store');
   expect(usersCsv.headers()['content-type']).toContain('text/csv');
@@ -165,7 +166,7 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(usersCsvText).toContain('proprietaire@ci.invalid');
   expect(usersCsvText).toContain('"active","owner"');
   expect(usersCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
-  expect((await page.request.get('/api/admin/users/export?role=WRONG')).status()).toBe(400);
+  expect((await directApi(page.request).get('/api/admin/users/export?role=WRONG')).status()).toBe(400);
   await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
   await expect(page).toHaveURL(/\/espace\/utilisateurs\/[1-9]\d*$/);
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible({ timeout: 15_000 });
@@ -174,25 +175,25 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   // peut consommer l'ID 1. Ne jamais supposer que le propriétaire porte cet ID.
   const ownerId = result.users.find((entry) => entry.email === 'proprietaire@ci.invalid')?.id;
   expect(ownerId).toMatch(/^[1-9]\d*$/);
-  const user = await page.request.get(`/api/admin/users/${ownerId}`);
+  const user = await directApi(page.request).get(`/api/admin/users/${ownerId}`);
   expect(user.status()).toBe(200);
   expect((await user.json() as { roles: { shopId: string | null }[] }).roles[0]?.shopId).toBeNull();
   await expect(page.getByRole('button', { name: /Suspendre et déconnecter|Réactiver/ })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Attribuer un rôle boutique' })).toHaveCount(0);
-  expect((await page.request.post(`/api/admin/users/${ownerId}/shop-roles`,
+  expect((await directApi(page.request).post(`/api/admin/users/${ownerId}/shop-roles`,
     { data: { shopId: '1', roleCode: 'manager', grant: true } })).status()).toBe(403);
   // Rôles globaux : compte protégé et mutation interdite sans Origin/CSRF.
   await expect(page.getByRole('heading', { name: 'Attribuer un rôle global' })).toHaveCount(0);
-  expect((await page.request.post(`/api/admin/users/${ownerId}/global-roles`,
+  expect((await directApi(page.request).post(`/api/admin/users/${ownerId}/global-roles`,
     { data: { roleCode: 'manager', grant: true } })).status()).toBe(403);
   // Accès indépendants : carte absente sur un compte protégé, révocation refusée sans Origin/CSRF.
   await expect(page.getByRole('heading', { name: 'Accès boutiques' })).toHaveCount(0);
-  expect((await page.request.delete(`/api/admin/users/${ownerId}/shop-access`,
+  expect((await directApi(page.request).delete(`/api/admin/users/${ownerId}/shop-access`,
     { data: { shopId: '1' } })).status()).toBe(403);
-  expect((await page.request.post(`/api/admin/users/${ownerId}/shop-access`,
+  expect((await directApi(page.request).post(`/api/admin/users/${ownerId}/shop-access`,
     { data: { shopId: '1' } })).status()).toBe(403);
   // Même le propriétaire connecté ne peut écrire sans Origin et jeton CSRF.
-  expect((await page.request.patch(`/api/admin/users/${ownerId}/status`,
+  expect((await directApi(page.request).patch(`/api/admin/users/${ownerId}/status`,
     { data: { status: 'suspended' } })).status()).toBe(403);
   // Recherche transversale bornée : comptes avec droit global, boutiques filtrées par RLS.
   await page.goto('/espace/recherche');
@@ -220,11 +221,11 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page).toHaveURL(/\/espace\/roles$/);
   await expect(page.getByRole('heading', { name: 'Rôles et permissions' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Propriétaire');
-  const roles = await page.request.get('/api/admin/roles');
+  const roles = await directApi(page.request).get('/api/admin/roles');
   expect(roles.status()).toBe(200);
   await expect(page.getByRole('link', { name: 'Exporter la matrice en CSV' }))
     .toHaveAttribute('href', '/api/admin/roles/export');
-  const rolesCsv = await page.request.get('/api/admin/roles/export');
+  const rolesCsv = await directApi(page.request).get('/api/admin/roles/export');
   expect(rolesCsv.status()).toBe(200);
   expect(rolesCsv.headers()['content-type']).toContain('text/csv');
   expect(rolesCsv.headers()['cache-control']).toBe('no-store');
@@ -234,7 +235,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(rolesCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
   await expect(page.getByRole('link', { name: 'Exporter la matrice en Excel' }))
     .toHaveAttribute('href', '/api/admin/roles/export/xlsx');
-  const rolesXlsx = await page.request.get('/api/admin/roles/export/xlsx');
+  const rolesXlsx = await directApi(page.request).get('/api/admin/roles/export/xlsx');
   expect(rolesXlsx.status()).toBe(200);
   expect(rolesXlsx.headers()['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   expect(rolesXlsx.headers()['cache-control']).toBe('no-store');
@@ -244,7 +245,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByRole('heading', { level: 1, name: 'Système', exact: true })).toBeVisible();
   await expect(page.getByText(/File de tâches/)).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
-  const deep = await page.request.get('/api/health/deep');
+  const deep = await directApi(page.request).get('/api/health/deep');
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number; version: string; environment: string;
     databaseQueryMs: number; queue: string; globalEventsRecorded: number; globalCriticalOpen: number; globalWarningsOpen: number };
@@ -300,13 +301,13 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
     await page.reload();
     await expect(page.getByLabel('Fuseau de référence de l’organisation')).toHaveValue(nextTimezone);
   }
-  expect((await page.request.put('/api/admin/settings/organization-name', { data: { name: 'Interdit' } })).status()).toBe(403);
+  expect((await directApi(page.request).put('/api/admin/settings/organization-name', { data: { name: 'Interdit' } })).status()).toBe(403);
   await expectNoSeriousAccessibilityViolations(page);
-  const settings = await page.request.get('/api/admin/settings');
+  const settings = await directApi(page.request).get('/api/admin/settings');
   expect(settings.status()).toBe(200);
   expect(Object.keys(await settings.json() as object)).toEqual(['timezone']);
   // Aucun changement de paramètre sans Origin et CSRF, même avec la session propriétaire.
-  expect((await page.request.put('/api/admin/settings', { data: { timezone: 'UTC' } })).status()).toBe(403);
+  expect((await directApi(page.request).put('/api/admin/settings', { data: { timezone: 'UTC' } })).status()).toBe(403);
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();
@@ -314,17 +315,17 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page).toHaveURL(/sort=name-asc/);
   await expect(page.getByRole('table')).toContainText('Boutique CI fictive');
-  expect((await page.request.get('/api/shops?status=&sort=name-asc')).status()).toBe(200);
-  expect((await page.request.get('/api/shops?status=malicious&sort=name-asc')).status()).toBe(400);
-  expect((await page.request.get('/api/shops?sort=name%3BDELETE')).status()).toBe(400);
+  expect((await directApi(page.request).get('/api/shops?status=&sort=name-asc')).status()).toBe(200);
+  expect((await directApi(page.request).get('/api/shops?status=malicious&sort=name-asc')).status()).toBe(400);
+  expect((await directApi(page.request).get('/api/shops?sort=name%3BDELETE')).status()).toBe(400);
   await expect(page.getByRole('link', { name: 'Exporter les boutiques autorisées en CSV' }))
     .toHaveAttribute('href', /\/api\/shops\/export\?.*sort=name-asc/);
-  const shopsCsv = await page.request.get('/api/shops/export?status=&sort=name-asc');
+  const shopsCsv = await directApi(page.request).get('/api/shops/export?status=&sort=name-asc');
   expect(shopsCsv.status()).toBe(200);
   expect(shopsCsv.headers()['content-type']).toContain('text/csv');
   expect(shopsCsv.headers()['cache-control']).toBe('no-store');
   expect(await shopsCsv.text()).toContain('"Boutique CI fictive","CI","XOF","connected","—"');
-  expect((await page.request.get('/api/shops/export?sort=invalid')).status()).toBe(400);
+  expect((await directApi(page.request).get('/api/shops/export?sort=invalid')).status()).toBe(400);
   await page.getByRole('navigation', { name: 'Affichage des boutiques' }).getByRole('link', { name: 'Cartes repliables' }).click();
   await expect(page).toHaveURL(/view=cards/);
   await expect(page).toHaveURL(/sort=name-asc/);
@@ -377,7 +378,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
     await page.keyboard.press('Escape');
     await expect(menuTrigger).toBeFocused();
   }
-  const shopsResponse = await page.request.get('/api/shops');
+  const shopsResponse = await directApi(page.request).get('/api/shops');
   expect(shopsResponse.status()).toBe(200);
   const shopList = await shopsResponse.json() as { shops: { id: string; displayName: string }[] };
   expect(shopList.shops).toHaveLength(1);
@@ -388,12 +389,12 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(quickSearch).toBeVisible();
   await quickSearch.getByRole('searchbox', { name: 'Rechercher dans mon espace' }).fill('Boutique CI');
   await expect(quickSearch.getByRole('link', { name: /Boutique CI fictive/ })).toBeVisible();
-  const quickResults = await page.request.get('/api/search?q=proprietaire');
+  const quickResults = await directApi(page.request).get('/api/search?q=proprietaire');
   expect(quickResults.status()).toBe(200);
   const directory = await quickResults.json() as { shops: unknown[]; users: { email: string }[] };
   expect(directory.users.map((user) => user.email)).toContain('proprietaire@ci.invalid');
   expect(JSON.stringify(directory)).not.toMatch(/password_hash|token_hash|totp_secret/);
-  expect((await page.request.get('/api/search?q=x')).status()).toBe(400);
+  expect((await directApi(page.request).get('/api/search?q=x')).status()).toBe(400);
   await quickSearch.getByRole('searchbox', { name: 'Rechercher dans mon espace' }).fill('proprietaire');
   await expect(quickSearch.getByRole('link', { name: /Propriétaire CI · proprietaire@ci.invalid/ })).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
@@ -412,7 +413,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await picker.getByRole('button', { name: /Boutique CI fictive/ }).click();
   await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toContainText('Préférence : Boutique CI fictive');
   // Recherche transversale : audit seulement dans la boutique sélectionnée et autorisée.
-  const auditQuickResponse = await page.request.get('/api/search?q=fixture.created');
+  const auditQuickResponse = await directApi(page.request).get('/api/search?q=fixture.created');
   expect(auditQuickResponse.status()).toBe(200);
   const auditQuick = await auditQuickResponse.json() as { auditShopId: string | null;
     audit: { module: string; action: string; shopId: string }[] };
@@ -461,14 +462,14 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   const failurePresetHref = await page.getByRole('navigation', { name: 'Périodes rapides du journal' })
     .getByRole('link', { name: '7 derniers jours (UTC)' }).getAttribute('href');
   expect(new URL(failurePresetHref!, page.url()).searchParams.get('result')).toBe('failure');
-  const failureCsv = await page.request.get(failureCsvHref!);
+  const failureCsv = await directApi(page.request).get(failureCsvHref!);
   expect(failureCsv.status()).toBe(200);
   expect(await failureCsv.text()).toContain('fixture.denied');
-  const failureApi = await page.request.get(`/api/shops/${shopId}/audit?result=failure`);
+  const failureApi = await directApi(page.request).get(`/api/shops/${shopId}/audit?result=failure`);
   expect(failureApi.status()).toBe(200);
   expect((await failureApi.json() as { events: { result: string; action: string }[] }).events)
     .toEqual([expect.objectContaining({ result: 'failure', action: 'fixture.denied' })]);
-  expect((await page.request.get(`/api/shops/${shopId}/audit?result=unknown`)).status()).toBe(400);
+  expect((await directApi(page.request).get(`/api/shops/${shopId}/audit?result=unknown`)).status()).toBe(400);
   await page.getByRole('combobox', { name: 'Résultat' }).selectOption('');
   await page.getByRole('search').getByRole('button', { name: 'Filtrer' }).click();
   await expect(page.getByRole('combobox', { name: 'Résultat' })).toHaveValue('');
@@ -480,7 +481,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
     await page.keyboard.press('ArrowRight');
     await expect.poll(() => scrollableJournal.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
   }
-  const searchedAudit = await page.request.get(`/api/shops/${shopId}/audit?q=fixture.created`);
+  const searchedAudit = await directApi(page.request).get(`/api/shops/${shopId}/audit?q=fixture.created`);
   expect(searchedAudit.status()).toBe(200);
   expect((await searchedAudit.json() as { events: { action: string }[] }).events.map((e) => e.action))
     .toEqual(['fixture.created']);
@@ -510,7 +511,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(filteredCsvUrl).toContain('q=fixture.created');
   expect(new URL(filteredCsvUrl!, page.url()).searchParams.get('from')).toBe(presetFrom);
   expect(new URL(filteredCsvUrl!, page.url()).searchParams.get('to')).toBe(presetTo);
-  const filteredCsv = await page.request.get(filteredCsvUrl!);
+  const filteredCsv = await directApi(page.request).get(filteredCsvUrl!);
   expect(filteredCsv.status()).toBe(200);
   expect(await filteredCsv.text()).not.toContain(`"'=cmd"`);
   const thirtyLink = page.getByRole('navigation', { name: 'Périodes rapides du journal' })
@@ -526,7 +527,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect((Date.parse(`${thirty.get('to')}T00:00:00Z`) - Date.parse(`${thirty.get('from')}T00:00:00Z`)) / 86_400_000).toBe(29);
   await expect(page.getByRole('table')).toContainText('fixture.created');
   await page.goto('/espace/journal');
-  const exportResponse = await page.request.get(`/api/shops/${shopId}/audit/export`);
+  const exportResponse = await directApi(page.request).get(`/api/shops/${shopId}/audit/export`);
   expect(exportResponse.status()).toBe(200);
   expect(exportResponse.headers()['content-type']).toContain('text/csv');
   const csvText = await exportResponse.text();
@@ -535,22 +536,22 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(csvText).toContain(`"'@hostile"`);
   await page.goto('/espace/boutiques');
   // Une sélection fabriquée par le navigateur doit échouer malgré une session owner.
-  await page.request.get('/api/auth/csrf');
+  await directApi(page.request).get('/api/auth/csrf');
   const shopCsrf = (await page.context().cookies()).find((c) => c.name === 'toutenun_csrf')?.value;
   expect(shopCsrf).toMatch(/^[A-Za-z0-9_-]{43}$/);
-  const selectInvalid = await page.request.post('/api/preferences/shop', { headers: {
+  const selectInvalid = await directApi(page.request).post('/api/preferences/shop', { headers: {
     origin: 'http://127.0.0.1:3100', 'x-csrf-token': shopCsrf!,
   }, data: { shopId: '999999' } });
   expect(selectInvalid.status()).toBe(403);
-  const selectAll = await page.request.post('/api/preferences/shop', { headers: {
+  const selectAll = await directApi(page.request).post('/api/preferences/shop', { headers: {
     origin: 'http://127.0.0.1:3100', 'x-csrf-token': shopCsrf!,
   }, data: { shopId: 'all' } });
   expect(selectAll.status()).toBe(200);
   await page.goto('/espace/journal');
   await expect(page.getByRole('heading', { name: 'Choisissez une boutique' })).toBeVisible();
   // Une boutique inexistante ne doit pas exposer de journal, même au propriétaire.
-  expect((await page.request.get('/api/shops/999999/audit')).status()).toBe(403);
-  expect((await page.request.get(`/api/shops/${shopId}/audit`)).status()).toBe(200);
+  expect((await directApi(page.request).get('/api/shops/999999/audit')).status()).toBe(403);
+  expect((await directApi(page.request).get(`/api/shops/${shopId}/audit`)).status()).toBe(200);
   await page.goto('/espace');
   const sessionsLink = page.getByRole('link', { name: 'Consulter mes sessions actives' });
   await expect(sessionsLink).toHaveAttribute('href', '/espace/sessions');
@@ -560,7 +561,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page).toHaveURL(/\/espace\/sessions$/, { timeout: 20_000 });
   await expect(page.getByRole('heading', { name: 'Mes sessions' })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole('table')).toContainText('cette session');
-  const sessionResponse = await page.request.get('/api/auth/sessions');
+  const sessionResponse = await directApi(page.request).get('/api/auth/sessions');
   expect(sessionResponse.status()).toBe(200);
   const payload = await sessionResponse.json() as { sessions: { id: string; current: boolean }[] };
   expect(payload.sessions.some((entry) => entry.current)).toBe(true);
@@ -572,29 +573,29 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(currentRow.getByRole('button', { name: 'Déconnecter cet autre appareil' })).toHaveCount(0);
   const currentId = payload.sessions.find((entry) => entry.current)!.id;
   expect(JSON.stringify(payload)).not.toMatch(/token_hash|user_agent|ip_hash/);
-  const csrf = await page.request.get('/api/auth/csrf');
+  const csrf = await directApi(page.request).get('/api/auth/csrf');
   expect(csrf.status()).toBe(200);
   const csrfToken = (await page.context().cookies()).find((cookie) => cookie.name === 'toutenun_csrf')?.value;
   expect(csrfToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
-  const blockedCurrent = await page.request.post(`/api/auth/sessions/${currentId}/revoke`, {
+  const blockedCurrent = await directApi(page.request).post(`/api/auth/sessions/${currentId}/revoke`, {
     headers: { origin: 'http://127.0.0.1:3100', 'x-csrf-token': csrfToken! },
   });
   expect(blockedCurrent.status()).toBe(404);
-  expect((await page.request.get('/api/auth/me')).status()).toBe(200);
-  const blockedForeignOrigin = await page.request.post('/api/auth/sessions/999999/revoke', {
+  expect((await directApi(page.request).get('/api/auth/me')).status()).toBe(200);
+  const blockedForeignOrigin = await directApi(page.request).post('/api/auth/sessions/999999/revoke', {
     headers: { origin: 'http://unauthorized.invalid', 'x-csrf-token': csrfToken! },
   });
   expect(blockedForeignOrigin.status()).toBe(403);
   // La révocation groupée ne doit jamais être déclenchée contre les autres scénarios CI
   // partageant ce compte ; vérifier ses barrières sans changer leurs sessions.
-  expect((await page.request.post('/api/auth/sessions/revoke-others', {
+  expect((await directApi(page.request).post('/api/auth/sessions/revoke-others', {
     headers: { origin: 'http://unauthorized.invalid', 'x-csrf-token': csrfToken! },
   })).status()).toBe(403);
-  expect((await page.request.get('/api/auth/me')).status()).toBe(200);
-  const refresh = await page.request.post('/api/auth/refresh', {
+  expect((await directApi(page.request).get('/api/auth/me')).status()).toBe(200);
+  const refresh = await directApi(page.request).post('/api/auth/refresh', {
     headers: { origin: 'http://127.0.0.1:3100', 'x-csrf-token': csrfToken! },
   });
   expect(refresh.status()).toBe(200);
   expect(new Date((await refresh.json() as { expiresAt: string }).expiresAt).getTime()).toBeGreaterThan(Date.now());
-  expect((await page.request.get('/api/auth/me')).status()).toBe(200);
+  expect((await directApi(page.request).get('/api/auth/me')).status()).toBe(200);
 });

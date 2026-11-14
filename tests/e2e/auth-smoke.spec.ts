@@ -1,3 +1,4 @@
+import { directApi } from './direct-api';
 import { expect, test } from '@playwright/test';
 import { expectNoSeriousAccessibilityViolations } from './accessibility';
 
@@ -21,7 +22,7 @@ test('espace privé inaccessible sans session, côté serveur', async ({ page })
   await page.goto('/espace');
   await expect(page).toHaveURL(/\/connexion$/);
   await expect(page.getByText(/Bienvenue,/)).toHaveCount(0);
-  const result = await page.request.get('/api/auth/me');
+  const result = await directApi(page.request).get('/api/auth/me');
   expect(result.status()).toBe(401);
   await page.goto('/espace/apparence');
   await expect(page).toHaveURL(/\/connexion$/);
