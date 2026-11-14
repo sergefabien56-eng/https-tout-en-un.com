@@ -270,10 +270,28 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   if (testInfo.project.name === 'bureau') {
     const name = `Organisation CI ${testInfo.retry}`;
     await page.getByLabel('Nom de l’organisation').fill(name);
-    await page.getByRole('button', { name: 'Enregistrer le nom' }).click();
+    const [nameResponse] = await Promise.all([
+      page.waitForResponse((response) => response.url().endsWith('/api/admin/settings/organization-name')
+        && response.request().method() === 'PUT'),
+      page.getByRole('button', { name: 'Enregistrer le nom' }).click(),
+    ]);
+    expect(nameResponse.status()).toBe(200);
     await expect(page.getByRole('status').filter({ hasText: 'Nom enregistré.' })).toBeVisible();
     await page.reload();
     await expect(page.getByLabel('Nom de l’organisation')).toHaveValue(name);
+    // La même policy d'audit couvre aussi la modification du fuseau global.
+    const timezoneSelect = page.getByLabel('Fuseau de référence de l’organisation');
+    const nextTimezone = await timezoneSelect.inputValue() === 'UTC' ? 'Europe/Paris' : 'UTC';
+    await timezoneSelect.selectOption(nextTimezone);
+    const [timezoneResponse] = await Promise.all([
+      page.waitForResponse((response) => response.url().endsWith('/api/admin/settings')
+        && response.request().method() === 'PUT'),
+      page.getByRole('button', { name: 'Enregistrer', exact: true }).click(),
+    ]);
+    expect(timezoneResponse.status()).toBe(200);
+    await expect(page.getByText('Fuseau enregistré.', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel('Fuseau de référence de l’organisation')).toHaveValue(nextTimezone);
   }
   expect((await page.request.put('/api/admin/settings/organization-name', { data: { name: 'Interdit' } })).status()).toBe(403);
   await expectNoSeriousAccessibilityViolations(page);

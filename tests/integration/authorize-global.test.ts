@@ -7,10 +7,14 @@ import type { PoolClient } from 'pg';
 import { createSessionToken } from '@/core/auth/primitives';
 
 let db: PGlite;
+let useRestrictedRole = false;
 vi.mock('@/core/db/client', () => ({
   withIdentityTransaction: async <T>(task: (client: PoolClient) => Promise<T>): Promise<T> => {
     await db.exec('BEGIN;');
-    try { const result = await task(db as unknown as PoolClient); await db.exec('COMMIT;'); return result; }
+    try {
+      if (useRestrictedRole) await db.exec('SET LOCAL ROLE settings_test_app;');
+      const result = await task(db as unknown as PoolClient); await db.exec('COMMIT;'); return result;
+    }
     catch (error) { await db.exec('ROLLBACK;'); throw error; }
   },
 }));
@@ -36,6 +40,10 @@ beforeAll(async () => {
     await db.exec(readFileSync(join(dir, file), 'utf8'));
   }
   await db.exec(`
+    CREATE ROLE settings_test_app NOLOGIN NOBYPASSRLS;
+    GRANT USAGE ON SCHEMA public TO settings_test_app;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO settings_test_app;
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO settings_test_app;
     INSERT INTO marketplace_apps (label, client_id) VALUES ('test', 'test');
     INSERT INTO shops (app_id, jumia_shop_sid, business_client_code, country_code, currency, display_name)
       VALUES (1, gen_random_uuid(), 'test-ci', 'CI', 'XOF', 'Boutique test');
@@ -270,6 +278,20 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       { actor_user_id: '3', before: { name: 'Société Démo' }, after: { name: 'Autre organisation' } },
     ]);
   });
+  it('paramètres : les deux mutations et leur audit fonctionnent sous un rôle sans BYPASSRLS', async () => {
+    try {
+      useRestrictedRole = true;
+      expect(await updateOrganizationTimezone(owner.token, 'Europe/Paris')).toEqual({ timezone: 'Europe/Paris' });
+      expect(await updateOrganizationName(owner.token, 'Organisation rôle limité')).toEqual({ name: 'Organisation rôle limité' });
+      await expect(updateOrganizationName(scoped.token, 'Interdit')).rejects.toMatchObject({ httpStatus: 403 });
+    } finally { useRestrictedRole = false; }
+    const events = await db.query<{ action: string; after: unknown }>(
+      "SELECT action, after FROM audit_log WHERE action IN ('update_timezone', 'update_organization_name') ORDER BY id DESC LIMIT 2");
+    expect(events.rows).toEqual([
+      { action: 'update_organization_name', after: { name: 'Organisation rôle limité' } },
+      { action: 'update_timezone', after: { timezone: 'Europe/Paris' } },
+    ]);
+  });
   it('nom de l’organisation : une erreur d’audit annule aussi la modification', async () => {
     await db.exec(`CREATE FUNCTION test_fail_name_audit() RETURNS trigger AS $$ BEGIN
       IF NEW.action = 'update_organization_name' THEN RAISE EXCEPTION 'forced'; END IF;
@@ -277,11 +299,37 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       CREATE TRIGGER test_fail_name_audit BEFORE INSERT ON audit_log
       FOR EACH ROW EXECUTE FUNCTION test_fail_name_audit();`);
     try {
+      useRestrictedRole = true;
       await expect(updateOrganizationName(owner.token, 'Changement annulé')).rejects.toThrow();
-      expect(await readOrganizationName(owner.token)).toEqual({ name: 'Autre organisation' });
+      expect(await readOrganizationName(owner.token)).toEqual({ name: 'Organisation rôle limité' });
     } finally {
+      useRestrictedRole = false;
       await db.exec('DROP TRIGGER test_fail_name_audit ON audit_log; DROP FUNCTION test_fail_name_audit();');
     }
+  });
+  it('policy audit paramètres : refuse acteur absent ou différent et actions hors périmètre, sans ouvrir la lecture', async () => {
+    const attempt = async (actorContext: string, actor: string, module: string, action: string, entity: string, shop: string | null) => {
+      await db.exec('BEGIN; SET LOCAL ROLE settings_test_app;');
+      try {
+        await db.query("SELECT set_config('app.audit_actor_id', $1, true)", [actorContext]);
+        await db.query('INSERT INTO audit_log (actor_user_id, module, action, entity_type, shop_id) VALUES ($1,$2,$3,$4,$5)',
+          [actor, module, action, entity, shop]);
+      } finally { await db.exec('ROLLBACK;'); }
+    };
+    for (const args of [
+      ['', '1', 'settings', 'update_organization_name', 'app_setting', null],
+      ['1', '2', 'settings', 'update_organization_name', 'app_setting', null],
+      ['1', '1', 'settings', 'delete_everything', 'app_setting', null],
+      ['1', '1', 'other', 'update_timezone', 'app_setting', null],
+      ['1', '1', 'settings', 'update_timezone', 'other', null],
+      ['1', '1', 'settings', 'update_timezone', 'app_setting', '1'],
+    ] as const) await expect(attempt(args[0], args[1], args[2], args[3], args[4], args[5]))
+      .rejects.toMatchObject({ code: '42501' });
+    await db.exec('BEGIN; SET LOCAL ROLE settings_test_app;');
+    try {
+      await db.query("SELECT set_config('app.audit_actor_id', $1, true)", ['1']);
+      expect((await db.query('SELECT id FROM audit_log')).rows).toEqual([]);
+    } finally { await db.exec('ROLLBACK;'); }
   });
   it('statut utilisateur : droits globaux, protections owner/soi, sessions révoquées et audit atomique', async () => {
     const fixture = await db.query<{ id: string }>(`INSERT INTO users (email,password_hash,display_name)

@@ -74,8 +74,8 @@ afterAll(async () => {
 });
 
 describe('migrations — application et structure', () => {
-  it('applique les 11 migrations sans erreur', () => {
-    expect(migrationFiles('up')).toHaveLength(11);
+  it('applique les 12 migrations sans erreur', () => {
+    expect(migrationFiles('up')).toHaveLength(12);
   });
 
   it('crée les tables du socle', async () => {

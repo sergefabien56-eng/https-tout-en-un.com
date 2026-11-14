@@ -35,6 +35,8 @@ export async function updateOrganizationTimezone(token: string | undefined, valu
         VALUES ($1, $2::jsonb, $3, now()) ON CONFLICT (key) DO UPDATE
         SET value = EXCLUDED.value, updated_by = EXCLUDED.updated_by, updated_at = now()`,
       [SETTING_KEY, JSON.stringify(timezone), userId]);
+      // Policy 0012 : acteur local posé uniquement après autorisation globale.
+      await db.query("SELECT set_config('app.audit_actor_id', $1, true)", [userId]);
       await db.query(`INSERT INTO audit_log (actor_user_id, module, action, entity_type, before, after)
         VALUES ($1, 'settings', 'update_timezone', 'app_setting', $2::jsonb, $3::jsonb)`,
       [userId, JSON.stringify({ timezone: before }), JSON.stringify({ timezone })]);

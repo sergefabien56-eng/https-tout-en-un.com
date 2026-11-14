@@ -35,6 +35,8 @@ export async function updateOrganizationName(token: string | undefined, value: u
     if (before !== name) {
       await db.query(`UPDATE app_settings SET value = $2::jsonb, updated_by = $3, updated_at = now() WHERE key = $1`,
         [KEY, JSON.stringify(name), userId]);
+      // Policy 0012 : acteur local posé uniquement après autorisation globale.
+      await db.query("SELECT set_config('app.audit_actor_id', $1, true)", [userId]);
       await db.query(`INSERT INTO audit_log (actor_user_id, module, action, entity_type, before, after)
         VALUES ($1, 'settings', 'update_organization_name', 'app_setting', $2::jsonb, $3::jsonb)`,
       [userId, JSON.stringify({ name: before }), JSON.stringify({ name })]);

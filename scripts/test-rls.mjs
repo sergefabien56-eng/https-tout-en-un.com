@@ -70,6 +70,19 @@ try {
   assert.deepEqual((await db.query('SELECT id FROM audit_log')).rows, [], 'Écriture globale ne donne pas accès en lecture');
   await db.query("SELECT set_config('app.audit_actor_id', '', true)");
   await expectGlobalDenied(userId, 'users', 'manage_global_role', 'user_role');
+  // Policy 0012 : les deux réglages globaux autorisent seulement leur INSERT
+  // d'audit avec acteur local ; ni lecture, ni autre action, ni acteur usurpé.
+  await expectGlobalDenied(userId, 'settings', 'update_organization_name', 'app_setting');
+  await expectGlobalDenied(userId, 'settings', 'update_timezone', 'app_setting');
+  await db.query("SELECT set_config('app.audit_actor_id', $1, true)", [String(userId)]);
+  await expectGlobalDenied(limitedId, 'settings', 'update_organization_name', 'app_setting');
+  await expectGlobalDenied(userId, 'settings', 'other', 'app_setting');
+  await expectGlobalDenied(userId, 'other', 'update_organization_name', 'app_setting');
+  await expectGlobalDenied(userId, 'settings', 'update_timezone', 'other');
+  await globalAudit(userId, 'settings', 'update_organization_name', 'app_setting');
+  await globalAudit(userId, 'settings', 'update_timezone', 'app_setting');
+  assert.deepEqual((await db.query('SELECT id FROM audit_log')).rows, [], 'Audit de paramètres sans droit de lecture');
+  await db.query("SELECT set_config('app.audit_actor_id', '', true)");
   const readNotices = () => db.query('SELECT message FROM user_notifications ORDER BY id');
   assert.deepEqual((await readNotices()).rows, [], 'Aucune notification sans contexte utilisateur');
   await db.query("SELECT set_config('app.notification_user_id', $1, true)", [String(userId)]);
