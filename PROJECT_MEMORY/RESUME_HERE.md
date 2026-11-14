@@ -1,7 +1,7 @@
-# Reprendre ici — harmonisation des CSV
+# Reprendre ici — correctif CI navigateur
 
-Base GitHub `4cf48226c4bf318082909f9800f6e8bce8fbedca` publiée ; [run 43645700922](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43645700922) quatre jobs verts, 10 tests navigateur. Artifact présent, non téléchargé ni restauré.
+GitHub `main=5be44764549e1bbfb2b895e941a819dfb656f5a1` publié ; [run 43646861790](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43646861790) : qualité et PG16 verts, navigateur flaky rouge, archive sautée. Trace privée : limite globale atteinte après accumulation d'étapes ; dernière requête non prouvée responsable. Voir `docs/comptes-rendus/correctif-ci-duree-parcours-e2e.md`.
 
-Lot L10 local : métadonnées CSV des rôles, utilisateurs, boutiques et journal harmonisées, voir `docs/comptes-rendus/phase1-harmonisation-csv.md`. 259 Vitest, lint/types/build/audit high OK (7 modérées), deux CSV fictifs relus par Python. Les deux premières lignes de métadonnées changent : attention aux consommateurs automatisés. 10 E2E listés seulement, navigateur et PG16 réels du nouveau SHA non exécutés localement.
+Correctif local : découpage du long scénario authentifié, codes fictifs supplémentaires uniquement CI, contrôles et `failOnFlakyTests` conservés. 262 Vitest, lint/types/build/audit high OK (7 modérées), SQL fixture vérifié sur PGlite ; 12 E2E listés, navigateur et PG16 réels du correctif non exécutés localement.
 
-ZIP sur Arena → publication sans force → lien CI dès « publié » → quatre jobs du nouveau SHA avant autre lot. Lire `AI_HANDOVER.md` et `NEXT_ACTIONS.md`. Sauvegarde indépendante recommandée ; snapshot code n'est pas sauvegarde DB. Windows en pause, L10 et Phase 1 incomplets ; pas de secrets ni traces en livraison.
+ZIP Arena → publication sans force → lien CI dès « publié » → vérifier les quatre jobs avant autre lot. Lire `AI_HANDOVER.md` et `NEXT_ACTIONS.md`. Ne pas diffuser trace ni cookies. Sauvegarde indépendante recommandée ; snapshot code n'est pas sauvegarde DB. Windows en pause, L10 et Phase 1 incomplets.

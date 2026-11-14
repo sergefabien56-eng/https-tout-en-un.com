@@ -1,4 +1,5 @@
 import { directApi } from './direct-api';
+import { ownerRecoveryIndex } from './owner-codes';
 import { readFileSync, readdirSync } from 'node:fs';
 import ExcelJS from 'exceljs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
@@ -7,9 +8,9 @@ import { expectNoSeriousAccessibilityViolations } from './accessibility';
 // Seulement en CI : utilisateur et codes FICTIFS créés dans une base PostgreSQL jetable.
 // Jamais exécuté contre une base réelle de production.
 /** Quatre codes réservés par scénario : bureau/mobile et première tentative/retry. */
-async function loginOwner(page: Page, testInfo: TestInfo, scenario: 0 | 1): Promise<void> {
+async function loginOwner(page: Page, testInfo: TestInfo, scenario: 0 | 1 | 2): Promise<void> {
   const codes = readFileSync(process.env.E2E_RECOVERY_FILE!, 'utf8').trim().split('\n');
-  const index = scenario * 4 + testInfo.retry * 2 + (testInfo.project.name === 'mobile-375' ? 1 : 0);
+  const index = ownerRecoveryIndex(scenario, testInfo.retry, testInfo.project.name);
   const code = codes[index];
   expect(code).toMatch(/^[A-Za-z0-9_-]{22}$/);
   await page.goto('/connexion');
@@ -222,8 +223,8 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page.getByText('Les commandes, produits et données Jumia ne sont pas encore disponibles.')).toBeVisible();
 });
 
-test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page }, testInfo) => {
-  // Parcours long sur serveur Next en mode dev : garder une marge pour les navigations réelles.
+test('propriétaire CI : rôles, système et paramètres', async ({ page }, testInfo) => {
+  // Délai global conservé ; les assertions et attentes individuelles restent strictes.
   test.setTimeout(120_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   await loginOwner(page, testInfo, 1);
@@ -322,6 +323,13 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(Object.keys(await settings.json() as object)).toEqual(['timezone']);
   // Aucun changement de paramètre sans Origin et CSRF, même avec la session propriétaire.
   expect((await directApi(page.request).put('/api/admin/settings', { data: { timezone: 'UTC' } })).status()).toBe(403);
+});
+
+test('propriétaire CI : boutiques, journal et sessions', async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+  test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
+  // Connexion indépendante : aucune dépendance à l'ordre ni à la session du test précédent.
+  await loginOwner(page, testInfo, 2);
   await page.goto('/espace/boutiques');
   await expect(page.getByRole('heading', { name: 'Toutes les boutiques autorisées' })).toBeVisible();
   await expect(page.getByText('Boutique CI fictive', { exact: true })).toBeVisible();
@@ -608,7 +616,7 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(sessionResponse.status()).toBe(200);
   const payload = await sessionResponse.json() as { sessions: { id: string; current: boolean }[] };
   expect(payload.sessions.some((entry) => entry.current)).toBe(true);
-  // Les deux scénarios E2E et leurs tentatives créent aussi des sessions sur le même compte.
+  // Les autres scénarios E2E et leurs tentatives créent aussi des sessions sur le même compte.
   // Vérifier la ligne de cet appareil, pas l'absence globale de boutons pour les AUTRES.
   const currentRow = page.getByRole('table').getByRole('row').filter({ hasText: '— cette session' });
   await expect(currentRow).toHaveCount(1);

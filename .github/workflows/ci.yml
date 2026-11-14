@@ -131,6 +131,7 @@ jobs:
           printf 'MotDePasseCI!2026\n' > /tmp/ci-owner-password
           chmod 600 /tmp/ci-owner-password
           npm run auth:bootstrap
+          node scripts/extend-e2e-recovery.mjs
           rm -f /tmp/ci-owner-password /tmp/ci-owner-qr.png
       - name: Préparer une boutique et un événement d’audit fictifs pour le navigateur
         env:
