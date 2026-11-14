@@ -232,6 +232,13 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   expect(rolesCsvText).toContain('"Organisation — droits globaux"');
   expect(rolesCsvText).toContain('"Rôle : Propriétaire (owner)"');
   expect(rolesCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
+  await expect(page.getByRole('link', { name: 'Exporter la matrice en Excel' }))
+    .toHaveAttribute('href', '/api/admin/roles/export/xlsx');
+  const rolesXlsx = await page.request.get('/api/admin/roles/export/xlsx');
+  expect(rolesXlsx.status()).toBe(200);
+  expect(rolesXlsx.headers()['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  expect(rolesXlsx.headers()['cache-control']).toBe('no-store');
+  expect((await rolesXlsx.body()).subarray(0, 2).toString('ascii')).toBe('PK');
   if (testInfo.project.name === 'mobile-375') await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
   await page.getByRole('link', { name: 'Système' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Système', exact: true })).toBeVisible();

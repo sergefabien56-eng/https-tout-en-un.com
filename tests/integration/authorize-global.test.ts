@@ -23,6 +23,7 @@ const { exportAuthorizedUsers } = await import('@/modules/identity/export-users'
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
+const { exportRoleMatrixXlsx } = await import('@/modules/identity/export-role-matrix-xlsx');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
 const { readOrganizationName, updateOrganizationName } = await import('@/modules/identity/organization-name');
@@ -207,9 +208,14 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     await expect(exportRoleMatrix(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportRoleMatrix(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportRoleMatrix(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    expect(Array.from((await exportRoleMatrixXlsx(owner.token)).slice(0, 2))).toEqual([0x50, 0x4b]);
+    await expect(exportRoleMatrixXlsx(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportRoleMatrixXlsx(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportRoleMatrixXlsx(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await db.query("DELETE FROM role_permissions WHERE role_code = 'owner' AND permission_code = 'reports:export'");
     try {
       await expect(exportRoleMatrix(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(exportRoleMatrixXlsx(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
       expect((await getRoleMatrix(owner.token)).roles).toHaveLength(5);
     } finally {
       await db.query("INSERT INTO role_permissions (role_code, permission_code) VALUES ('owner', 'reports:export')");

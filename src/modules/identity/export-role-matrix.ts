@@ -23,13 +23,18 @@ export function formatRoleMatrixCsv(matrix: RoleMatrix, exportedAt: string): str
   return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
 
-export async function exportRoleMatrix(token: string | undefined): Promise<string> {
+export async function loadAuthorizedRoleMatrixExport(token: string | undefined): Promise<{ matrix: RoleMatrix; exportedAt: string }> {
   return withAuthorizedGlobalTransaction({ token, permission: 'roles:manage' }, async (db, { userId }) => {
     const grant = await db.query<{ allowed: boolean }>(`SELECT EXISTS (
       SELECT 1 FROM user_roles ur JOIN role_permissions rp ON rp.role_code = ur.role_code
       WHERE ur.user_id = $1 AND ur.shop_id IS NULL AND rp.permission_code = 'reports:export'
     ) AS allowed`, [userId]);
     if (!grant.rows[0]?.allowed) throw new ForbiddenError('Export non autorisé.');
-    return formatRoleMatrixCsv(await loadRoleMatrix(db), new Date().toISOString());
+    return { matrix: await loadRoleMatrix(db), exportedAt: new Date().toISOString() };
   });
+}
+
+export async function exportRoleMatrix(token: string | undefined): Promise<string> {
+  const { matrix, exportedAt } = await loadAuthorizedRoleMatrixExport(token);
+  return formatRoleMatrixCsv(matrix, exportedAt);
 }
