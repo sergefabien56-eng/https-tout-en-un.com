@@ -2,7 +2,7 @@
 
 ## État actuel prioritaire
 
-GitHub `main=4148ac6` publié, run `43518057115` qualité/PG16 verts, navigateur rouge (1 flaky fiche utilisateur après attente URL 5 s), archive sautée. Ancien run 43511441768 : trace propriétaire confirmait navigation sessions ~5,1 s, correctif ciblé inclus dans 4148ac6. Nouveau correctif des délais Playwright dans ce commit, hypothèse et limites dans `docs/comptes-rendus/phase1-delais-assertions-e2e.md`. 220 tests, lint/types locaux OK, E2E réel non exécuté. ZIP Drive → publication → lien CI dès « publié » → vérifier quatre jobs avant lot suivant ; si encore rouge inspecter trace. Windows en pause ; MIMI après L10 souhaitée, ordre avec L11/L12 à préciser. Notes historiques ci-dessous potentiellement périmées.
+GitHub `main=aa5bdabce585e5761a69c846f646357113de85d9` publié ; [run 43519659898](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43519659898) : quatre jobs verts ; artifact présent mais non téléchargé/restauré. Les flakies historiques ne sont pas expliqués avec certitude. Présent lot L10 : nom de l’organisation, voir `docs/comptes-rendus/phase1-nom-organisation.md` ; 229 Vitest, lint/types/build locaux réussis, E2E réel non exécuté localement. ZIP Drive → publication → lien CI dès « publié » → vérifier quatre jobs du nouveau SHA avant lot suivant ; en cas d’échec inspecter les preuves. Windows en pause ; MIMI après L10 souhaitée, ordre avec L11/L12 à préciser. Notes historiques ci-dessous potentiellement périmées.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.

@@ -21,6 +21,7 @@ const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
+const { readOrganizationName, updateOrganizationName } = await import('@/modules/identity/organization-name');
 const { changeUserStatus } = await import('@/modules/identity/change-user-status');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
 const { revokeOtherSession } = await import('@/modules/identity/revoke-other-session');
@@ -251,6 +252,36 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect((await db.query('SELECT key, value FROM app_settings')).rows).toEqual([
       { key: 'organization.timezone', value: 'UTC' },
     ]);
+  });
+  it('nom de l’organisation : droits globaux, normalisation, audit et idempotence', async () => {
+    expect(await readOrganizationName(owner.token)).toEqual({ name: null });
+    await expect(readOrganizationName(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(updateOrganizationName(scoped.token, 'Boutique')).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(updateOrganizationName(undefined, 'Boutique')).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(updateOrganizationName(owner.token, 'Nom\ninterdit')).rejects.toMatchObject({ httpStatus: 400 });
+    expect(await updateOrganizationName(owner.token, '  Société Démo  ')).toEqual({ name: 'Société Démo' });
+    expect(await readOrganizationName(globalManager.token)).toEqual({ name: 'Société Démo' });
+    await updateOrganizationName(owner.token, 'Société Démo');
+    await updateOrganizationName(globalManager.token, 'Autre organisation');
+    const events = await db.query<{ actor_user_id: string; before: unknown; after: unknown }>(
+      "SELECT actor_user_id::text, before, after FROM audit_log WHERE action = 'update_organization_name' ORDER BY id");
+    expect(events.rows).toEqual([
+      { actor_user_id: '1', before: { name: null }, after: { name: 'Société Démo' } },
+      { actor_user_id: '3', before: { name: 'Société Démo' }, after: { name: 'Autre organisation' } },
+    ]);
+  });
+  it('nom de l’organisation : une erreur d’audit annule aussi la modification', async () => {
+    await db.exec(`CREATE FUNCTION test_fail_name_audit() RETURNS trigger AS $$ BEGIN
+      IF NEW.action = 'update_organization_name' THEN RAISE EXCEPTION 'forced'; END IF;
+      RETURN NEW; END; $$ LANGUAGE plpgsql;
+      CREATE TRIGGER test_fail_name_audit BEFORE INSERT ON audit_log
+      FOR EACH ROW EXECUTE FUNCTION test_fail_name_audit();`);
+    try {
+      await expect(updateOrganizationName(owner.token, 'Changement annulé')).rejects.toThrow();
+      expect(await readOrganizationName(owner.token)).toEqual({ name: 'Autre organisation' });
+    } finally {
+      await db.exec('DROP TRIGGER test_fail_name_audit ON audit_log; DROP FUNCTION test_fail_name_audit();');
+    }
   });
   it('statut utilisateur : droits globaux, protections owner/soi, sessions révoquées et audit atomique', async () => {
     const fixture = await db.query<{ id: string }>(`INSERT INTO users (email,password_hash,display_name)

@@ -264,6 +264,18 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   await expect(page.getByRole('heading', { name: 'Paramètres', exact: true })).toBeVisible();
   await expect(page.getByText('Devise de référence : non configurée', { exact: false })).toBeVisible();
   await expect(page.getByText('les dates des écrans existants restent en UTC', { exact: false })).toBeVisible();
+  await expect(page.getByLabel('Nom de l’organisation')).toBeVisible();
+  // Le seul projet bureau modifie le paramètre global, pour éviter une course
+  // avec le scénario mobile exécuté en parallèle sur la même base CI jetable.
+  if (testInfo.project.name === 'bureau') {
+    const name = `Organisation CI ${testInfo.retry}`;
+    await page.getByLabel('Nom de l’organisation').fill(name);
+    await page.getByRole('button', { name: 'Enregistrer le nom' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Nom enregistré.' })).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel('Nom de l’organisation')).toHaveValue(name);
+  }
+  expect((await page.request.put('/api/admin/settings/organization-name', { data: { name: 'Interdit' } })).status()).toBe(403);
   await expectNoSeriousAccessibilityViolations(page);
   const settings = await page.request.get('/api/admin/settings');
   expect(settings.status()).toBe(200);
