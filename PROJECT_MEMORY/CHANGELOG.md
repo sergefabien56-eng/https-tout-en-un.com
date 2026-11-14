@@ -1,4 +1,6 @@
-- **L10 Excel utilisateurs (local, CI en attente)** : mêmes filtres et droits globaux que CSV, texte hostile neutralisé et aucun secret exporté ; 250 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `c6aeddd` publiée, run `43643492681` quatre jobs verts.
+- **L10 Excel journal boutique (local, CI en attente)** : mêmes filtres, RLS et droits que CSV, textes hostiles neutralisés, before/after exclus ; 257 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `4c55ea5` publiée, run `43644540811` quatre jobs verts.
+
+- **L10 Excel utilisateurs (publié et validé par 4c55ea5)** : mêmes filtres et droits globaux que CSV, texte hostile neutralisé et aucun secret exporté ; 250 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `c6aeddd` publiée, run `43643492681` quatre jobs verts.
 
 - **L10 Excel boutiques (publié et validé par c6aeddd)** : mêmes filtres, RLS et droits d'export que CSV, valeurs tableur neutralisées, données Jumia absentes « — », 244 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `adcdaa3` publiée, run `43642226784` quatre jobs verts.
 

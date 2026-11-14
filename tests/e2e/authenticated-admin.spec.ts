@@ -489,6 +489,18 @@ test('propriétaire CI : rôles, boutiques, journal et sessions', async ({ page 
   const failureCsv = await directApi(page.request).get(failureCsvHref!);
   expect(failureCsv.status()).toBe(200);
   expect(await failureCsv.text()).toContain('fixture.denied');
+  const failureXlsxHref = await page.getByRole('link', { name: 'Exporter cette sélection en Excel' }).getAttribute('href');
+  expect(new URL(failureXlsxHref!, page.url()).searchParams.get('result')).toBe('failure');
+  const failureXlsx = await directApi(page.request).get(failureXlsxHref!);
+  expect(failureXlsx.status()).toBe(200);
+  expect(failureXlsx.headers()['cache-control']).toBe('no-store');
+  expect(failureXlsx.headers()['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  const auditWorkbook = new ExcelJS.Workbook(); await auditWorkbook.xlsx.load(Uint8Array.from(await failureXlsx.body()).buffer);
+  const auditSheet = auditWorkbook.getWorksheet('Journal boutique')!;
+  expect(auditSheet.getCell('B1').value).toBe(shopId); expect(auditSheet.getCell('B8').value).toBe('failure');
+  expect(auditSheet.getColumn(5).values).toContain('fixture.denied');
+  expect(auditSheet.getColumn(5).values).not.toContain('fixture.created');
+  expect((await directApi(page.request).get(`/api/shops/${shopId}/audit/export/xlsx?result=unknown`)).status()).toBe(400);
   const failureApi = await directApi(page.request).get(`/api/shops/${shopId}/audit?result=failure`);
   expect(failureApi.status()).toBe(200);
   expect((await failureApi.json() as { events: { result: string; action: string }[] }).events)

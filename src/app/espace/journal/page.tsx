@@ -61,7 +61,9 @@ export default async function AuditPage({ searchParams }: {
       <label htmlFor="audit-to">Au (UTC)</label><input id="audit-to" name="to" type="date" defaultValue={to ?? ''} />
       <button type="submit">Filtrer</button>
     </form>
-    <p><a href={link(undefined, true)}>Exporter cette sélection en CSV</a></p>
+    <p><a href={link(undefined, true)}>Exporter cette sélection en CSV</a>{' · '}
+      <a href={`/api/shops/${shop}/audit/export/xlsx?${new URLSearchParams({ shop, ...urlFilters })}`}>
+        Exporter cette sélection en Excel</a></p>
     {result.events.length === 0 ? <div className="card" role="status"><h2>Aucun événement</h2>
       <p>Aucune entrée d’audit enregistrée pour cette boutique.</p></div>
       : <div className="card users-list" role="region" aria-label="Tableau du journal défilant horizontalement" tabIndex={0}><table><caption>Journal réel — page {raw}</caption>

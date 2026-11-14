@@ -1,6 +1,7 @@
 /** Test des VRAIES policies RLS, sessions, permissions et audit sur PostgreSQL WASM. */
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
+import ExcelJS from 'exceljs';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { PoolClient } from 'pg';
@@ -28,6 +29,7 @@ const { withAuthorizedShopTransaction, withAuditedShopMutation } = await import(
 const { listShopAudit } = await import('@/modules/audit/list-audit');
 const { searchAuthorizedAudit } = await import('@/modules/audit/search-audit');
 const { exportShopAudit } = await import('@/modules/audit/export-audit');
+const { exportShopAuditXlsx } = await import('@/modules/audit/export-audit-xlsx');
 const { manageShopRole } = await import('@/modules/identity/manage-shop-role');
 const { POST: selectShop } = await import('@/app/api/preferences/shop/route');
 const { GET: auditGet } = await import('@/app/api/shops/[shopId]/audit/route');
@@ -248,6 +250,18 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     expect(searched).toContain(`"'=cmd"`);
     expect(searched).not.toContain('shops.rename');
     expect(searched).not.toContain('test.b');
+    const bytes = await exportShopAuditXlsx({ token: manager.token, shopId: shop1, from: today, to: today, q: '=cmd' });
+    const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(bytes.buffer);
+    const sheet = workbook.getWorksheet('Journal boutique')!;
+    expect(sheet.getCell('B1').value).toBe(shop1);
+    expect(sheet.getCell('B2').value).toBe(today); expect(sheet.getCell('B3').value).toBe(today);
+    expect(sheet.getCell('B5').value).toBe("'=cmd");
+    expect(sheet.getColumn(5).values).toContain("'=cmd");
+    expect(sheet.getColumn(6).values).toContain("'@hostile");
+    expect(JSON.stringify(sheet.getSheetValues())).not.toMatch(/test\.b|rls-global|secret-à-expurger|token_hash|before|after/);
+    await expect(exportShopAuditXlsx({ token: manager.token, shopId: shop2, q: '=cmd' })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportShopAuditXlsx({ token: undefined, shopId: shop1 })).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(exportShopAuditXlsx({ token: manager.token, shopId: shop1, from: '2026-99-99' })).rejects.toMatchObject({ httpStatus: 400 });
     await expect(exportShopAudit({ token: manager.token, shopId: shop2, q: '=cmd' })).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportShopAudit({ token: manager.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
     // Un rôle ayant audit:read mais pas reports:export ne peut télécharger le journal.
@@ -255,6 +269,7 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     await db.query('INSERT INTO user_roles(user_id,role_code,shop_id) VALUES (3,$1,$2)', ['stock_manager', shop2]);
     expect((await listShopAudit({ token: assistant.token, shopId: shop2, page: 1 })).events.length).toBeGreaterThan(0);
     await expect(exportShopAudit({ token: assistant.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportShopAuditXlsx({ token: assistant.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
   });
 
 });
