@@ -1,6 +1,7 @@
 /** Permissions globales, non confondues avec un rôle limité à une boutique. */
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
+import ExcelJS from 'exceljs';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { PoolClient } from 'pg';
@@ -20,6 +21,7 @@ vi.mock('@/core/db/client', () => ({
 }));
 const { listAuthorizedUsers, getAuthorizedUser } = await import('@/modules/identity/user-list');
 const { exportAuthorizedUsers } = await import('@/modules/identity/export-users');
+const { exportAuthorizedUsersXlsx } = await import('@/modules/identity/export-users-xlsx');
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
@@ -85,6 +87,23 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       expect(csv).not.toMatch(/SECRET_FIXTURE_HASH|password_hash|totp_secret|token_hash/);
       expect((await exportAuthorizedUsers(owner.token, 'export-fixture', 'active', 'manager')))
         .not.toContain('export-fixture@fixture.invalid');
+      const bytes = await exportAuthorizedUsersXlsx(owner.token, 'export-fixture', 'invited', 'manager');
+      const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(bytes.buffer);
+      const sheet = workbook.getWorksheet('Utilisateurs')!;
+      expect(sheet.getCell('B8').value).toBe("'=cmd");
+      expect(sheet.getCell('C8').value).toBe('export-fixture@fixture.invalid');
+      expect(sheet.getCell('D8').value).toBe('invited');
+      expect(sheet.getColumn(3).values).not.toContain('owner@test.invalid');
+      expect(JSON.stringify(sheet.getSheetValues())).not.toMatch(/SECRET_FIXTURE_HASH|password_hash|totp_secret|token_hash/);
+      const other = await exportAuthorizedUsersXlsx(owner.token, 'export-fixture', 'active', 'manager');
+      const otherBook = new ExcelJS.Workbook(); await otherBook.xlsx.load(other.buffer);
+      expect(otherBook.getWorksheet('Utilisateurs')!.getCell('C8').value).toBeNull();
+      await expect(exportAuthorizedUsersXlsx(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(exportAuthorizedUsersXlsx(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+      await expect(exportAuthorizedUsersXlsx(owner.token, '', 'OWNER')).rejects.toMatchObject({ httpStatus: 400 });
+      await db.exec("DELETE FROM role_permissions WHERE role_code='owner' AND permission_code='reports:export'");
+      try { await expect(exportAuthorizedUsersXlsx(owner.token)).rejects.toMatchObject({ httpStatus: 403 }); }
+      finally { await db.exec("INSERT INTO role_permissions (role_code,permission_code) VALUES ('owner','reports:export')"); }
       await expect(exportAuthorizedUsers(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
       await expect(exportAuthorizedUsers(undefined)).rejects.toMatchObject({ httpStatus: 401 });
       await expect(exportAuthorizedUsers(owner.token, '', 'OWNER')).rejects.toMatchObject({ httpStatus: 400 });

@@ -168,6 +168,17 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(usersCsvText).toContain('"active","owner"');
   expect(usersCsvText).not.toMatch(/password_hash|token_hash|totp_secret/);
   expect((await directApi(page.request).get('/api/admin/users/export?role=WRONG')).status()).toBe(400);
+  const usersXlsxLink = page.getByRole('link', { name: 'Exporter les utilisateurs correspondant aux filtres en Excel' });
+  await expect(usersXlsxLink).toHaveAttribute('href', /\/api\/admin\/users\/export\/xlsx\?.*status=active&role=owner/);
+  const usersXlsx = await directApi(page.request).get(await usersXlsxLink.getAttribute('href') ?? '');
+  expect(usersXlsx.status()).toBe(200);
+  expect(usersXlsx.headers()['cache-control']).toBe('no-store');
+  expect(usersXlsx.headers()['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  const usersWorkbook = new ExcelJS.Workbook(); await usersWorkbook.xlsx.load(Uint8Array.from(await usersXlsx.body()).buffer);
+  const usersSheet = usersWorkbook.getWorksheet('Utilisateurs')!;
+  expect(usersSheet.getColumn(3).values).toContain('proprietaire@ci.invalid');
+  expect(usersSheet.getCell('B5').value).toBe('active'); expect(usersSheet.getCell('B6').value).toBe('owner');
+  expect((await directApi(page.request).get('/api/admin/users/export/xlsx?role=WRONG')).status()).toBe(400);
   await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
   await expect(page).toHaveURL(/\/espace\/utilisateurs\/[1-9]\d*$/);
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible({ timeout: 15_000 });

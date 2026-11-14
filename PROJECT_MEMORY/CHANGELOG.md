@@ -1,4 +1,6 @@
-- **L10 Excel boutiques (local, CI en attente)** : mêmes filtres, RLS et droits d'export que CSV, valeurs tableur neutralisées, données Jumia absentes « — », 244 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `adcdaa3` publiée, run `43642226784` quatre jobs verts.
+- **L10 Excel utilisateurs (local, CI en attente)** : mêmes filtres et droits globaux que CSV, texte hostile neutralisé et aucun secret exporté ; 250 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `c6aeddd` publiée, run `43643492681` quatre jobs verts.
+
+- **L10 Excel boutiques (publié et validé par c6aeddd)** : mêmes filtres, RLS et droits d'export que CSV, valeurs tableur neutralisées, données Jumia absentes « — », 244 Vitest/lint/types/build/audit high OK, 7 modérées, E2E et PG16 réels du nouveau SHA à valider. Base `adcdaa3` publiée, run `43642226784` quatre jobs verts.
 
 - **Correctif transport API des tests CI (publié et validé par adcdaa3)** : `14d046e` publié, run `43639821115` qualité/PG16 verts, navigateur rouge ECONNRESET flaky, archive sautée ; cause non prouvée. `Connection: close` sur appels API directs des tests sans retry ni modification du navigateur ; simulation de reset artificiel, 238 Vitest/lint/types/build/audit high locaux OK, 7 modérées. E2E et PG16 réels du nouveau SHA à valider en CI.
 

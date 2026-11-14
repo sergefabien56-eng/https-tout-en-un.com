@@ -52,6 +52,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     </form>
     <p><a href={`/api/admin/users/export?${new URLSearchParams({ q: q.trim(), status, role })}`}>
       Exporter les utilisateurs correspondant aux filtres en CSV
+    </a>{' · '}<a href={`/api/admin/users/export/xlsx?${new URLSearchParams({ q: q.trim(), status, role })}`}>
+      Exporter les utilisateurs correspondant aux filtres en Excel
     </a> (toutes les pages, dans la limite de 10 000 lignes ; droits d’export requis).</p>
     {result.users.length === 0 ? <div className="card" role="status">
       <h2>Aucun utilisateur</h2><p>{q.trim() || status !== 'all' || role !== 'all' ? 'Aucun compte ne correspond à ces filtres.' : 'Aucun compte n’a encore été créé.'}</p>
