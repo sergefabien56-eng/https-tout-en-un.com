@@ -396,6 +396,14 @@ test('propriétaire CI : boutiques, journal et sessions', async ({ page }, testI
   expect(sheet.getCell('B8').value).toBe('Boutique CI fictive');
   expect(sheet.getCell('F8').value).toBe('—');
   expect((await directApi(page.request).get('/api/shops/export/xlsx?sort=invalid')).status()).toBe(400);
+  const shopsPdfLink = page.getByRole('link', { name: 'Exporter les boutiques autorisées en PDF' });
+  await expect(shopsPdfLink).toHaveAttribute('href', /\/api\/shops\/export\/pdf\?.*sort=name-asc/);
+  const shopsPdf = await directApi(page.request).get(await shopsPdfLink.getAttribute('href') ?? '');
+  expect(shopsPdf.status()).toBe(200);
+  expect(shopsPdf.headers()['content-type']).toBe('application/pdf');
+  expect(shopsPdf.headers()['cache-control']).toBe('no-store');
+  expect((await shopsPdf.body()).subarray(0, 5).toString('ascii')).toBe('%PDF-');
+  expect((await directApi(page.request).get('/api/shops/export/pdf?sort=invalid')).status()).toBe(400);
   await page.getByRole('navigation', { name: 'Affichage des boutiques' }).getByRole('link', { name: 'Cartes repliables' }).click();
   await expect(page).toHaveURL(/view=cards/);
   await expect(page).toHaveURL(/sort=name-asc/);

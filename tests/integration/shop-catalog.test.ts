@@ -2,6 +2,7 @@
 import { beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import ExcelJS from 'exceljs';
+import { PDFPage } from 'pdf-lib';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { PoolClient } from 'pg';
@@ -21,6 +22,7 @@ vi.mock('@/core/db/client', () => ({
 const { listOwnShops } = await import('@/modules/identity/shop-catalog');
 const { exportOwnShops } = await import('@/modules/identity/export-shops');
 const { exportOwnShopsXlsx } = await import('@/modules/identity/export-shops-xlsx');
+const { exportOwnShopsPdf } = await import('@/modules/identity/export-shops-pdf');
 const { searchAuthorizedDirectory } = await import('@/modules/identity/directory-search');
 const owner = createSessionToken(), manager = createSessionToken(), limited = createSessionToken();
 beforeAll(async () => {
@@ -110,6 +112,37 @@ describe('catalogue RLS', () => {
       const filteredXlsx = await workbook(owner.token, 'B');
       expect(filteredXlsx.getColumn(2).values).toContain('B');
       expect(filteredXlsx.getColumn(2).values).not.toContain('A');
+      // Le PDF emploie le même chargement RLS : contrôler les textes réellement dessinés,
+      // pas simplement la signature du fichier ou la présence d'un rôle dans la fixture.
+      const drawn = vi.spyOn(PDFPage.prototype, 'drawText');
+      try {
+        const ownPdf = await exportOwnShopsPdf(owner.token, { q: 'B', status: '', sort: 'name-asc' });
+        expect(Buffer.from(ownPdf.subarray(0, 5)).toString()).toBe('%PDF-');
+        let lines = drawn.mock.calls.map(([text]) => text);
+        expect(lines).toContain('B'); expect(lines).not.toContain('A'); expect(lines).not.toContain("'=cmd");
+        drawn.mockClear();
+        await exportOwnShopsPdf(limited.token, { sort: 'name-asc' });
+        lines = drawn.mock.calls.map(([text]) => text);
+        expect(lines).toContain('B'); expect(lines).not.toContain('A'); expect(lines).not.toContain("'=cmd");
+        // A est visible avec un rôle assistant mais seul B dispose du droit d'export.
+        await db.exec("INSERT INTO user_roles (user_id,role_code,shop_id) VALUES (3,'assistant',1); INSERT INTO user_shop_access(user_id,shop_id) VALUES (3,1)");
+        try {
+          expect((await listOwnShops(limited.token, 1, { sort: 'name-asc' })).shops.map((s) => s.displayName)).toEqual(['A', 'B']);
+          drawn.mockClear();
+          await exportOwnShopsPdf(limited.token, { sort: 'name-asc' });
+          lines = drawn.mock.calls.map(([text]) => text);
+          expect(lines).toContain('B'); expect(lines).not.toContain('A');
+        } finally {
+          await db.exec("DELETE FROM user_roles WHERE user_id=3 AND role_code='assistant' AND shop_id=1; DELETE FROM user_shop_access WHERE user_id=3 AND shop_id=1");
+        }
+        drawn.mockClear();
+        await exportOwnShopsPdf(owner.token, { sort: 'name-asc' });
+        lines = drawn.mock.calls.map(([text]) => text);
+        expect(lines).toContain('A'); expect(lines).toContain('B'); expect(lines).toContain("'=cmd");
+      } finally { drawn.mockRestore(); }
+      await expect(exportOwnShopsPdf(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+      await expect(exportOwnShopsPdf(owner.token, { sort: 'invalid' })).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(exportOwnShopsPdf(owner.token, { status: 'bad' })).rejects.toMatchObject({ httpStatus: 400 });
       await expect(exportOwnShopsXlsx(undefined)).rejects.toMatchObject({ httpStatus: 401 });
       await expect(exportOwnShopsXlsx(owner.token, { sort: 'invalid' })).rejects.toMatchObject({ httpStatus: 400 });
       await expect(exportOwnShops(undefined)).rejects.toMatchObject({ httpStatus: 401 });
@@ -119,6 +152,7 @@ describe('catalogue RLS', () => {
       try {
         await expect(exportOwnShops(limited.token)).rejects.toMatchObject({ httpStatus: 403 });
         await expect(exportOwnShopsXlsx(limited.token)).rejects.toMatchObject({ httpStatus: 403 });
+        await expect(exportOwnShopsPdf(limited.token)).rejects.toMatchObject({ httpStatus: 403 });
       } finally { await db.exec("INSERT INTO role_permissions (role_code,permission_code) VALUES ('manager','reports:export')"); }
     } finally { await db.query('DELETE FROM shops WHERE id = $1', [fixture.rows[0]!.id]); }
   });

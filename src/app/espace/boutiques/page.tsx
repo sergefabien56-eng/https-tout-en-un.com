@@ -35,6 +35,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
   const exportFilters = new URLSearchParams({ q: params.q ?? '', status: params.status ?? '', sort });
   const exportHref = `/api/shops/export?${exportFilters}`;
   const exportXlsxHref = `/api/shops/export/xlsx?${exportFilters}`;
+  const exportPdfHref = `/api/shops/export/pdf?${exportFilters}`;
   return <main className="workspace-main">
     <span className="tag">Boutiques accessibles</span>
     <h1>Toutes les boutiques autorisées</h1>
@@ -60,7 +61,8 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
     </form>
     {grants.permissions.has('reports:export') && <p><a href={exportHref}>Exporter les boutiques autorisées en CSV</a>
       {' · '}<a href={exportXlsxHref}>Exporter les boutiques autorisées en Excel</a>
-      {' '}(toutes les pages, droits d’export boutique requis ; chiffres Jumia indisponibles).</p>}
+      {' · '}<a href={exportPdfHref}>Exporter les boutiques autorisées en PDF</a>
+      {' '}(toutes les pages ; CSV et Excel : 10 000 boutiques maximum ; PDF : 1 000 boutiques maximum ; droits d’export boutique requis ; chiffres Jumia indisponibles).</p>}
     <nav aria-label="Affichage des boutiques" className="shop-view-switch">
       <Link href={hrefFor('table')} aria-current={view === 'table' ? 'page' : undefined}>Tableau</Link>
       <Link href={hrefFor('cards')} aria-current={view === 'cards' ? 'page' : undefined}>Cartes repliables</Link>
