@@ -27,7 +27,8 @@ export default async function SettingsPage() {
     <p>Seuls les droits globaux permettent de consulter ou de modifier ces paramètres.</p>
     {grants?.globalPermissions.has('reports:export') && <p>
       <a href="/api/admin/settings/export">Exporter les paramètres en CSV</a>{' · '}
-      <a href="/api/admin/settings/export/xlsx">Exporter les paramètres en Excel</a>
+      <a href="/api/admin/settings/export/xlsx">Exporter les paramètres en Excel</a>{' · ' }
+      <a href="/api/admin/settings/export/pdf">Exporter les paramètres en PDF</a>
       {' '}(nom et fuseau de l’organisation uniquement).
     </p>}
     <div className="card"><h2>Organisation</h2>

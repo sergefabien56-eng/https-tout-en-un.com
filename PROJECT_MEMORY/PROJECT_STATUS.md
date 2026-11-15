@@ -1,5 +1,5 @@
 # Statut — Phase 1
 
-- Base `f3ac2f252a37fbccc03738afcae158e5028c55bf` publiée ; [run 43759955270](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43759955270) quatre jobs verts et 14 tests navigateur ; artifact non restauré. L'ancien run `43757504110` reste rouge.
-- Lot L10 local : PDF du journal de boutique, mêmes filtres, RLS et droits que CSV/Excel ; bornes et limites documentées. 299 Vitest/lint/types/build/audit high OK (7 modérées), PDF fictifs vérifiés ; navigateur et PostgreSQL 16 réels à vérifier en CI (14 E2E listés). Voir `docs/comptes-rendus/phase1-export-pdf-journal.md`.
-- L10 et P1 incomplets : invitations SMTP, paramètres/devise/notifications, santé complémentaire, PDF des autres écrans, autres exports et validation ; ne pas figer la devise sans décision. Windows en pause, ZIP Arena, aucun secret ou trace en livraison.
+- Base `6cf8be786d03440e75328d5b6395047009c8bd0d` publiée ; [run 43761332925](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43761332925) quatre jobs verts et 14 tests navigateur ; artifact non restauré.
+- Lot L10 local : PDF des seuls nom et fuseau de l’organisation, droits globaux `settings:read` et `reports:export` ; 312 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictifs relus. Navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI (14 E2E listés). Voir `docs/comptes-rendus/phase1-export-pdf-parametres.md`.
+- L10 et P1 incomplets : invitations SMTP, paramètres/devise/notifications, santé complémentaire, autres exports et validation ; ne pas figer la devise sans décision. Windows en pause, ZIP Arena, aucun secret ou trace en livraison.

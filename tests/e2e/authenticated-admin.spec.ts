@@ -355,6 +355,13 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   const settingsSheet = settingsWorkbook.getWorksheet('Paramètres')!;
   expect(settingsSheet.getCell('A5').value).toBe('Nom de l’organisation');
   expect(settingsSheet.getCell('A6').value).toBe('Fuseau horaire de référence');
+  const settingsPdfLink = page.getByRole('link', { name: 'Exporter les paramètres en PDF' });
+  await expect(settingsPdfLink).toHaveAttribute('href', '/api/admin/settings/export/pdf');
+  const settingsPdf = await directApi(page.request).get('/api/admin/settings/export/pdf');
+  expect(settingsPdf.status()).toBe(200);
+  expect(settingsPdf.headers()['content-type']).toBe('application/pdf');
+  expect(settingsPdf.headers()['cache-control']).toBe('no-store');
+  expect((await settingsPdf.body()).subarray(0, 5).toString('ascii')).toBe('%PDF-');
   // Aucun changement de paramètre sans Origin et CSRF, même avec la session propriétaire.
   expect((await directApi(page.request).put('/api/admin/settings', { data: { timezone: 'UTC' } })).status()).toBe(403);
 });

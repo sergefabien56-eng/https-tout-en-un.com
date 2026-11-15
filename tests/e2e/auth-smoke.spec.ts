@@ -26,6 +26,7 @@ test('espace privé inaccessible sans session, côté serveur', async ({ page })
   expect(result.status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/settings/export')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/settings/export/xlsx')).status()).toBe(401);
+  expect((await directApi(page.request).get('/api/admin/settings/export/pdf')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/roles/export/pdf')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/users/export/pdf')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/shops/export/pdf')).status()).toBe(401);

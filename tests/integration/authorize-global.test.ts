@@ -2,6 +2,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import ExcelJS from 'exceljs';
+import { PDFPage } from 'pdf-lib';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { PoolClient } from 'pg';
@@ -30,6 +31,7 @@ const { exportRoleMatrixXlsx } = await import('@/modules/identity/export-role-ma
 const { exportRoleMatrixPdf } = await import('@/modules/identity/export-role-matrix-pdf');
 const { exportOrganizationSettingsCsv } = await import('@/modules/identity/export-organization-settings');
 const { exportOrganizationSettingsXlsx } = await import('@/modules/identity/export-organization-settings-xlsx');
+const { exportOrganizationSettingsPdf } = await import('@/modules/identity/export-organization-settings-pdf');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
 const { readOrganizationName, updateOrganizationName } = await import('@/modules/identity/organization-name');
@@ -519,7 +521,15 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       const sheet = workbook.getWorksheet('Paramètres')!;
       expect(sheet.getCell('B5').value).toBe("'=cmd"); expect(sheet.getCell('B6').value).toBe('UTC');
       expect(JSON.stringify(sheet.getSheetValues())).not.toContain('SECRET_FIXTURE_EXCLU');
-      for (const run of [exportOrganizationSettingsCsv, exportOrganizationSettingsXlsx]) {
+      const draw = vi.spyOn(PDFPage.prototype, 'drawText');
+      try {
+        const pdf = await exportOrganizationSettingsPdf(owner.token);
+        expect(Buffer.from(pdf.subarray(0, 5)).toString()).toBe('%PDF-');
+        const lines = draw.mock.calls.map(([text]) => text);
+        expect(lines).toContain("'=cmd"); expect(lines).toContain('UTC');
+        expect(lines.join(' ')).not.toContain('SECRET_FIXTURE_EXCLU');
+      } finally { draw.mockRestore(); }
+      for (const run of [exportOrganizationSettingsCsv, exportOrganizationSettingsXlsx, exportOrganizationSettingsPdf]) {
         await expect(run(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
         await expect(run(undefined)).rejects.toMatchObject({ httpStatus: 401 });
         await expect(run(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
@@ -530,6 +540,7 @@ describe('administration globale : utilisateurs réels uniquement', () => {
         try {
           await expect(exportOrganizationSettingsCsv(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
           await expect(exportOrganizationSettingsXlsx(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+          await expect(exportOrganizationSettingsPdf(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
         } finally {
           await db.query("INSERT INTO role_permissions(role_code,permission_code) VALUES ('owner',$1)", [permission]);
         }

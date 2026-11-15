@@ -1,7 +1,7 @@
-# Reprendre ici — PDF du journal de boutique
+# Reprendre ici — PDF des paramètres
 
-Base `f3ac2f252a37fbccc03738afcae158e5028c55bf` publiée ; [run 43759955270](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43759955270) quatre jobs verts et 14 tests navigateur. Artifact non restauré ; le run `43757504110` antérieur reste rouge.
+Base `6cf8be786d03440e75328d5b6395047009c8bd0d` publiée ; [run 43761332925](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43761332925) quatre jobs verts et 14 tests navigateur ; artifact non restauré.
 
-Lot L10 local : PDF du journal, même boutique, filtres, RLS et droits que CSV/Excel ; limites et contrôles dans `docs/comptes-rendus/phase1-export-pdf-journal.md`. 299 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictifs relus indépendamment. Navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI (14 E2E listés).
+Lot L10 local : PDF des seuls nom et fuseau de l’organisation, droits globaux `settings:read` et `reports:export` ; 312 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictifs relus. Navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI (14 E2E listés). Voir `docs/comptes-rendus/phase1-export-pdf-parametres.md`.
 
-Lire `AI_HANDOVER.md` et `NEXT_ACTIONS.md`. ZIP Arena → publication sans force → lien CI dès « publié » → vérifier les quatre jobs avant autre lot. Ne pas divulguer traces/cookies. Snapshot code ≠ sauvegarde DB ; copie indépendante recommandée. Windows en pause, L10 et Phase 1 incomplets.
+Lire `AI_HANDOVER.md` et `NEXT_ACTIONS.md`. ZIP Arena → publication sans force → lien CI immédiatement à « publié » → vérifier les quatre jobs du nouveau SHA avant autre lot. Ne pas divulguer secrets, traces ou cookies. Snapshot code ≠ sauvegarde DB ; copie indépendante recommandée. Windows en pause ; L10 et Phase 1 incomplets.
