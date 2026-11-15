@@ -3,10 +3,10 @@ import { spawnSync } from 'node:child_process';
 import { ownerRecoveryIndex } from '../e2e/owner-codes';
 
 describe('réservation des codes propriétaire CI', () => {
-  it('réserve douze indices distincts par scénario, écran et tentative', () => {
-    const indices = ([0, 1, 2] as const).flatMap((scenario) =>
+  it('réserve seize indices distincts par scénario, écran et tentative', () => {
+    const indices = ([0, 1, 2, 3] as const).flatMap((scenario) =>
       [0, 1].flatMap((retry) => ['bureau', 'mobile-375'].map((project) => ownerRecoveryIndex(scenario, retry, project))));
-    expect(indices).toEqual(Array.from({ length: 12 }, (_, index) => index));
+    expect(indices).toEqual(Array.from({ length: 16 }, (_, index) => index));
   });
   it('refuse une tentative ou un projet non prévus', () => {
     expect(() => ownerRecoveryIndex(1, 2, 'bureau')).toThrow();

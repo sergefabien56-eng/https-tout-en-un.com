@@ -8,7 +8,7 @@ import { expectNoSeriousAccessibilityViolations } from './accessibility';
 // Seulement en CI : utilisateur et codes FICTIFS créés dans une base PostgreSQL jetable.
 // Jamais exécuté contre une base réelle de production.
 /** Quatre codes réservés par scénario : bureau/mobile et première tentative/retry. */
-async function loginOwner(page: Page, testInfo: TestInfo, scenario: 0 | 1 | 2): Promise<void> {
+async function loginOwner(page: Page, testInfo: TestInfo, scenario: 0 | 1 | 2 | 3): Promise<void> {
   const codes = readFileSync(process.env.E2E_RECOVERY_FILE!, 'utf8').trim().split('\n');
   const index = ownerRecoveryIndex(scenario, testInfo.retry, testInfo.project.name);
   const code = codes[index];
@@ -359,7 +359,7 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   expect((await directApi(page.request).put('/api/admin/settings', { data: { timezone: 'UTC' } })).status()).toBe(403);
 });
 
-test('propriétaire CI : boutiques, journal et sessions', async ({ page }, testInfo) => {
+test('propriétaire CI : boutiques, apparence et recherche par boutique', async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   // Connexion indépendante : aucune dépendance à l'ordre ni à la session du test précédent.
@@ -522,6 +522,27 @@ test('propriétaire CI : boutiques, journal et sessions', async ({ page }, testI
   await page.goto('/espace/recherche?q=fixture.created');
   await expect(page.getByRole('heading', { name: 'Journal de la boutique sélectionnée' })).toBeVisible();
   await expect(page.getByRole('link', { name: /ci · fixture.created/ })).toBeVisible();
+});
+
+test('propriétaire CI : journal et sessions', async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+  test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
+  // Contexte indépendant : ouvrir sa session et choisir explicitement la boutique CI.
+  await loginOwner(page, testInfo, 3);
+  const shopsResponse = await directApi(page.request).get('/api/shops');
+  expect(shopsResponse.status()).toBe(200);
+  const shopList = await shopsResponse.json() as { shops: { id: string; displayName: string }[] };
+  expect(shopList.shops).toHaveLength(1);
+  expect(shopList.shops[0]?.displayName).toBe('Boutique CI fictive');
+  const shopId = shopList.shops[0]!.id;
+  await page.getByRole('button', { name: 'Choisir une boutique' }).click();
+  const picker = page.getByRole('dialog', { name: 'Choix de boutique' });
+  await picker.getByRole('button', { name: /Boutique CI fictive/ }).click();
+  await expect(page.getByRole('button', { name: 'Choisir une boutique' })).toContainText('Préférence : Boutique CI fictive');
+  // Le test conserve la vérification du mode sombre sur le journal sans partager un état de page.
+  await page.goto('/espace/apparence');
+  await page.getByRole('radio', { name: /Sombre/ }).check();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.goto('/espace/journal');
   await page.getByRole('button', { name: 'Actions rapides' }).click();
   await expect(page.getByRole('navigation', { name: 'Actions rapides' })

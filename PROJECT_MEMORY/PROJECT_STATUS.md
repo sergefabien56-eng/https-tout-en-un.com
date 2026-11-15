@@ -1,5 +1,5 @@
 # Statut — Phase 1
 
-- Base `d80d1955d9c1c1d3ca56edaf582f034fd67739bb` publiée ; [run 43755748145](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43755748145) quatre jobs verts, dont navigateur et PostgreSQL 16 ; artifact non restauré.
-- Lot L10 local : PDF des boutiques, mêmes filtres/tri, RLS et droits que CSV/Excel ; bornes et limites documentées. 290 Vitest/lint/types/build/audit high OK (7 modérées), PDF fictifs vérifiés ; navigateur et PostgreSQL 16 réels à vérifier en CI (12 E2E listés). Voir `docs/comptes-rendus/phase1-export-pdf-boutiques.md`.
+- `1005473a1e990d5c88fef4b0d1e24db5ff1c0a6e` publié, [run 43757504110](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43757504110) rouge : qualité et PostgreSQL 16 verts, navigateur rouge, archive sautée. PDF boutiques non validé par CI verte.
+- Correctif local : parcours E2E boutiques/journal/sessions scindé, assertions et contrôles conservés ; 291 Vitest/lint/types/build/audit high OK (7 modérées), 14 E2E listés ; navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI. Voir `docs/comptes-rendus/correctif-ci-boutiques-journal-sessions.md`.
 - L10 et P1 incomplets : invitations SMTP, paramètres/devise/notifications, santé complémentaire, PDF des autres écrans, autres exports et validation ; ne pas figer la devise sans décision. Windows en pause, ZIP Arena, aucun secret ou trace en livraison.

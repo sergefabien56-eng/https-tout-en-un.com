@@ -62,6 +62,22 @@ describe('bootstrap propriétaire — réellement exécuté sur PostgreSQL WASM'
     expect(role.rows[0]?.role_code).toBe('owner');
   });
 
+  it('la requête de fixture CI ajoute six hashes fictifs une seule fois', async () => {
+    await db.exec('BEGIN;');
+    try {
+      await db.exec("UPDATE users SET email='proprietaire@ci.invalid' WHERE email='owner@example.test'");
+      const sql = `UPDATE users SET totp_recovery_codes_hash = totp_recovery_codes_hash || $1::text[]
+        WHERE email = 'proprietaire@ci.invalid' AND cardinality(totp_recovery_codes_hash) = 10 RETURNING id`;
+      const hashes = Array.from({ length: 6 }, (_, index) => `fixture-hash-${index}`);
+      const first = await db.query(sql, [hashes]);
+      expect(first.affectedRows).toBe(1);
+      const actual = await db.query<{ n: number }>("SELECT cardinality(totp_recovery_codes_hash)::int AS n FROM users WHERE email='proprietaire@ci.invalid'");
+      expect(actual.rows[0]?.n).toBe(16);
+      const second = await db.query(sql, [hashes]);
+      expect(second.affectedRows).toBe(0);
+    } finally { await db.exec('ROLLBACK;'); }
+  });
+
   it('refuse le second bootstrap sans toucher au premier compte', async () => {
     await db.exec('BEGIN;');
     try { await expect(createFirstOwner(db as unknown as PoolClient, input)).rejects.toThrow(/Bootstrap refusé/); }
