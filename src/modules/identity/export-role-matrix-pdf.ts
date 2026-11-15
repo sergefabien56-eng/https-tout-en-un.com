@@ -2,9 +2,9 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import fontkit from '@pdf-lib/fontkit';
-import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { PDFDocument, rgb, type PDFPage } from 'pdf-lib';
 import { ValidationError } from '@/core/errors/app-error';
-import { safeSpreadsheetText } from '@/core/export/safe-csv';
+import { validatePdfText, wrapPdfText } from '@/core/export/pdf-text';
 import { loadAuthorizedRoleMatrixExport } from '@/modules/identity/export-role-matrix';
 import type { RoleMatrix } from '@/modules/identity/role-matrix';
 
@@ -21,26 +21,9 @@ const SIZE = 8;
 const LINE_HEIGHT = 11;
 const BLUE = rgb(0.12, 0.23, 0.32);
 
-/** Refuse plutôt que tronquer ou afficher un glyphe manquant / contrôle invisible. */
+/** Applique au PDF des rôles la même limite de libellé qu'avant mutualisation. */
 function validateText(value: string, supported: Set<number>): string {
-  if (Array.from(value).length > MAX_CELL_CHARACTERS || /[\p{Cc}\p{Cf}\p{Cs}]/u.test(value))
-    throw new ValidationError('Un libellé est trop long ou contient un caractère non pris en charge pour le PDF.');
-  if (Array.from(value).some((char) => !supported.has(char.codePointAt(0)!)))
-    throw new ValidationError('Un caractère de la matrice ne peut pas être affiché dans le PDF.');
-  return safeSpreadsheetText(value);
-}
-
-/** Coupe les lignes à la largeur exacte sans perdre les caractères. */
-function wrap(text: string, font: PDFFont, size: number, width: number): string[] {
-  const lines: string[] = [];
-  let current = '';
-  for (const character of text) {
-    if (current && font.widthOfTextAtSize(current + character, size) > width) {
-      lines.push(current); current = character;
-    } else current += character;
-  }
-  if (current || lines.length === 0) lines.push(current);
-  return lines;
+  return validatePdfText(value, supported, MAX_CELL_CHARACTERS);
 }
 
 export async function formatRoleMatrixPdf(matrix: RoleMatrix, exportedAt: string): Promise<Uint8Array<ArrayBuffer>> {
@@ -71,7 +54,7 @@ export async function formatRoleMatrixPdf(matrix: RoleMatrix, exportedAt: string
   };
   for (const [groupIndex, group] of groups.entries()) {
     const width = group.length ? (textWidth - FIRST_COLUMN) / group.length : textWidth - FIRST_COLUMN;
-    const roleLines = group.map((role) => wrap(role.heading, font, SIZE, width - 8));
+    const roleLines = group.map((role) => wrapPdfText(role.heading, font, SIZE, width - 8));
     const headerHeight = Math.max(1, ...roleLines.map((lines) => lines.length)) * LINE_HEIGHT + 12;
     const newPage = () => {
       if (++pageCount > MAX_PAGES) throw new ValidationError('Matrice trop volumineuse pour cet export PDF.');
@@ -95,8 +78,8 @@ export async function formatRoleMatrixPdf(matrix: RoleMatrix, exportedAt: string
       continue;
     }
     for (const permission of permissions) {
-      const labelLines = wrap(permission.label, font, SIZE, FIRST_COLUMN - 8);
-      const detailLines = wrap(permission.detail, font, SIZE, FIRST_COLUMN - 8);
+      const labelLines = wrapPdfText(permission.label, font, SIZE, FIRST_COLUMN - 8);
+      const detailLines = wrapPdfText(permission.detail, font, SIZE, FIRST_COLUMN - 8);
       const lines = [...labelLines, ...detailLines];
       const height = lines.length * LINE_HEIGHT + 10;
       if (y - height < MARGIN) newPage();

@@ -7,7 +7,10 @@
 const config = {
   output: 'standalone',
   // La police du PDF doit aussi être disponible dans l'archive autonome Next.
-  outputFileTracingIncludes: { '/api/admin/roles/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'] },
+  outputFileTracingIncludes: {
+    '/api/admin/roles/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
+    '/api/admin/users/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
+  },
   poweredByHeader: false,
   reactStrictMode: true,
   async headers() {

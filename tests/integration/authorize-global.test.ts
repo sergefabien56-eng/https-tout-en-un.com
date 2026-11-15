@@ -22,6 +22,7 @@ vi.mock('@/core/db/client', () => ({
 const { listAuthorizedUsers, getAuthorizedUser } = await import('@/modules/identity/user-list');
 const { exportAuthorizedUsers } = await import('@/modules/identity/export-users');
 const { exportAuthorizedUsersXlsx } = await import('@/modules/identity/export-users-xlsx');
+const { exportAuthorizedUsersPdf } = await import('@/modules/identity/export-users-pdf');
 const { getNavigationPermissions } = await import('@/ui/navigation-permissions');
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
@@ -104,9 +105,19 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       await expect(exportAuthorizedUsersXlsx(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
       await expect(exportAuthorizedUsersXlsx(undefined)).rejects.toMatchObject({ httpStatus: 401 });
       await expect(exportAuthorizedUsersXlsx(owner.token, '', 'OWNER')).rejects.toMatchObject({ httpStatus: 400 });
+      try {
+        useRestrictedRole = true;
+        const pdf = await exportAuthorizedUsersPdf(owner.token, 'export-fixture', 'invited', 'manager');
+        expect(Buffer.from(pdf.subarray(0, 5)).toString()).toBe('%PDF-');
+      } finally { useRestrictedRole = false; }
+      await expect(exportAuthorizedUsersPdf(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(exportAuthorizedUsersPdf(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+      await expect(exportAuthorizedUsersPdf(owner.token, '', 'OWNER')).rejects.toMatchObject({ httpStatus: 400 });
       await db.exec("DELETE FROM role_permissions WHERE role_code='owner' AND permission_code='reports:export'");
-      try { await expect(exportAuthorizedUsersXlsx(owner.token)).rejects.toMatchObject({ httpStatus: 403 }); }
-      finally { await db.exec("INSERT INTO role_permissions (role_code,permission_code) VALUES ('owner','reports:export')"); }
+      try {
+        await expect(exportAuthorizedUsersXlsx(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+        await expect(exportAuthorizedUsersPdf(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+      } finally { await db.exec("INSERT INTO role_permissions (role_code,permission_code) VALUES ('owner','reports:export')"); }
       await expect(exportAuthorizedUsers(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
       await expect(exportAuthorizedUsers(undefined)).rejects.toMatchObject({ httpStatus: 401 });
       await expect(exportAuthorizedUsers(owner.token, '', 'OWNER')).rejects.toMatchObject({ httpStatus: 400 });

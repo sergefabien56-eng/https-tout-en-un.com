@@ -181,6 +181,14 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(usersSheet.getColumn(3).values).toContain('proprietaire@ci.invalid');
   expect(usersSheet.getCell('B5').value).toBe('active'); expect(usersSheet.getCell('B6').value).toBe('owner');
   expect((await directApi(page.request).get('/api/admin/users/export/xlsx?role=WRONG')).status()).toBe(400);
+  const usersPdfLink = page.getByRole('link', { name: /Exporter les utilisateurs correspondant aux filtres en PDF/ });
+  await expect(usersPdfLink).toHaveAttribute('href', /\/api\/admin\/users\/export\/pdf\?.*status=active&role=owner/);
+  const usersPdf = await directApi(page.request).get(await usersPdfLink.getAttribute('href') ?? '');
+  expect(usersPdf.status()).toBe(200);
+  expect(usersPdf.headers()['cache-control']).toBe('no-store');
+  expect(usersPdf.headers()['content-type']).toBe('application/pdf');
+  expect((await usersPdf.body()).subarray(0, 5).toString('ascii')).toBe('%PDF-');
+  expect((await directApi(page.request).get('/api/admin/users/export/pdf?role=WRONG')).status()).toBe(400);
   await page.getByRole('table').getByRole('link', { name: 'Propriétaire CI', exact: true }).click();
   await expect(page).toHaveURL(/\/espace\/utilisateurs\/[1-9]\d*$/);
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible({ timeout: 15_000 });
