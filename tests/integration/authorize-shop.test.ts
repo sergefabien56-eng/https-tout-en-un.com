@@ -2,6 +2,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import ExcelJS from 'exceljs';
+import { PDFPage } from 'pdf-lib';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { PoolClient } from 'pg';
@@ -30,6 +31,7 @@ const { listShopAudit } = await import('@/modules/audit/list-audit');
 const { searchAuthorizedAudit } = await import('@/modules/audit/search-audit');
 const { exportShopAudit } = await import('@/modules/audit/export-audit');
 const { exportShopAuditXlsx } = await import('@/modules/audit/export-audit-xlsx');
+const { exportShopAuditPdf } = await import('@/modules/audit/export-audit-pdf');
 const { manageShopRole } = await import('@/modules/identity/manage-shop-role');
 const { POST: selectShop } = await import('@/app/api/preferences/shop/route');
 const { GET: auditGet } = await import('@/app/api/shops/[shopId]/audit/route');
@@ -259,6 +261,30 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     expect(sheet.getColumn(5).values).toContain("'=cmd");
     expect(sheet.getColumn(6).values).toContain("'@hostile");
     expect(JSON.stringify(sheet.getSheetValues())).not.toMatch(/test\.b|rls-global|secret-à-expurger|token_hash|before|after/);
+    // Vérifier ce qui est dessiné à partir du vrai chargement scoppé RLS.
+    const draw = vi.spyOn(PDFPage.prototype, 'drawText');
+    try {
+      const pdf = await exportShopAuditPdf({ token: manager.token, shopId: shop1, from: today, to: today, q: '=cmd' });
+      expect(Buffer.from(pdf.subarray(0, 5)).toString()).toBe('%PDF-');
+      let lines = draw.mock.calls.map(([text]) => text);
+      expect(lines).toContain("'=cmd"); expect(lines).toContain("'@hostile");
+      expect(lines).not.toContain('test.b'); expect(lines).not.toContain('rls-global');
+      expect(lines.join(' ')).not.toMatch(/secret-à-expurger|token_hash|before|after/);
+      await db.query(`INSERT INTO audit_log(shop_id,actor_user_id,occurred_at,module,action,result,before,after)
+        VALUES ($1,2,'2025-02-01T23:59:59.999Z','shops','pdf-boundary-included','failure','{"private":"SECRET_FIXTURE"}','{"private":"SECRET_FIXTURE"}'),
+        ($1,2,'2025-02-02T00:00:00.000Z','shops','pdf-boundary-excluded','failure',NULL,NULL),
+        ($2,2,'2025-02-01T23:59:59.999Z','shops','pdf-other-shop','failure',NULL,NULL)`, [shop1, shop2]);
+      draw.mockClear();
+      await exportShopAuditPdf({ token: manager.token, shopId: shop1, from: '2025-02-01', to: '2025-02-01',
+        module: 'shops', actorId: '2', result: 'failure', q: 'pdf-boundary' });
+      lines = draw.mock.calls.map(([text]) => text);
+      expect(lines).toContain('pdf-boundary-included');
+      expect(lines).not.toContain('pdf-boundary-excluded'); expect(lines).not.toContain('pdf-other-shop');
+      expect(lines.join(' ')).not.toContain('SECRET_FIXTURE');
+    } finally { draw.mockRestore(); }
+    await expect(exportShopAuditPdf({ token: manager.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportShopAuditPdf({ token: undefined, shopId: shop1 })).rejects.toMatchObject({ httpStatus: 401 });
+    await expect(exportShopAuditPdf({ token: manager.token, shopId: shop1, from: '2026-99-99' })).rejects.toMatchObject({ httpStatus: 400 });
     await expect(exportShopAuditXlsx({ token: manager.token, shopId: shop2, q: '=cmd' })).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportShopAuditXlsx({ token: undefined, shopId: shop1 })).rejects.toMatchObject({ httpStatus: 401 });
     await expect(exportShopAuditXlsx({ token: manager.token, shopId: shop1, from: '2026-99-99' })).rejects.toMatchObject({ httpStatus: 400 });
@@ -270,6 +296,7 @@ describe('porte serveur : session + shop + permission + RLS dans la même transa
     expect((await listShopAudit({ token: assistant.token, shopId: shop2, page: 1 })).events.length).toBeGreaterThan(0);
     await expect(exportShopAudit({ token: assistant.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportShopAuditXlsx({ token: assistant.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportShopAuditPdf({ token: assistant.token, shopId: shop2 })).rejects.toMatchObject({ httpStatus: 403 });
   });
 
 });

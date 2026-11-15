@@ -579,6 +579,15 @@ test('propriétaire CI : journal et sessions', async ({ page }, testInfo) => {
   expect(auditSheet.getColumn(5).values).toContain('fixture.denied');
   expect(auditSheet.getColumn(5).values).not.toContain('fixture.created');
   expect((await directApi(page.request).get(`/api/shops/${shopId}/audit/export/xlsx?result=unknown`)).status()).toBe(400);
+  const auditPdfLink = page.getByRole('link', { name: 'Exporter cette sélection en PDF' });
+  const auditPdfHref = await auditPdfLink.getAttribute('href');
+  expect(new URL(auditPdfHref!, page.url()).searchParams.get('result')).toBe('failure');
+  const auditPdf = await directApi(page.request).get(auditPdfHref!);
+  expect(auditPdf.status()).toBe(200);
+  expect(auditPdf.headers()['content-type']).toBe('application/pdf');
+  expect(auditPdf.headers()['cache-control']).toBe('no-store');
+  expect((await auditPdf.body()).subarray(0, 5).toString('ascii')).toBe('%PDF-');
+  expect((await directApi(page.request).get(`/api/shops/${shopId}/audit/export/pdf?result=unknown`)).status()).toBe(400);
   const failureApi = await directApi(page.request).get(`/api/shops/${shopId}/audit?result=failure`);
   expect(failureApi.status()).toBe(200);
   expect((await failureApi.json() as { events: { result: string; action: string }[] }).events)

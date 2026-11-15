@@ -11,6 +11,7 @@ const config = {
     '/api/admin/roles/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
     '/api/admin/users/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
     '/api/shops/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
+    '/api/shops/[shopId]/audit/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
   },
   poweredByHeader: false,
   reactStrictMode: true,
