@@ -1,0 +1,14 @@
+# Phase 1 / L10 — export PDF de la matrice des rôles
+
+## Périmètre
+Le nouvel export PDF concerne **uniquement la matrice des rôles**. Il utilise exactement le chargement autorisé commun aux exports CSV et Excel : session valide, `roles:manage` global et `reports:export` global. Les rôles limités à une boutique ne donnent pas ce droit. La réponse est une pièce jointe `application/pdf` non mise en cache, avec `nosniff` ; refus 401/403 et erreurs neutres. Aucun changement de droits, de données, de RLS ou de schéma.
+
+Le PDF indique l’organisation globale, la date UTC et « Sans période — instantané ». Les permissions et les droits autorisés ou non sont paginés, par groupes de quatre rôles. Valeurs hostiles neutralisées, pas de liens ou scripts PDF volontairement ajoutés. Police DejaVu Sans intégrée, avec licence incluse et sans accès réseau ; inclusion vérifiée dans la sortie Next autonome.
+
+Pour éviter un document trompeur ou une consommation non bornée : maximum 20 rôles, 500 permissions, 160 caractères par libellé/code et 250 pages. Un caractère de contrôle, invisible ou absent de cette police est refusé explicitement au lieu d'être supprimé ou affiché incorrectement. Ces limites sont propres au PDF ; les CSV/Excel existants n'ont pas changé. D'autres écritures et certains emoji peuvent être refusés faute de glyphe : utiliser les autres formats si nécessaire.
+
+## Vérifications locales
+278 Vitest, lint, types, build et audit au seuil high réussis ; 7 vulnérabilités modérées préexistantes. Audit dépendances de production : aucune vulnérabilité signalée. Une tentative locale de `npm ci` a été interrompue pendant l’installation d’argon2 : le binaire précompilé a provoqué une erreur de segmentation dans cet environnement ; compilation locale terminée manuellement, hachage fictif vérifié, puis tests et build relancés avec succès. Une installation propre complète du nouveau lot reste à confirmer en CI, sans conclure sur la cause de l’erreur locale. Tests des autorisations globales incluant un rôle de base sans BYPASSRLS sur PGlite, neutralisation, limites et pagination. Une fixture fictive a été ouverte et son texte extrait avec PyMuPDF : contexte, valeurs hostiles et droits observés ; une seconde fixture de 7 rôles et 90 permissions relue sur 16 pages. Les 12 E2E sont listés, mais navigateur et PostgreSQL 16 réels de ce commit n’ont pas été exécutés localement ; ils restent à vérifier en CI.
+
+## Validation
+Base `5afc9a9d7c1676021374dd23599dde0d5f8c8f39` publiée ; [CI 43742241101](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43742241101) quatre jobs verts et 12 Playwright. ZIP Arena → publication sans force → lien CI immédiat à « publié » → vérifier les quatre jobs avant autre lot. Les PDF des autres écrans, ainsi que les autres critères L10, restent à traiter : la Phase 1 n’est pas terminée.

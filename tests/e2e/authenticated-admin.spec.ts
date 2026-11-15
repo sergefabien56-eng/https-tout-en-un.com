@@ -255,6 +255,13 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   expect(rolesXlsx.headers()['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   expect(rolesXlsx.headers()['cache-control']).toBe('no-store');
   expect((await rolesXlsx.body()).subarray(0, 2).toString('ascii')).toBe('PK');
+  await expect(page.getByRole('link', { name: 'Exporter la matrice en PDF' }))
+    .toHaveAttribute('href', '/api/admin/roles/export/pdf');
+  const rolesPdf = await directApi(page.request).get('/api/admin/roles/export/pdf');
+  expect(rolesPdf.status()).toBe(200);
+  expect(rolesPdf.headers()['content-type']).toContain('application/pdf');
+  expect(rolesPdf.headers()['cache-control']).toBe('no-store');
+  expect((await rolesPdf.body()).subarray(0, 5).toString('ascii')).toBe('%PDF-');
   if (testInfo.project.name === 'mobile-375') await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
   await page.getByRole('link', { name: 'Système' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Système', exact: true })).toBeVisible();

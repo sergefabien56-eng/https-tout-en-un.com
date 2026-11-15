@@ -26,6 +26,7 @@ const { getNavigationPermissions } = await import('@/ui/navigation-permissions')
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
 const { exportRoleMatrixXlsx } = await import('@/modules/identity/export-role-matrix-xlsx');
+const { exportRoleMatrixPdf } = await import('@/modules/identity/export-role-matrix-pdf');
 const { exportOrganizationSettingsCsv } = await import('@/modules/identity/export-organization-settings');
 const { exportOrganizationSettingsXlsx } = await import('@/modules/identity/export-organization-settings-xlsx');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
@@ -233,10 +234,18 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     await expect(exportRoleMatrixXlsx(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportRoleMatrixXlsx(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
     await expect(exportRoleMatrixXlsx(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+    try {
+      useRestrictedRole = true;
+      expect(Buffer.from((await exportRoleMatrixPdf(owner.token)).subarray(0, 5)).toString()).toBe('%PDF-');
+    } finally { useRestrictedRole = false; }
+    await expect(exportRoleMatrixPdf(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportRoleMatrixPdf(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(exportRoleMatrixPdf(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     await db.query("DELETE FROM role_permissions WHERE role_code = 'owner' AND permission_code = 'reports:export'");
     try {
       await expect(exportRoleMatrix(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
       await expect(exportRoleMatrixXlsx(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(exportRoleMatrixPdf(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
       expect((await getRoleMatrix(owner.token)).roles).toHaveLength(5);
     } finally {
       await db.query("INSERT INTO role_permissions (role_code, permission_code) VALUES ('owner', 'reports:export')");
