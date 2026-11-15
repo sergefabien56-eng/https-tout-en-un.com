@@ -24,6 +24,8 @@ test('espace privé inaccessible sans session, côté serveur', async ({ page })
   await expect(page.getByText(/Bienvenue,/)).toHaveCount(0);
   const result = await directApi(page.request).get('/api/auth/me');
   expect(result.status()).toBe(401);
+  expect((await directApi(page.request).get('/api/admin/settings/export')).status()).toBe(401);
+  expect((await directApi(page.request).get('/api/admin/settings/export/xlsx')).status()).toBe(401);
   await page.goto('/espace/apparence');
   await expect(page).toHaveURL(/\/connexion$/);
 });

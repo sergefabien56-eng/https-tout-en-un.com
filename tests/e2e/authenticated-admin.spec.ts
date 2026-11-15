@@ -321,6 +321,25 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   const settings = await directApi(page.request).get('/api/admin/settings');
   expect(settings.status()).toBe(200);
   expect(Object.keys(await settings.json() as object)).toEqual(['timezone']);
+  await expect(page.getByRole('link', { name: 'Exporter les paramètres en CSV' }))
+    .toHaveAttribute('href', '/api/admin/settings/export');
+  await expect(page.getByRole('link', { name: 'Exporter les paramètres en Excel' }))
+    .toHaveAttribute('href', '/api/admin/settings/export/xlsx');
+  const settingsCsv = await directApi(page.request).get('/api/admin/settings/export');
+  expect(settingsCsv.status()).toBe(200);
+  expect(settingsCsv.headers()['content-type']).toContain('text/csv');
+  expect(settingsCsv.headers()['cache-control']).toBe('no-store');
+  const settingsText = await settingsCsv.text();
+  expect(settingsText).toContain('"Sans période — instantané"');
+  expect(settingsText).toContain('"Nom de l’organisation"');
+  expect(settingsText).not.toMatch(/password_hash|token_hash|totp_secret/);
+  const settingsExcel = await directApi(page.request).get('/api/admin/settings/export/xlsx');
+  expect(settingsExcel.status()).toBe(200);
+  expect(settingsExcel.headers()['content-type']).toContain('spreadsheetml.sheet');
+  const settingsWorkbook = new ExcelJS.Workbook(); await settingsWorkbook.xlsx.load(Uint8Array.from(await settingsExcel.body()).buffer);
+  const settingsSheet = settingsWorkbook.getWorksheet('Paramètres')!;
+  expect(settingsSheet.getCell('A5').value).toBe('Nom de l’organisation');
+  expect(settingsSheet.getCell('A6').value).toBe('Fuseau horaire de référence');
   // Aucun changement de paramètre sans Origin et CSRF, même avec la session propriétaire.
   expect((await directApi(page.request).put('/api/admin/settings', { data: { timezone: 'UTC' } })).status()).toBe(403);
 });

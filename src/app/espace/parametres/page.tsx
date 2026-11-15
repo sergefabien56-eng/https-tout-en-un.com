@@ -25,9 +25,14 @@ export default async function SettingsPage() {
   return <main className="workspace-main">
     <span className="tag">Administration · Organisation</span><h1>Paramètres</h1>
     <p>Seuls les droits globaux permettent de consulter ou de modifier ces paramètres.</p>
+    {grants?.globalPermissions.has('reports:export') && <p>
+      <a href="/api/admin/settings/export">Exporter les paramètres en CSV</a>{' · '}
+      <a href="/api/admin/settings/export/xlsx">Exporter les paramètres en Excel</a>
+      {' '}(nom et fuseau de l’organisation uniquement).
+    </p>}
     <div className="card"><h2>Organisation</h2>
       <p>Nom enregistré : <strong>{organization.name ?? 'Non configuré'}</strong>.</p>
-      <p>Ce nom désigne votre organisation ; il ne modifie pas le nom officiel de l’application et n’est pas encore repris dans les exports.</p>
+      <p>Ce nom désigne votre organisation ; il ne modifie pas le nom officiel de l’application. Il figure dans l’export des paramètres, pas dans les autres exports.</p>
       {grants?.globalPermissions.has('settings:manage') && <OrganizationNameForm current={organization.name} />}
     </div>
     <div className="card"><h2>Fuseau horaire de référence</h2>

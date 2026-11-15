@@ -26,6 +26,8 @@ const { getNavigationPermissions } = await import('@/ui/navigation-permissions')
 const { getRoleMatrix } = await import('@/modules/identity/role-matrix');
 const { exportRoleMatrix } = await import('@/modules/identity/export-role-matrix');
 const { exportRoleMatrixXlsx } = await import('@/modules/identity/export-role-matrix-xlsx');
+const { exportOrganizationSettingsCsv } = await import('@/modules/identity/export-organization-settings');
+const { exportOrganizationSettingsXlsx } = await import('@/modules/identity/export-organization-settings-xlsx');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
 const { readOrganizationName, updateOrganizationName } = await import('@/modules/identity/organization-name');
@@ -481,5 +483,40 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect((await listAuthorizedUsers(owner.token, 2)).users).toEqual([]);
     await expect(listAuthorizedUsers(owner.token, 0)).rejects.toThrow(/Page invalide/);
     await expect(listAuthorizedUsers(owner.token, 10_001)).rejects.toThrow(/Page invalide/);
+  });
+  it('exports paramètres : sélection limitée, double autorisation globale et RLS', async () => {
+    await db.exec(`INSERT INTO app_settings (key, value) VALUES
+      ('organization.name', '"=cmd"'::jsonb), ('organization.timezone', '"UTC"'::jsonb),
+      ('fixture.sensitive', '"SECRET_FIXTURE_EXCLU"'::jsonb)
+      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;`);
+    try {
+      useRestrictedRole = true;
+      const csv = await exportOrganizationSettingsCsv(owner.token);
+      expect(csv).toContain('"\'=cmd"'); expect(csv).toContain('"UTC"');
+      expect(csv).not.toContain('SECRET_FIXTURE_EXCLU');
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load((await exportOrganizationSettingsXlsx(owner.token)).buffer);
+      const sheet = workbook.getWorksheet('Paramètres')!;
+      expect(sheet.getCell('B5').value).toBe("'=cmd"); expect(sheet.getCell('B6').value).toBe('UTC');
+      expect(JSON.stringify(sheet.getSheetValues())).not.toContain('SECRET_FIXTURE_EXCLU');
+      for (const run of [exportOrganizationSettingsCsv, exportOrganizationSettingsXlsx]) {
+        await expect(run(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+        await expect(run(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+        await expect(run(createSessionToken().token)).rejects.toMatchObject({ httpStatus: 401 });
+      }
+      useRestrictedRole = false;
+      for (const permission of ['reports:export', 'settings:read']) {
+        await db.query("DELETE FROM role_permissions WHERE role_code='owner' AND permission_code=$1", [permission]);
+        try {
+          await expect(exportOrganizationSettingsCsv(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+          await expect(exportOrganizationSettingsXlsx(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+        } finally {
+          await db.query("INSERT INTO role_permissions(role_code,permission_code) VALUES ('owner',$1)", [permission]);
+        }
+      }
+    } finally {
+      useRestrictedRole = false;
+      await db.exec("DELETE FROM app_settings WHERE key='fixture.sensitive'");
+    }
   });
 });
