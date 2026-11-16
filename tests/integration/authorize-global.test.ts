@@ -33,6 +33,8 @@ const { exportOrganizationSettingsCsv } = await import('@/modules/identity/expor
 const { exportOrganizationSettingsXlsx } = await import('@/modules/identity/export-organization-settings-xlsx');
 const { exportOrganizationSettingsPdf } = await import('@/modules/identity/export-organization-settings-pdf');
 const { getDeepHealth } = await import('@/modules/monitoring/deep-health');
+const { exportSystemCsv, exportSystemXlsx, canExportSystem } = await import('@/modules/monitoring/export-system');
+const { exportSystemPdf } = await import('@/modules/monitoring/export-system-pdf');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
 const { readOrganizationName, updateOrganizationName } = await import('@/modules/identity/organization-name');
 const { changeUserStatus } = await import('@/modules/identity/change-user-status');
@@ -266,24 +268,71 @@ describe('administration globale : utilisateurs réels uniquement', () => {
   });
   it('santé profonde : propriétaire uniquement, nombre réel de migrations', async () => {
     // Le runner crée schema_migrations, le test PGlite applique directement les fichiers.
-    await db.exec('CREATE TABLE schema_migrations (version text PRIMARY KEY);');
+    await db.exec('CREATE TABLE schema_migrations (version text PRIMARY KEY); GRANT SELECT ON schema_migrations TO settings_test_app;');
     await db.exec("INSERT INTO schema_migrations VALUES ('0001'), ('0002');");
-    expect(await getDeepHealth(owner.token)).toMatchObject({ globalEventsRecorded: 0, globalCriticalOpen: 0, globalWarningsOpen: 0 });
+    expect(await getDeepHealth(owner.token)).toMatchObject({ globalEventsRecorded: null, globalCriticalOpen: null, globalWarningsOpen: null });
     await db.exec(`INSERT INTO system_events (severity, category, code, message, shop_id) VALUES
       ('critical', 'test', 'health-global-critical', 'PRIVATE_SENTINEL', NULL),
       ('warning', 'test', 'health-global-warning', 'PRIVATE_SENTINEL', NULL),
       ('info', 'test', 'health-global-info', 'PRIVATE_SENTINEL', NULL),
       ('critical', 'test', 'health-shop-secret', 'PRIVATE_SENTINEL', 1);`);
     try {
+      const visibleAdmin = await db.query<{ n: number }>("SELECT count(*)::int AS n FROM system_events WHERE shop_id IS NULL");
+      expect(visibleAdmin.rows[0]?.n).toBe(3);
+      await db.exec('BEGIN; SET LOCAL ROLE settings_test_app;');
+      try {
+        const masked = await db.query<{ n: number }>("SELECT count(*)::int AS n FROM system_events WHERE shop_id IS NULL");
+        expect(masked.rows[0]?.n).toBe(0); // RLS masque les lignes : 0 n’est pas une mesure fiable.
+      } finally { await db.exec('ROLLBACK'); }
       const health = await getDeepHealth(owner.token);
       expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, queue: 'indisponible', version: '0.1.0',
-        globalEventsRecorded: 3, globalCriticalOpen: 1, globalWarningsOpen: 1 });
+        globalEventsRecorded: null, globalCriticalOpen: null, globalWarningsOpen: null });
       expect(['development', 'staging', 'production']).toContain(health.environment);
       expect(health.databaseQueryMs).toEqual(expect.any(Number));
       expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
       expect(Object.keys(health).sort()).toEqual(['checkedAt', 'database', 'databaseQueryMs', 'environment',
         'globalCriticalOpen', 'globalEventsRecorded', 'globalWarningsOpen', 'migrationsApplied', 'queue', 'version']);
       expect(JSON.stringify(health)).not.toMatch(/PRIVATE_SENTINEL|health-shop-secret|DATABASE_URL|postgres:\/\/|password|secret|token/i);
+      try {
+        useRestrictedRole = true;
+        const csv = await exportSystemCsv(owner.token);
+        expect(csv).toContain('"Instance — accès Propriétaire"');
+        expect(csv).toContain('"Événements globaux enregistrés","Indisponible"');
+        expect(csv).toContain('"File de tâches","Indisponible — worker non livré"');
+        expect(csv).not.toMatch(/PRIVATE_SENTINEL|health-shop-secret|DATABASE_URL|postgres:\/\/|password|secret|token/i);
+        const book = new ExcelJS.Workbook(); await book.xlsx.load((await exportSystemXlsx(owner.token)).buffer);
+        const cells = JSON.stringify(book.getWorksheet('Système')!.getSheetValues());
+        expect(cells).toContain('Indisponible — worker non livré');
+        expect(cells).not.toContain('PRIVATE_SENTINEL');
+        const draw = vi.spyOn(PDFPage.prototype, 'drawText');
+        try {
+          const pdf = await exportSystemPdf(owner.token);
+          expect(Buffer.from(pdf.subarray(0, 5)).toString()).toBe('%PDF-');
+          const text = draw.mock.calls.map(([value]) => value).join(' ');
+          expect(text).toContain('Indisponible — worker non livré');
+          expect(text).not.toContain('PRIVATE_SENTINEL');
+        } finally { draw.mockRestore(); }
+        expect(await canExportSystem(owner.token)).toBe(true);
+      } finally { useRestrictedRole = false; }
+      const exporters = [exportSystemCsv, exportSystemXlsx, exportSystemPdf];
+      for (const run of exporters) {
+        await expect(run(undefined)).rejects.toMatchObject({ httpStatus: 401 });
+        await expect(run(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+        await expect(run(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+      }
+      // Même après ajout des deux permissions, un non-propriétaire reste exclu.
+      await db.exec("INSERT INTO role_permissions(role_code,permission_code) VALUES ('manager','system:manage')");
+      try {
+        expect(await canExportSystem(globalManager.token)).toBe(false);
+        for (const run of exporters) await expect(run(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+      } finally { await db.exec("DELETE FROM role_permissions WHERE role_code='manager' AND permission_code='system:manage'"); }
+      for (const permission of ['system:manage', 'reports:export']) {
+        await db.query("DELETE FROM role_permissions WHERE role_code='owner' AND permission_code=$1", [permission]);
+        try {
+          expect(await canExportSystem(owner.token)).toBe(false);
+          for (const run of exporters) await expect(run(owner.token)).rejects.toMatchObject({ httpStatus: 403 });
+        } finally { await db.query("INSERT INTO role_permissions(role_code,permission_code) VALUES ('owner',$1)", [permission]); }
+      }
       await expect(getDeepHealth(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
       await expect(getDeepHealth(undefined)).rejects.toMatchObject({ httpStatus: 401 });
     } finally { await db.exec("DELETE FROM system_events WHERE category = 'test'"); }

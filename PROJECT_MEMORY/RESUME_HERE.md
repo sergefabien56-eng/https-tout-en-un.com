@@ -1,7 +1,9 @@
-# Reprendre ici — PDF des paramètres
+# Reprendre ici — export Système
 
-Base `6cf8be786d03440e75328d5b6395047009c8bd0d` publiée ; [run 43761332925](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43761332925) quatre jobs verts et 14 tests navigateur ; artifact non restauré.
+Base publiée `393573ef0263e817bc3861bdbf44200dca8bb748` ; [run 43762590007](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43762590007) : quatre jobs verts, dont 14 tests navigateur ; artifact non restauré.
 
-Lot L10 local : PDF des seuls nom et fuseau de l’organisation, droits globaux `settings:read` et `reports:export` ; 312 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictifs relus. Navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI (14 E2E listés). Voir `docs/comptes-rendus/phase1-export-pdf-parametres.md`.
+Lot L10 local : export Système CSV/Excel/PDF réservé au propriétaire global avec `system:manage` et `reports:export`. RLS masque les événements globaux sans boutique : compteurs remplacés par indisponible/`null`, y compris `/api/health/deep` (changement de contrat), sans assouplissement RLS ; voir `docs/comptes-rendus/phase1-export-systeme.md`. 325 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictif relu ; navigateur et PG16 réels du nouveau SHA à vérifier en CI (14 E2E listés).
 
-Lire `AI_HANDOVER.md` et `NEXT_ACTIONS.md`. ZIP Arena → publication sans force → lien CI immédiatement à « publié » → vérifier les quatre jobs du nouveau SHA avant autre lot. Ne pas divulguer secrets, traces ou cookies. Snapshot code ≠ sauvegarde DB ; copie indépendante recommandée. Windows en pause ; L10 et Phase 1 incomplets.
+Décisions du propriétaire : XOF référence consolidée, taux/règles financières à valider ; alertes critiques au seul propriétaire si détection réelle ; matrice modifiable par propriétaire avec garde-fous à préciser ; export Système propriétaire. SMTP/domaine non choisis. Le code a une constante XOF dans app.config mais le paramètre organisation et les conversions ne sont pas livrés.
+
+Lire `AI_HANDOVER.md` et `NEXT_ACTIONS.md`. ZIP Arena → publication sans force → lien CI immédiatement à « publié » → vérifier les quatre jobs avant autre lot. Ne jamais partager secrets, traces ou cookies. Snapshot code ≠ sauvegarde DB. L10 et phase 1 incomplets ; Windows en pause.

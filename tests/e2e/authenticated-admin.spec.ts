@@ -278,7 +278,7 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   const deep = await directApi(page.request).get('/api/health/deep');
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number; version: string; environment: string;
-    databaseQueryMs: number; queue: string; globalEventsRecorded: number; globalCriticalOpen: number; globalWarningsOpen: number };
+    databaseQueryMs: number; queue: string; globalEventsRecorded: number | null; globalCriticalOpen: number | null; globalWarningsOpen: number | null };
   expect(health.database).toBe('ok');
   // La CI doit avoir appliqué toutes les migrations présentes dans le dépôt.
   const expectedMigrations = readdirSync('drizzle').filter((name) => /^\d{4}_.+\.up\.sql$/.test(name)).length;
@@ -287,17 +287,26 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   expect(health.queue).toBe('indisponible');
   expect(health.environment).toBe('staging');
   expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
-  expect(health.globalEventsRecorded).toBeGreaterThanOrEqual(0);
-  expect(health.globalCriticalOpen).toBeGreaterThanOrEqual(0);
-  expect(health.globalWarningsOpen).toBeGreaterThanOrEqual(0);
-  expect(health.globalEventsRecorded).toBeGreaterThanOrEqual(health.globalCriticalOpen + health.globalWarningsOpen);
+  expect(health.globalEventsRecorded).toBeNull();
+  expect(health.globalCriticalOpen).toBeNull();
+  expect(health.globalWarningsOpen).toBeNull();
   await expect(page.getByRole('heading', { name: 'Événements système globaux enregistrés' })).toBeVisible();
-  if (health.globalEventsRecorded === 0) await expect(page.getByText('Aucun événement global enregistré.', { exact: false })).toBeVisible();
+  await expect(page.getByText('Aucun zéro n’est déduit de données masquées.', { exact: false })).toBeVisible();
   await expect(page.getByText('Tâches en attente : indisponibles.', { exact: false })).toBeVisible();
   await expect(page.getByText(health.version, { exact: true })).toBeVisible();
   await expect(page.getByText('Préproduction', { exact: true })).toBeVisible();
   await expect(page.getByText(String(health.migrationsApplied), { exact: true })).toBeVisible();
   await expect(page.getByText('le worker n’est pas encore livré', { exact: false })).toBeVisible();
+  for (const [label, suffix] of [['CSV', ''], ['Excel', '/xlsx'], ['PDF', '/pdf']] as const)
+    await expect(page.getByRole('link', { name: `Exporter Système en ${label}` })).toHaveAttribute('href', `/api/admin/system/export${suffix}`);
+  const [systemCsv, systemXlsx, systemPdf] = await Promise.all(['', '/xlsx', '/pdf'].map((suffix) => directApi(page.request).get(`/api/admin/system/export${suffix}`)));
+  for (const response of [systemCsv!, systemXlsx!, systemPdf!]) {
+    expect(response.status()).toBe(200); expect(response.headers()['cache-control']).toBe('no-store');
+  }
+  expect(await systemCsv!.text()).toContain('Indisponible — worker non livré');
+  expect((await systemXlsx!.body()).subarray(0, 2).toString('ascii')).toBe('PK');
+  expect((await systemPdf!.body()).subarray(0, 5).toString('ascii')).toBe('%PDF-');
+
   await page.goto('/espace/parametres');
   await expect(page.getByRole('heading', { name: 'Paramètres', exact: true })).toBeVisible();
   await expect(page.getByText('Devise de référence : non configurée', { exact: false })).toBeVisible();
