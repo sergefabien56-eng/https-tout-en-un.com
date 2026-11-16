@@ -89,6 +89,13 @@ jobs:
       - name: Contrôle final
         run: psql "$DATABASE_URL" -c "\dt" && psql "$DATABASE_URL" -c "SELECT count(*) AS migrations FROM schema_migrations;"
 
+      - name: Concurrence de la délégation sous rôle sans BYPASSRLS
+        env:
+          DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
+        run: |
+          psql "$DATABASE_URL_ADMIN" -v ON_ERROR_STOP=1 -v app_password='ci-app-password' -f scripts/db-roles.sql
+          DATABASE_URL=postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test npx tsx scripts/test-delegation-postgres.ts
+
   e2e:
     name: Navigateur bureau et mobile 375 px
     runs-on: ubuntu-latest
@@ -144,6 +151,19 @@ jobs:
           DATABASE_URL: postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test
           E2E_RECOVERY_FILE: /tmp/ci-recovery-codes
         run: npm run test:e2e
+      - name: Préparer les membres fictifs pour la délégation
+        env:
+          DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
+          E2E_DELEGATION_FILE: /tmp/ci-delegation-fixtures
+        run: node scripts/seed-e2e-delegation.mjs
+      - name: Délégation réelle sur navigateur bureau et mobile
+        env:
+          DATABASE_URL: postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test
+          E2E_DELEGATION_FILE: /tmp/ci-delegation-fixtures
+        run: npx playwright test tests/e2e/delegation.spec.ts --workers=1
+      - name: Nettoyer les fixtures temporaires
+        if: always()
+        run: rm -f /tmp/ci-delegation-fixtures
       - name: Nettoyer les codes de secours CI
         if: always()
         run: rm -f /tmp/ci-owner-password /tmp/ci-owner-qr.png /tmp/ci-recovery-codes

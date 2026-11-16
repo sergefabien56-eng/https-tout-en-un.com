@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { AppError } from '@/core/errors/app-error';
 import { listShopMembers } from '@/modules/identity/shop-members';
+import { MemberRoleActions } from '@/ui/member-role-actions';
 export const dynamic = 'force-dynamic';
 export default async function MembersPage({ searchParams }: { searchParams: Promise<{ shop?: string; page?: string }> }) {
   const { shop: requested, page = '1' } = await searchParams;
@@ -24,15 +25,17 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
   return <main className="workspace-main"><span className="tag">Administration · Boutique n° {shop}</span>
     <h1>Membres de la boutique</h1>
     <p>Comptes actifs ou suspendus ayant déjà une ligne d’accès active à cette boutique. Les autres boutiques et rôles globaux ne sont pas affichés.</p>
-    <p>La modification des rôles par un délégué n’est pas encore disponible ; seul le Propriétaire peut actuellement les attribuer.</p>
+    <p>Vous pouvez attribuer ou retirer uniquement des rôles dont vous possédez toutes les permissions dans cette boutique. Le compte Propriétaire, les invitations et votre propre compte sont protégés. L’accès boutique et les autres rôles ne sont pas modifiés.</p>
     <p><Link href="/espace/boutiques">Changer de boutique avec le sélecteur</Link></p>
     {result.members.length === 0 ? <div className="card" role="status"><h2>Aucun membre</h2><p>Aucun compte disposant d’un accès actif n’est enregistré sur cette page.</p></div>
       : <div className="card users-list" role="region" aria-label="Tableau des membres défilant horizontalement" tabIndex={0}>
         <table><caption>Membres enregistrés — page {page}</caption><thead><tr><th scope="col">Nom</th><th scope="col">Adresse e-mail</th>
-          <th scope="col">Statut</th><th scope="col">Rôles de cette boutique</th></tr></thead>
+          <th scope="col">Statut</th><th scope="col">Rôles de cette boutique</th><th scope="col">Actions</th></tr></thead>
           <tbody>{result.members.map((member) => <tr key={member.id}><td>{member.displayName}</td><td>{member.email}</td>
             <td>{member.status === 'active' ? 'Actif' : 'Suspendu'}</td>
-            <td>{member.shopRoles.length ? member.shopRoles.map((role) => role.label).join(', ') : 'Aucun rôle boutique'}</td></tr>)}</tbody>
+            <td>{member.shopRoles.length ? member.shopRoles.map((role) => role.label).join(', ') : 'Aucun rôle boutique'}</td>
+            <td><MemberRoleActions userId={member.id} memberName={member.displayName} shopId={shop}
+              roles={member.shopRoles} delegableRoles={result.delegableRoles} /></td></tr>)}</tbody>
         </table></div>}
     <nav aria-label="Pagination des membres" className="pagination">
       {Number(page) > 1 && <Link href={link(Number(page) - 1)}>Page précédente</Link>}

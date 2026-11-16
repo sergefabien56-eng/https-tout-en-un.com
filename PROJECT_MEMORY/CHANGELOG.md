@@ -103,6 +103,8 @@
 - **Phase 1 — filtre de statut utilisateurs** (présent lot, SHA à relever) : recherche combinée à statut, API et page, pagination conservée, tests PGlite et E2E ajoutés ; check/lint/types/161 Vitest/build locaux OK, E2E du nouveau SHA et CI distants en attente. Aucun schéma changé.
 # Journal des jalons
 
+- **Délégation des rôles boutique (locale, CI en attente)** : permissions bornées à celles du délégué, membres à accès actif, audit atomique, protections et tests de concurrence ; 363 Vitest et deux parcours réels PostgreSQL 17 bureau/mobile avec session fictive. CI `43974576655` valide uniquement la base `9fa2b45`. Voir `docs/comptes-rendus/phase1-delegation-roles-boutique.md`.
+
 - **Phase 1 — archive CI du code** (présent jalon, SHA à relever dans Git) : job après qualité, migrations et E2E verts, seulement pour push `main` ; bundle Git + ZIP source + SHA256 publiés comme artifact GitHub de 30 jours demandés. Aucun changement du code métier/SQL ; YAML parsé, check, Node syntaxe, lint, types, 159 Vitest OK localement ; build/DB/E2E non relancés, publication et validation GitHub de ce nouveau job **en attente**. Docs et mémoire synchronisées.
 - **Mémoire de continuité `bf706f1`** : 13 fichiers et script de contrôle/snapshot ; GitHub run `43013341355` success, 3 jobs verts.
 - **v34 `0226bd0`** : notifications actualisables manuellement, accueil clarifié ; run `43009896449` success.

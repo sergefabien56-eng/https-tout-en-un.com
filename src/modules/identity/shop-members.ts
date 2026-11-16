@@ -1,12 +1,14 @@
 /** Lecture de membres STRICTEMENT dans la boutique autorisée ; aucune mutation. */
 import { withAuthorizedShopTransaction } from '@/core/auth/authorize-shop';
 import { ValidationError } from '@/core/errors/app-error';
+import { listDelegableRoles } from '@/modules/identity/delegable-roles';
+import type { ScopedRole } from '@/modules/identity/scoped-roles';
 export interface ShopMember {
   id: string; displayName: string; email: string; status: 'active' | 'suspended';
   shopRoles: { code: string; label: string }[];
 }
 export async function listShopMembers(input: { token: string | undefined; shopId: string; page?: number }): Promise<{
-  members: ShopMember[]; nextPage: number | null;
+  members: ShopMember[]; nextPage: number | null; delegableRoles: { code: ScopedRole; label: string }[];
 }> {
   const page = input.page ?? 1;
   if (!Number.isSafeInteger(page) || page < 1 || page > 10_000) throw new ValidationError('Page invalide.');
@@ -19,7 +21,8 @@ export async function listShopMembers(input: { token: string | undefined; shopId
        WHERE u.status IN ('active','suspended') ORDER BY u.id DESC LIMIT $2 OFFSET $3`,
       [ctx.shopId, 21, (page - 1) * 20]);
     const shown = result.rows.slice(0, 20);
-    if (!shown.length) return { members: [], nextPage: null };
+    const delegableRoles = await listDelegableRoles(db, ctx.userId, ctx.shopId);
+    if (!shown.length) return { members: [], nextPage: null, delegableRoles };
     const ids = shown.map((row) => String(row.id));
     // N'afficher ni les rôles globaux, ni ceux des autres boutiques.
     const roles = await db.query<{ user_id: string; role_code: string; label: string }>(
@@ -29,6 +32,6 @@ export async function listShopMembers(input: { token: string | undefined; shopId
       email: row.email, status: row.status,
       shopRoles: roles.rows.filter((role) => String(role.user_id) === String(row.id))
         .map((role) => ({ code: role.role_code, label: role.label })) })),
-      nextPage: result.rows.length > 20 ? page + 1 : null };
+      nextPage: result.rows.length > 20 ? page + 1 : null, delegableRoles };
   });
 }
