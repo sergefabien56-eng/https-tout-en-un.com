@@ -1,9 +1,9 @@
-# Reprendre ici — export Système
+# Reprendre ici — devise de référence XOF
 
-Base publiée `393573ef0263e817bc3861bdbf44200dca8bb748` ; [run 43762590007](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43762590007) : quatre jobs verts, dont 14 tests navigateur ; artifact non restauré.
+Base publiée `61931b07ccd45f5db00ed361c401b641143421ec` ; [CI 43926512820](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43926512820) : quatre jobs verts, dont 14 tests navigateur ; artifact non restauré.
 
-Lot L10 local : export Système CSV/Excel/PDF réservé au propriétaire global avec `system:manage` et `reports:export`. RLS masque les événements globaux sans boutique : compteurs remplacés par indisponible/`null`, y compris `/api/health/deep` (changement de contrat), sans assouplissement RLS ; voir `docs/comptes-rendus/phase1-export-systeme.md`. 325 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictif relu ; navigateur et PG16 réels du nouveau SHA à vérifier en CI (14 E2E listés).
+Lot L10 local : paramètre XOF enregistré explicitement et audité, seul XOF accepté ; exports nom/fuseau/devise, aucune conversion. Migration 0013 réversible et policy audit limitée. 334 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictifs relus ; navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI (14 E2E listés). Voir `docs/comptes-rendus/phase1-devise-reference-xof.md`.
 
-Décisions du propriétaire : XOF référence consolidée, taux/règles financières à valider ; alertes critiques au seul propriétaire si détection réelle ; matrice modifiable par propriétaire avec garde-fous à préciser ; export Système propriétaire. SMTP/domaine non choisis. Le code a une constante XOF dans app.config mais le paramètre organisation et les conversions ne sont pas livrés.
+Choix confirmés : XOF référence consolidée, mais taux et formules à valider ; alertes critiques au propriétaire uniquement avec détection réelle ; permissions des rôles modifiables par le propriétaire avec garde-fous à préciser ; export Système réservé au propriétaire. Domaine, VPS et SMTP non disponibles : le propriétaire prévoit de les fournir à la fin de la programmation ; déploiement, e-mail réel et restauration de production restent bloqués. Les trois compteurs globaux Système restent `null`/indisponibles à cause de la RLS, sans faux zéro.
 
 Lire `AI_HANDOVER.md` et `NEXT_ACTIONS.md`. ZIP Arena → publication sans force → lien CI immédiatement à « publié » → vérifier les quatre jobs avant autre lot. Ne jamais partager secrets, traces ou cookies. Snapshot code ≠ sauvegarde DB. L10 et phase 1 incomplets ; Windows en pause.

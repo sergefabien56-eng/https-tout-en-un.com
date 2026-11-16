@@ -1,4 +1,4 @@
-/** PDF des seuls paramètres d'organisation déjà exportés en CSV et Excel. */
+/** PDF des paramètres d'organisation exportés en CSV et Excel. */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import fontkit from '@pdf-lib/fontkit';
@@ -31,6 +31,7 @@ export async function formatOrganizationSettingsPdf(data: OrganizationSettingsEx
   const rows = [
     ['Nom de l’organisation', safe(data.name ?? 'Non configuré')],
     ['Fuseau horaire de référence', safe(data.timezone ?? 'Non configuré')],
+    ['Devise de référence', safe(data.currency ?? 'Non configurée')],
   ];
   const page = document.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   page.drawText('Paramètres de l’organisation', { x: MARGIN, y: PAGE_HEIGHT - 48, size: 16, font, color: BLUE });

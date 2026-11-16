@@ -37,6 +37,7 @@ const { exportSystemCsv, exportSystemXlsx, canExportSystem } = await import('@/m
 const { exportSystemPdf } = await import('@/modules/monitoring/export-system-pdf');
 const { readOrganizationSettings, updateOrganizationTimezone } = await import('@/modules/identity/organization-settings');
 const { readOrganizationName, updateOrganizationName } = await import('@/modules/identity/organization-name');
+const { readOrganizationCurrency, updateOrganizationCurrency } = await import('@/modules/identity/organization-currency');
 const { changeUserStatus } = await import('@/modules/identity/change-user-status');
 const { listOwnSessions } = await import('@/modules/identity/active-sessions');
 const { revokeOtherSession } = await import('@/modules/identity/revoke-other-session');
@@ -416,6 +417,9 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     };
     for (const args of [
       ['', '1', 'settings', 'update_organization_name', 'app_setting', null],
+      ['', '1', 'settings', 'update_reference_currency', 'app_setting', null],
+      ['1', '2', 'settings', 'update_reference_currency', 'app_setting', null],
+      ['1', '1', 'settings', 'update_reference_currency', 'app_setting', '1'],
       ['1', '2', 'settings', 'update_organization_name', 'app_setting', null],
       ['1', '1', 'settings', 'delete_everything', 'app_setting', null],
       ['1', '1', 'other', 'update_timezone', 'app_setting', null],
@@ -428,6 +432,44 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       await db.query("SELECT set_config('app.audit_actor_id', $1, true)", ['1']);
       expect((await db.query('SELECT id FROM audit_log')).rows).toEqual([]);
     } finally { await db.exec('ROLLBACK;'); }
+  });
+  it('devise XOF : absence explicite, droits globaux, audit atomique et idempotence sous RLS', async () => {
+    expect(await readOrganizationCurrency(owner.token)).toEqual({ currency: null });
+    await expect(readOrganizationCurrency(scoped.token)).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(updateOrganizationCurrency(scoped.token, 'XOF')).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(updateOrganizationCurrency(undefined, 'XOF')).rejects.toMatchObject({ httpStatus: 401 });
+    for (const invalid of ['USD', 'xof', '=cmd', '', null, {}])
+      await expect(updateOrganizationCurrency(owner.token, invalid)).rejects.toMatchObject({ httpStatus: 400 });
+    try {
+      useRestrictedRole = true;
+      expect(await updateOrganizationCurrency(owner.token, 'XOF')).toEqual({ currency: 'XOF' });
+      expect(await updateOrganizationCurrency(owner.token, 'XOF')).toEqual({ currency: 'XOF' });
+      expect(await readOrganizationCurrency(globalManager.token)).toEqual({ currency: 'XOF' });
+    } finally { useRestrictedRole = false; }
+    const events = await db.query<{ actor_user_id: string; before: unknown; after: unknown }>(
+      "SELECT actor_user_id::text, before, after FROM audit_log WHERE action='update_reference_currency' ORDER BY id");
+    expect(events.rows).toEqual([{ actor_user_id: '1', before: { currency: null }, after: { currency: 'XOF' } }]);
+    await db.exec("UPDATE app_settings SET value='\"USD\"'::jsonb WHERE key='organization.reference_currency'");
+    try {
+      await expect(readOrganizationCurrency(owner.token)).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(updateOrganizationCurrency(owner.token, 'XOF')).rejects.toMatchObject({ httpStatus: 400 });
+    } finally { await db.exec("UPDATE app_settings SET value='\"XOF\"'::jsonb WHERE key='organization.reference_currency'"); }
+  });
+  it('devise : une erreur d’audit annule la première écriture', async () => {
+    await db.exec(`DELETE FROM app_settings WHERE key='organization.reference_currency';
+      CREATE FUNCTION test_fail_currency_audit() RETURNS trigger AS $$ BEGIN
+      IF NEW.action = 'update_reference_currency' THEN RAISE EXCEPTION 'forced'; END IF;
+      RETURN NEW; END; $$ LANGUAGE plpgsql;
+      CREATE TRIGGER test_fail_currency_audit BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION test_fail_currency_audit();`);
+    try {
+      useRestrictedRole = true;
+      await expect(updateOrganizationCurrency(owner.token, 'XOF')).rejects.toThrow();
+      expect(await readOrganizationCurrency(owner.token)).toEqual({ currency: null });
+    } finally {
+      useRestrictedRole = false;
+      await db.exec('DROP TRIGGER test_fail_currency_audit ON audit_log; DROP FUNCTION test_fail_currency_audit();');
+    }
+    await updateOrganizationCurrency(owner.token, 'XOF');
   });
   it('statut utilisateur : droits globaux, protections owner/soi, sessions révoquées et audit atomique', async () => {
     const fixture = await db.query<{ id: string }>(`INSERT INTO users (email,password_hash,display_name)
@@ -564,18 +606,20 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       useRestrictedRole = true;
       const csv = await exportOrganizationSettingsCsv(owner.token);
       expect(csv).toContain('"\'=cmd"'); expect(csv).toContain('"UTC"');
+      expect(csv).toContain('"Devise de référence","XOF"');
       expect(csv).not.toContain('SECRET_FIXTURE_EXCLU');
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load((await exportOrganizationSettingsXlsx(owner.token)).buffer);
       const sheet = workbook.getWorksheet('Paramètres')!;
       expect(sheet.getCell('B5').value).toBe("'=cmd"); expect(sheet.getCell('B6').value).toBe('UTC');
+      expect(sheet.getCell('B7').value).toBe('XOF');
       expect(JSON.stringify(sheet.getSheetValues())).not.toContain('SECRET_FIXTURE_EXCLU');
       const draw = vi.spyOn(PDFPage.prototype, 'drawText');
       try {
         const pdf = await exportOrganizationSettingsPdf(owner.token);
         expect(Buffer.from(pdf.subarray(0, 5)).toString()).toBe('%PDF-');
         const lines = draw.mock.calls.map(([text]) => text);
-        expect(lines).toContain("'=cmd"); expect(lines).toContain('UTC');
+        expect(lines).toContain("'=cmd"); expect(lines).toContain('UTC'); expect(lines).toContain('XOF');
         expect(lines.join(' ')).not.toContain('SECRET_FIXTURE_EXCLU');
       } finally { draw.mockRestore(); }
       for (const run of [exportOrganizationSettingsCsv, exportOrganizationSettingsXlsx, exportOrganizationSettingsPdf]) {

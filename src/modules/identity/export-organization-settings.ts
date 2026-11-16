@@ -4,10 +4,13 @@ import { ForbiddenError } from '@/core/errors/app-error';
 import { safeCsvCell } from '@/core/export/safe-csv';
 import { parseOrganizationName } from '@/modules/identity/organization-name';
 import { TIMEZONES, type OrganizationTimezone } from '@/modules/identity/organization-timezones';
+import { parseReferenceCurrency } from '@/modules/identity/organization-currency';
+import type { ReferenceCurrency } from '@/modules/identity/reference-currency';
 
 export interface OrganizationSettingsExport {
   name: string | null;
   timezone: OrganizationTimezone | null;
+  currency: ReferenceCurrency | null;
   exportedAt: string;
 }
 
@@ -19,17 +22,19 @@ export async function loadAuthorizedOrganizationSettingsExport(token: string | u
       WHERE ur.user_id = $1 AND ur.shop_id IS NULL AND rp.permission_code = 'reports:export'
     ) AS allowed`, [userId]);
     if (!grant.rows[0]?.allowed) throw new ForbiddenError('Export non autorisé.');
-    // Une seule requête donne une vue cohérente des deux paramètres.
+    // Une seule requête donne une vue cohérente des trois paramètres.
     const result = await db.query<{ key: string; value: unknown }>(
       'SELECT key, value FROM app_settings WHERE key = ANY($1::text[])',
-      [['organization.name', 'organization.timezone']],
+      [['organization.name', 'organization.timezone', 'organization.reference_currency']],
     );
     const values = new Map(result.rows.map((row) => [row.key, row.value]));
     const rawName = values.get('organization.name');
     const rawTimezone = values.get('organization.timezone');
+    const rawCurrency = values.get('organization.reference_currency');
     return {
       name: rawName === null || rawName === undefined ? null : parseOrganizationName(rawName),
       timezone: TIMEZONES.some((zone) => zone === rawTimezone) ? rawTimezone as OrganizationTimezone : null,
+      currency: rawCurrency === null || rawCurrency === undefined ? null : parseReferenceCurrency(rawCurrency),
       exportedAt: new Date().toISOString(),
     };
   });
@@ -43,6 +48,7 @@ export function formatOrganizationSettingsCsv(data: OrganizationSettingsExport):
     ['Paramètre', 'Valeur'],
     ['Nom de l’organisation', data.name ?? 'Non configuré'],
     ['Fuseau horaire de référence', data.timezone ?? 'Non configuré'],
+    ['Devise de référence', data.currency ?? 'Non configurée'],
   ];
   return `\uFEFF${rows.map((row) => row.map(safeCsvCell).join(',')).join('\r\n')}\r\n`;
 }

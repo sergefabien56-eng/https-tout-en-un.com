@@ -12,6 +12,7 @@ export async function formatOrganizationSettingsXlsx(data: OrganizationSettingsE
   add(['Paramètre', 'Valeur']);
   add(['Nom de l’organisation', data.name ?? 'Non configuré']);
   add(['Fuseau horaire de référence', data.timezone ?? 'Non configuré']);
+  add(['Devise de référence', data.currency ?? 'Non configurée']);
   sheet.getRow(4).font = { bold: true };
   sheet.columns.forEach((column) => { column.width = 36; });
   return new Uint8Array(await workbook.xlsx.writeBuffer());

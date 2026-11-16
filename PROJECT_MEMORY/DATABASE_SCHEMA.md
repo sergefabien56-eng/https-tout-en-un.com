@@ -1,6 +1,6 @@
 # Schéma de données effectivement migré (v34)
 
-**Source de vérité** : `drizzle/0001_*.up.sql` … `0012_*.up.sql` et `.down.sql` ; `docs/database.md` est une conception plus large, **pas** le schéma effectif. L'exécuteur `scripts/migrate.mjs` suit `schema_migrations`, versions et checksums ; vérifier la base cible avant toute commande.
+**Source de vérité** : `drizzle/0001_*.up.sql` … `0013_*.up.sql` et `.down.sql` ; `docs/database.md` est une conception plus large, **pas** le schéma effectif. L'exécuteur `scripts/migrate.mjs` suit `schema_migrations`, versions et checksums ; vérifier la base cible avant toute commande.
 
 | Migrations | Tables / modifications réellement présentes |
 |---|---|
@@ -18,3 +18,5 @@
 | 0012 | policy INSERT audit pour les deux paramètres globaux nom/fuseau, acteur concordant avec le contexte local ; lecture RLS inchangée |
 
 Aucune table commandes/produits/stocks/finance Jumia réelle migrée à ce stade. **Ne pas publier de données de dump.** Sauvegarde CI sur base jetable : `scripts/test-backup-restore.mjs` ; elle ne concerne ni des données commerciales ni une copie chiffrée externe.
+
+- **0013** : policy INSERT d’audit pour `update_reference_currency`, acteur local, pas de droit de lecture ; réversible. Valeur explicite sous la clé `organization.reference_currency` de `app_settings`, aucun taux ni conversion.

@@ -309,12 +309,27 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
 
   await page.goto('/espace/parametres');
   await expect(page.getByRole('heading', { name: 'Paramètres', exact: true })).toBeVisible();
-  await expect(page.getByText('Devise de référence : non configurée', { exact: false })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Devise de référence' })).toBeVisible();
+  await expect(page.getByText('aucune conversion ni aucun taux', { exact: false })).toBeVisible();
   await expect(page.getByText('les dates des écrans existants restent en UTC', { exact: false })).toBeVisible();
   await expect(page.getByLabel('Nom de l’organisation')).toBeVisible();
   // Le seul projet bureau modifie le paramètre global, pour éviter une course
   // avec le scénario mobile exécuté en parallèle sur la même base CI jetable.
   if (testInfo.project.name === 'bureau') {
+    const currencyButton = page.getByRole('button', { name: 'Enregistrer XOF comme devise de référence' });
+    const currencyCard = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Devise de référence' }) });
+    if ((await currencyCard.getByText('Valeur enregistrée :', { exact: false }).textContent())?.includes('Non configurée')) {
+      await expect(currencyButton).toBeEnabled();
+      const [currencyResponse] = await Promise.all([
+        page.waitForResponse((response) => response.url().endsWith('/api/admin/settings/reference-currency') && response.request().method() === 'PUT'),
+        currencyButton.click(),
+      ]);
+      expect(currencyResponse.status()).toBe(200);
+      await expect(page.getByText('Devise enregistrée.', { exact: true })).toBeVisible();
+      await page.reload();
+    }
+    await expect(currencyButton).toBeDisabled();
+    await expect(currencyCard.getByText('Valeur enregistrée :', { exact: false })).toContainText('XOF');
     const name = `Organisation CI ${testInfo.retry}`;
     await page.getByLabel('Nom de l’organisation').fill(name);
     const [nameResponse] = await Promise.all([
@@ -341,6 +356,7 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
     await expect(page.getByLabel('Fuseau de référence de l’organisation')).toHaveValue(nextTimezone);
   }
   expect((await directApi(page.request).put('/api/admin/settings/organization-name', { data: { name: 'Interdit' } })).status()).toBe(403);
+  expect((await directApi(page.request).put('/api/admin/settings/reference-currency', { data: { currency: 'XOF' } })).status()).toBe(403);
   await expectNoSeriousAccessibilityViolations(page);
   const settings = await directApi(page.request).get('/api/admin/settings');
   expect(settings.status()).toBe(200);
@@ -364,6 +380,7 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   const settingsSheet = settingsWorkbook.getWorksheet('Paramètres')!;
   expect(settingsSheet.getCell('A5').value).toBe('Nom de l’organisation');
   expect(settingsSheet.getCell('A6').value).toBe('Fuseau horaire de référence');
+  expect(settingsSheet.getCell('A7').value).toBe('Devise de référence');
   const settingsPdfLink = page.getByRole('link', { name: 'Exporter les paramètres en PDF' });
   await expect(settingsPdfLink).toHaveAttribute('href', '/api/admin/settings/export/pdf');
   const settingsPdf = await directApi(page.request).get('/api/admin/settings/export/pdf');

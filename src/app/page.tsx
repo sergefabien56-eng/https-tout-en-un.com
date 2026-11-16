@@ -11,7 +11,7 @@ export default function BootstrapPage() {
       <h1>{appConfig.name}</h1>
       <p>
         Version {appConfig.version} · environnement <code>{appConfig.environment}</code> · fuseau{' '}
-        <code>{appConfig.timezone}</code> · devise de référence <code>{appConfig.referenceCurrency}</code>
+        <code>{appConfig.timezone}</code>
       </p>
 
       <p className="muted">Développement et tests uniquement : ce lien de prévisualisation n’est pas un hébergement pour une activité réelle.</p>
