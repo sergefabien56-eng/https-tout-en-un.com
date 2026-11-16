@@ -211,6 +211,9 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .role-matrix tbody th { font-weight: 500; }
 .role-matrix tbody th small { display: block; color: var(--text-muted); font-size: 10px; }
 .role-matrix tbody td { text-align: center; }
+.role-matrix tbody td button { min-width: 44px; min-height: 44px; color: var(--text-primary); background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 6px; cursor: pointer; }
+.role-matrix tbody td button:focus-visible { outline: 3px solid var(--brand-blue); outline-offset: 2px; }
+.role-matrix tbody td button:disabled { cursor: not-allowed; opacity: .65; }
 .detail-list { display: grid; grid-template-columns: minmax(100px, 170px) minmax(0, 1fr); gap: 12px; overflow-wrap: anywhere; }
 .detail-list dt { font-weight: 600; }
 .detail-list dd { margin: 0; }

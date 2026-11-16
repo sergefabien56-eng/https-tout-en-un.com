@@ -1,4 +1,4 @@
-/** Matrice de permissions réelles. Les cinq rôles système sont immuables hors migrations. */
+/** Matrice de permissions réelles ; seul le rôle propriétaire reste immuable. */
 import type { PoolClient } from 'pg';
 import { withAuthorizedGlobalTransaction } from '@/core/auth/authorize-global';
 
@@ -13,6 +13,16 @@ export async function getRoleMatrix(token: string | undefined): Promise<RoleMatr
 }
 
 /** Même projection pour l'écran et l'export, chargée dans la transaction autorisée. */
+/** Projection de la page : seul un propriétaire global peut éditer, même si roles:manage est délégué. */
+export async function getRoleMatrixForPage(token: string | undefined): Promise<{ matrix: RoleMatrix; canEdit: boolean }> {
+  return withAuthorizedGlobalTransaction({ token, permission: 'roles:manage' }, async (db, { userId }) => {
+    const owner = await db.query<{ allowed: boolean }>(`SELECT EXISTS (
+      SELECT 1 FROM user_roles WHERE user_id=$1 AND role_code='owner' AND shop_id IS NULL
+    ) AS allowed`, [userId]);
+    return { matrix: await loadRoleMatrix(db), canEdit: !!owner.rows[0]?.allowed };
+  });
+}
+
 export async function loadRoleMatrix(db: PoolClient): Promise<RoleMatrix> {
     const roles = await db.query<{ code: string; label: string; is_system: boolean }>(
       'SELECT code, label, is_system FROM roles ORDER BY code',

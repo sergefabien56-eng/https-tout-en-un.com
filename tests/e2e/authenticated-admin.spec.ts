@@ -243,6 +243,15 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   await expect(page).toHaveURL(/\/espace\/roles$/);
   await expect(page.getByRole('heading', { name: 'Rôles et permissions' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Propriétaire');
+  // La confirmation peut être annulée sans modifier les droits partagés entre projets CI.
+  const edit = page.getByRole('button', { name: /Assistant — Accéder à l’écran Système : .*Modifier/ });
+  await expect(edit).toBeEnabled();
+  const confirmation = page.waitForEvent('dialog');
+  const click = edit.click();
+  const dialog = await confirmation;
+  expect(dialog.message()).toContain('tous les comptes');
+  await dialog.dismiss();
+  await click;
   const roles = await directApi(page.request).get('/api/admin/roles');
   expect(roles.status()).toBe(200);
   await expect(page.getByRole('link', { name: 'Exporter la matrice en CSV' }))
