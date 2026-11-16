@@ -567,6 +567,15 @@ test('propriétaire CI : boutiques, apparence et recherche par boutique', async 
   await page.goto('/espace/recherche?q=fixture.created');
   await expect(page.getByRole('heading', { name: 'Journal de la boutique sélectionnée' })).toBeVisible();
   await expect(page.getByRole('link', { name: /ci · fixture.created/ })).toBeVisible();
+  // Une liste de membres vide ne doit pas fabriquer le propriétaire comme membre.
+  await page.goto('/espace/membres');
+  await expect(page.getByRole('heading', { name: 'Membres de la boutique' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Aucun membre' })).toBeVisible();
+  const members = await directApi(page.request).get(`/api/shops/${shopId}/members`);
+  expect(members.status()).toBe(200);
+  expect(members.headers()['cache-control']).toBe('no-store');
+  expect((await members.json() as { members: unknown[] }).members).toEqual([]);
+  await expectNoSeriousAccessibilityViolations(page);
 });
 
 test('propriétaire CI : journal et sessions', async ({ page }, testInfo) => {

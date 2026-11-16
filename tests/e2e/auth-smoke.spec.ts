@@ -46,6 +46,10 @@ test('exports rôles, utilisateurs, boutiques et journal inaccessibles sans sess
   expect((await directApi(page.request).get('/api/shops/1/audit/export/pdf')).status()).toBe(401);
 });
 
+test('membres de boutique inaccessibles sans session', async ({ request }) => {
+  expect((await directApi(request).get('/api/shops/1/members')).status()).toBe(401);
+});
+
 test('connexion sans vrai compte : aucune donnée métier inventée', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText(/aucun indicateur n’est affiché/i)).toBeVisible();

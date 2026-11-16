@@ -4,12 +4,12 @@ import { join } from 'node:path';
 import { navigation, visibleNavigation } from '@/ui/navigation.config';
 
 describe('configuration unique de navigation', () => {
-  it('contient exactement 8 sections et 46 entrées sans doublon', () => {
+  it('contient exactement 8 sections et 47 entrées sans doublon', () => {
     expect(navigation).toHaveLength(8);
     const leaves = navigation.flatMap((group) => group.children);
-    expect(leaves).toHaveLength(46);
-    expect(new Set(leaves.map((l) => l.id)).size).toBe(46);
-    expect(new Set(leaves.map((l) => l.href)).size).toBe(46);
+    expect(leaves).toHaveLength(47);
+    expect(new Set(leaves.map((l) => l.id)).size).toBe(47);
+    expect(new Set(leaves.map((l) => l.href)).size).toBe(47);
   });
   it('chaque lien prêt pointe vers une vraie page ; tout lien absent est désactivé', () => {
     for (const leaf of navigation.flatMap((group) => group.children)) {
@@ -19,7 +19,7 @@ describe('configuration unique de navigation', () => {
       }
     }
     expect(navigation.flatMap((g) => g.children).filter((l) => l.availability === 'ready').map((l) => l.href))
-      .toEqual(['/espace', '/espace/recherche', '/espace/apparence', '/espace/boutiques', '/espace/notifications', '/espace/utilisateurs', '/espace/roles', '/espace/journal', '/espace/parametres', '/espace/systeme']);
+      .toEqual(['/espace', '/espace/recherche', '/espace/apparence', '/espace/boutiques', '/espace/notifications', '/espace/utilisateurs', '/espace/roles', '/espace/membres', '/espace/journal', '/espace/parametres', '/espace/systeme']);
   });
   it('aucun accès non autorisé ne reste visible, même comme « bientôt »', () => {
     expect(visibleNavigation(new Set())).toEqual([]);
@@ -30,6 +30,10 @@ describe('configuration unique de navigation', () => {
       .some((c) => c.id === 'admin.users')).toBe(false);
     expect(visibleNavigation(new Set(['users:read']), new Set(['users:read'])).flatMap((g) => g.children)
       .some((c) => c.id === 'admin.users')).toBe(true);
+    expect(visibleNavigation(new Set(['roles:manage']), new Set()).flatMap((g) => g.children)
+      .some((c) => c.id === 'admin.shop-members')).toBe(true);
+    expect(visibleNavigation(new Set(['roles:manage']), new Set()).flatMap((g) => g.children)
+      .some((c) => c.id === 'admin.roles')).toBe(false);
     expect(visibleNavigation(new Set(['system:manage'])).flatMap((g) => g.children)
       .every((c) => c.permission === 'system:manage')).toBe(true);
   });
