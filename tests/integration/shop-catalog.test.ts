@@ -54,7 +54,7 @@ describe('catalogue RLS', () => {
     expect((await listOwnShops(manager.token)).shops.map((s) => s.displayName)).toEqual(['A']);
     expect((await listOwnShops(limited.token)).shops.map((s) => s.displayName)).toEqual(['B']);
   });
-  it('recherche transversale : boutiques RLS et comptes uniquement avec droit global', async () => {
+  it('recherche transversale : boutiques RLS et comptes selon droit global et accord individuel', async () => {
     const shop = await db.query<{ id: string }>(`INSERT INTO shops
       (app_id, jumia_shop_sid, business_client_code, country_code, currency, display_name)
       VALUES (1, gen_random_uuid(), 'search-test', 'CI', 'XOF', 'Recherche Boutique') RETURNING id::text`);
@@ -67,7 +67,11 @@ describe('catalogue RLS', () => {
       expect(JSON.stringify(own)).not.toMatch(/password_hash|token_hash|totp_secret/);
       const global = await searchAuthorizedDirectory(manager.token, 'recherche');
       expect(global.shops).toEqual([]); // Pas d'accès à la nouvelle boutique.
-      expect(global.users.map((entry) => entry.email)).toEqual(['recherche@fixture.invalid']);
+      expect(global.users).toEqual([]); // Pas d'accord individuel.
+      await db.exec('INSERT INTO user_directory_access (user_id, granted_by) VALUES (2, 1)');
+      expect((await searchAuthorizedDirectory(manager.token, 'recherche')).users.map((entry) => entry.email))
+        .toEqual(['recherche@fixture.invalid']);
+      await db.exec('DELETE FROM user_directory_access WHERE user_id=2');
       const scoped = await searchAuthorizedDirectory(limited.token, 'recherche');
       expect(scoped.shops).toEqual([]);
       expect(scoped.users).toEqual([]); // Le rôle boutique ne donne pas users:read GLOBAL.

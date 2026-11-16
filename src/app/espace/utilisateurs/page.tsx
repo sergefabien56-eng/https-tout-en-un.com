@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { AppError } from '@/core/errors/app-error';
 import { isUserRoleFilter, isUserStatusFilter, listAuthorizedUsers } from '@/modules/identity/user-list';
+import { getSession } from '@/core/auth/service';
+import { getNavigationPermissions } from '@/ui/navigation-permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,18 +18,22 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const role = params.role ?? 'all';
   if (!/^[1-9]\d{0,4}$/.test(raw) || !isUserStatusFilter(status) || !isUserRoleFilter(role)) notFound();
   const page = Number(raw);
+  const token = (await cookies()).get('toutenun_session')?.value;
   let result: Awaited<ReturnType<typeof listAuthorizedUsers>>;
   try {
-    result = await listAuthorizedUsers((await cookies()).get('toutenun_session')?.value, page, q, status, role);
+    result = await listAuthorizedUsers(token, page, q, status, role);
   } catch (error) {
     if (error instanceof AppError && error.httpStatus === 401) redirect('/connexion');
     if (error instanceof AppError && (error.httpStatus === 403 || error.httpStatus === 400)) notFound();
     throw error;
   }
+  const session = token ? await getSession(token) : null;
+  if (!session) redirect('/connexion');
+  const grants = await getNavigationPermissions(session.userId);
   return <main className="workspace-main">
     <span className="tag">Administration</span>
     <h1>Utilisateurs</h1>
-    <p>Comptes enregistrés dans votre organisation. Seuls les rôles globaux disposant de « Consulter les utilisateurs » accèdent à cette liste.</p>
+    <p>Comptes enregistrés dans votre organisation. L’accès complet est réservé au Propriétaire ou accordé individuellement par celui-ci, avec le droit global « Consulter les utilisateurs ».</p>
     <form action="/espace/utilisateurs" method="get" role="search" className="shop-filters">
       <label htmlFor="user-search">Rechercher un utilisateur</label>
       <input id="user-search" name="q" type="search" maxLength={80} defaultValue={q}
@@ -50,13 +56,13 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       </select>
       <button type="submit">Filtrer</button>
     </form>
-    <p><a href={`/api/admin/users/export?${new URLSearchParams({ q: q.trim(), status, role })}`}>
+    {grants.isGlobalOwner && <p><a href={`/api/admin/users/export?${new URLSearchParams({ q: q.trim(), status, role })}`}>
       Exporter les utilisateurs correspondant aux filtres en CSV
     </a>{' · '}<a href={`/api/admin/users/export/xlsx?${new URLSearchParams({ q: q.trim(), status, role })}`}>
       Exporter les utilisateurs correspondant aux filtres en Excel
     </a>{' · '}<a href={`/api/admin/users/export/pdf?${new URLSearchParams({ q: q.trim(), status, role })}`}>
       Exporter les utilisateurs correspondant aux filtres en PDF
-    </a> (toutes les pages ; CSV et Excel : 10 000 lignes maximum ; PDF : 1 000 lignes maximum ; droits d’export requis).</p>
+    </a> (toutes les pages ; CSV et Excel : 10 000 lignes maximum ; PDF : 1 000 lignes maximum ; droits d’export requis).</p>}
     {result.users.length === 0 ? <div className="card" role="status">
       <h2>Aucun utilisateur</h2><p>{q.trim() || status !== 'all' || role !== 'all' ? 'Aucun compte ne correspond à ces filtres.' : 'Aucun compte n’a encore été créé.'}</p>
     </div> : <div className="card users-list" role="region" aria-label="Tableau des utilisateurs défilant horizontalement" tabIndex={0}>

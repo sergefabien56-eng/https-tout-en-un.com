@@ -17,6 +17,11 @@ export async function loadAuthorizedUsersExport(
       WHERE ur.user_id = $1 AND ur.shop_id IS NULL AND rp.permission_code = 'reports:export'
     ) AS allowed`, [ctx.userId]);
     if (!grant.rows[0]?.allowed) throw new ForbiddenError('Export non autorisé.');
+    // Une autorisation individuelle de consultation ne permet pas l’export massif.
+    const owner = await db.query<{ allowed: boolean }>(`SELECT EXISTS (
+      SELECT 1 FROM user_roles WHERE user_id=$1 AND role_code='owner' AND shop_id IS NULL
+    ) AS allowed`, [ctx.userId]);
+    if (!owner.rows[0]?.allowed) throw new ForbiddenError('Export réservé au Propriétaire.');
     const users = await db.query<UserExportRow>(`SELECT id::text, display_name, email, status, created_at FROM users
       WHERE ${userFilterWhere} ORDER BY id DESC LIMIT 10001`,
     [filters.term || null, filters.status, filters.role]);

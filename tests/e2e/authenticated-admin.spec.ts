@@ -201,6 +201,9 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect(user.status()).toBe(200);
   expect((await user.json() as { roles: { shopId: string | null }[] }).roles[0]?.shopId).toBeNull();
   await expect(page.getByRole('button', { name: /Suspendre et déconnecter|Réactiver/ })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Accès individuel à l’annuaire complet' })).toHaveCount(0);
+  expect((await directApi(page.request).put(`/api/admin/users/${ownerId}/directory-access`,
+    { data: { expected: false, granted: true } })).status()).toBe(403);
   await expect(page.getByRole('heading', { name: 'Attribuer un rôle boutique' })).toHaveCount(0);
   expect((await directApi(page.request).post(`/api/admin/users/${ownerId}/shop-roles`,
     { data: { shopId: '1', roleCode: 'manager', grant: true } })).status()).toBe(403);

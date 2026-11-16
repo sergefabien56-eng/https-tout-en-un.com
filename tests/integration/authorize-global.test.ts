@@ -217,11 +217,19 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     expect(grants.permissions.has('users:read')).toBe(true);
     expect(grants.globalPermissions.has('users:read')).toBe(false);
   });
-  it('manager global : lecture autorisée, action système refusée', async () => {
-    expect((await listAuthorizedUsers(globalManager.token)).users).toHaveLength(3);
-    const grants = await getNavigationPermissions('3');
-    expect(grants.globalPermissions.has('users:read')).toBe(true);
-    expect(grants.globalPermissions.has('system:manage')).toBe(false);
+  it('manager global : accord individuel nécessaire, accès immédiatement révoqué', async () => {
+    await expect(listAuthorizedUsers(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
+    expect((await getNavigationPermissions('3')).globalPermissions.has('users:read')).toBe(false);
+    await db.exec('INSERT INTO user_directory_access (user_id, granted_by) VALUES (3, 1)');
+    try {
+      expect((await listAuthorizedUsers(globalManager.token)).users).toHaveLength(3);
+      const grants = await getNavigationPermissions('3');
+      expect(grants.globalPermissions.has('users:read')).toBe(true);
+      expect(grants.globalPermissions.has('users:write')).toBe(false);
+      expect(grants.globalPermissions.has('system:manage')).toBe(false);
+      await expect(changeUserStatus(globalManager.token, '2', 'suspended')).rejects.toMatchObject({ httpStatus: 403 });
+    } finally { await db.exec('DELETE FROM user_directory_access WHERE user_id=3'); }
+    await expect(listAuthorizedUsers(globalManager.token)).rejects.toMatchObject({ httpStatus: 403 });
   });
   it('absence de session ou jeton inventé : refus 401 avant requête utilisateur', async () => {
     await expect(listAuthorizedUsers(undefined)).rejects.toMatchObject({ httpStatus: 401 });

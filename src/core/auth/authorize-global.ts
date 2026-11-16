@@ -31,6 +31,15 @@ export async function withAuthorizedGlobalTransaction<T>(
       ) AS allowed`, [userId, input.permission],
     );
     if (!grant.rows[0]?.allowed) throw new ForbiddenError('Action non autorisée.');
+    // Lecture globale : propriétaire ou accord individuel explicite en plus du droit de rôle.
+    // Gestion globale des comptes : propriétaire exclusivement.
+    if (input.permission === 'users:read' || input.permission === 'users:write') {
+      const directory = await db.query<{ allowed: boolean }>(`SELECT
+        EXISTS (SELECT 1 FROM user_roles WHERE user_id=$1 AND role_code='owner' AND shop_id IS NULL)
+        OR ($2::boolean AND EXISTS (SELECT 1 FROM user_directory_access WHERE user_id=$1)) AS allowed`, [userId, input.permission === 'users:read']);
+      if (!directory.rows[0]?.allowed) throw new ForbiddenError(input.permission === 'users:write'
+        ? 'Seul le Propriétaire peut gérer les comptes globaux.' : 'Accès individuel à l’annuaire non autorisé.');
+    }
     return task(db, { userId });
   });
 }

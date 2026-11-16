@@ -13,6 +13,8 @@ import { GrantGlobalRoleForm, RevokeGlobalRoleButton } from '@/ui/manage-global-
 import { RevokeShopAccessButton } from '@/ui/revoke-shop-access-button';
 import { GrantGlobalShopAccessForm } from '@/ui/grant-global-shop-access-form';
 import { SCOPED_ROLES, type ScopedRole } from '@/modules/identity/scoped-roles';
+import { readDirectoryAccess } from '@/modules/identity/directory-access';
+import { DirectoryAccessButton } from '@/ui/directory-access-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +45,8 @@ export default async function UserDetailPage({ params, searchParams }: {
   const grants = await getNavigationPermissions(session.userId);
   const protectedAccount = session.userId === id || user.roles.some((role) => role.code === 'owner');
   const mayChangeStatus = grants.globalPermissions.has('users:write') && !protectedAccount && user.status !== 'invited';
-  const mayManageShopRoles = grants.globalPermissions.has('roles:manage') && !protectedAccount && user.status !== 'invited';
+  const mayManageShopRoles = grants.isGlobalOwner && grants.globalPermissions.has('roles:manage') && !protectedAccount && user.status !== 'invited';
+  const directoryAccess = mayManageShopRoles ? await readDirectoryAccess(token, id) : false;
   let shops: Awaited<ReturnType<typeof listOwnShops>> | null = null;
   let accesses: ShopAccessEntry[] = [];
   if (mayManageShopRoles) {
@@ -68,6 +71,10 @@ export default async function UserDetailPage({ params, searchParams }: {
       {mayChangeStatus && <ChangeUserStatusButton id={id} status={user.status === 'suspended' ? 'suspended' : 'active'} />}
       <p>Une suspension révoque les sessions existantes ; une réactivation ne les restaure pas. Les invitations et les comptes Propriétaire ne sont pas modifiés ici.</p>
     </div>
+    {mayManageShopRoles && <div className="card"><h2>Accès individuel à l’annuaire complet</h2>
+      <p>Le propriétaire accorde cet accès à ce compte uniquement. Pour consulter l’annuaire, le compte doit aussi disposer du droit global « Consulter les utilisateurs » par un rôle global. La modification globale des comptes et l’export de l’annuaire restent réservés au Propriétaire.</p>
+      <DirectoryAccessButton userId={id} granted={directoryAccess} />
+    </div>}
     <div className="card"><h2>Rôles attribués</h2>
       {user.roles.length === 0 ? <p>Aucun rôle attribué.</p> :
         <ul>{user.roles.map((role) => <li key={`${role.code}-${role.shopId ?? 'global'}`}>

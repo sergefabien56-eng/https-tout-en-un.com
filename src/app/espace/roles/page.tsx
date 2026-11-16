@@ -21,6 +21,7 @@ export default async function RolesPage() {
     <p>Les droits proviennent de la base. Seul le Propriétaire peut modifier les quatre autres rôles ; le rôle Propriétaire est protégé.</p>
     <p>Une modification s’applique à tous les comptes ayant ce rôle, globalement ou dans une boutique. Elle ne crée pas d’accès boutique ; d’autres rôles peuvent conserver le même droit.</p>
     <p>La délégation de l’attribution des rôles en boutique n’est pas encore active, même si la permission est accordée. L’export Système reste réservé au Propriétaire.</p>
+    <p>Pour consulter l’annuaire complet, un compte non-Propriétaire doit recevoir une autorisation individuelle en plus du droit global du rôle. La modification globale des comptes reste réservée au Propriétaire.</p>
     <p><a href="/api/admin/roles/export">Exporter la matrice en CSV</a>{' · '}
       <a href="/api/admin/roles/export/xlsx">Exporter la matrice en Excel</a>{' · '}
       <a href="/api/admin/roles/export/pdf">Exporter la matrice en PDF</a> (droits d’export globaux requis).</p>
