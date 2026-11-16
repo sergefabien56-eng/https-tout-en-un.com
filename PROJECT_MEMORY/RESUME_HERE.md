@@ -1,8 +1,8 @@
-# Reprendre ici — devise de référence XOF
+# Reprendre ici — correctif CI du lot devise XOF
 
-Base publiée `61931b07ccd45f5db00ed361c401b641143421ec` ; [CI 43926512820](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43926512820) : quatre jobs verts, dont 14 tests navigateur ; artifact non restauré.
+Le lot `ccf391239e953b39aca0a2e4a623ee882413e63b` est publié mais son [run 43933906412](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43933906412) est rouge : qualité et migrations PostgreSQL 16 réussies, navigateur flaky, archive sautée. La trace vérifiée montre un cumul d'opérations dans le test sans session jusqu'à expiration avant la fin de la seconde navigation ; cause des latences inconnue.
 
-Lot L10 local : paramètre XOF enregistré explicitement et audité, seul XOF accepté ; exports nom/fuseau/devise, aucune conversion. Migration 0013 réversible et policy audit limitée. 334 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictifs relus ; navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI (14 E2E listés). Voir `docs/comptes-rendus/phase1-devise-reference-xof.md`.
+Correctif local : découpage du test en trois, assertions de sécurité et configuration CI conservées ; aucun changement applicatif. 334 Vitest, lint, types, build, contrôle mémoire et audit high OK ; 18 E2E listés, navigateur et PostgreSQL 16 réels non exécutés localement. Publication et quatre jobs verts nécessaires avant tout autre lot. Voir `docs/comptes-rendus/correctif-ci-smoke-ccf3912.md` ; ne pas divulguer les traces privées.
 
 Choix confirmés : XOF référence consolidée, mais taux et formules à valider ; alertes critiques au propriétaire uniquement avec détection réelle ; permissions des rôles modifiables par le propriétaire avec garde-fous à préciser ; export Système réservé au propriétaire. Domaine, VPS et SMTP non disponibles : le propriétaire prévoit de les fournir à la fin de la programmation ; déploiement, e-mail réel et restauration de production restent bloqués. Les trois compteurs globaux Système restent `null`/indisponibles à cause de la RLS, sans faux zéro.
 

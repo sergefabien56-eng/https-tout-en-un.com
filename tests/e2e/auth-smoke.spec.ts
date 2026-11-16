@@ -18,23 +18,32 @@ test('page connexion accessible et aucun débordement horizontal', async ({ page
   await expectNoSeriousAccessibilityViolations(page);
 });
 
-test('espace privé inaccessible sans session, côté serveur', async ({ page }) => {
+// Des scénarios indépendants gardent toutes les assertions de refus sans cumuler
+// la compilation de onze routes et deux navigations dans un unique délai de 30 s.
+// Aucun délai, retry ou contrôle de sécurité n'est supprimé.
+test('espace privé et apparence inaccessibles sans session', async ({ page }) => {
   await page.goto('/espace');
   await expect(page).toHaveURL(/\/connexion$/);
   await expect(page.getByText(/Bienvenue,/)).toHaveCount(0);
   const result = await directApi(page.request).get('/api/auth/me');
   expect(result.status()).toBe(401);
+  await page.goto('/espace/apparence');
+  await expect(page).toHaveURL(/\/connexion$/);
+});
+
+test('exports système et paramètres inaccessibles sans session', async ({ page }) => {
   for (const path of ['/api/admin/system/export', '/api/admin/system/export/xlsx', '/api/admin/system/export/pdf'])
     expect((await directApi(page.request).get(path)).status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/settings/export')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/settings/export/xlsx')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/settings/export/pdf')).status()).toBe(401);
+});
+
+test('exports rôles, utilisateurs, boutiques et journal inaccessibles sans session', async ({ page }) => {
   expect((await directApi(page.request).get('/api/admin/roles/export/pdf')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/admin/users/export/pdf')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/shops/export/pdf')).status()).toBe(401);
   expect((await directApi(page.request).get('/api/shops/1/audit/export/pdf')).status()).toBe(401);
-  await page.goto('/espace/apparence');
-  await expect(page).toHaveURL(/\/connexion$/);
 });
 
 test('connexion sans vrai compte : aucune donnée métier inventée', async ({ page }) => {
