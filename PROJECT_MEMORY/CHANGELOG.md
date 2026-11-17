@@ -1,3 +1,9 @@
+## 2026-11-17 — export du journal global (local, non publié)
+
+- Routes `GET /api/admin/audit/global/export/{csv,xlsx,pdf}` : propriétaire global + `reports:export` global, RLS et policy vérifiées, `shop_id IS NULL` uniquement, sans before/after/request_id ; 10 000 lignes (CSV/Excel), 1 000 (PDF).
+- Trois liens d'export filtrés sur `/espace/journal/global`.
+- 378 tests Vitest (+7), lint, types et build verts ; PostgreSQL 17 réel sous rôle non-BYPASSRLS avec téléchargements réels 200.
+
 - **L10 devise de référence XOF (local, CI en attente)** : Lot L10 local : paramètre XOF enregistré explicitement et audité, seul XOF accepté ; exports nom/fuseau/devise, aucune conversion. Migration 0013 réversible et policy audit limitée. 334 Vitest, lint/types/build/audit high OK (7 modérées), PDF fictifs relus ; navigateur et PostgreSQL 16 réels du nouveau SHA à vérifier en CI (14 E2E listés). Voir `docs/comptes-rendus/phase1-devise-reference-xof.md`. Base publiée `61931b07ccd45f5db00ed361c401b641143421ec` ; [CI 43926512820](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/43926512820) : quatre jobs verts, dont 14 tests navigateur ; artifact non restauré.
 
 - **Liste des membres par boutique (locale, CI en attente)** : vue/API en lecture seule, RLS et `roles:manage` boutique, membres à accès actif, pagination, rôles d’autres boutiques et globaux non exposés ; 357 tests locaux. Délégation de mutation non livrée. Base `df6ed79` validée par CI `43971381747` (quatre jobs, 18 navigateurs). Voir `docs/comptes-rendus/phase1-membres-boutique.md`.

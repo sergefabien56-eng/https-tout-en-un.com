@@ -19,11 +19,20 @@ export default async function GlobalAuditPage({ searchParams }: { searchParams: 
     if (error instanceof AppError && (error.httpStatus === 403 || error.httpStatus === 400)) notFound();
     throw error;
   }
+  const exportParams = new URLSearchParams(filters).toString();
+  const exportQuery = exportParams ? `?${exportParams}` : '';
   const link = (n: number) => `/espace/journal/global?${new URLSearchParams({ ...filters, page: String(n) })}`;
   return <main className="workspace-main"><span className="tag">Administration · Propriétaire</span>
     <h1>Journal global</h1>
     <p>Actions globales de l’organisation uniquement, sans événements de boutique. Les détails avant/après ne sont pas affichés.</p>
     <p><Link href="/espace/journal">Voir le journal d’une boutique</Link></p>
+    {/* Exports réservés au propriétaire ; mêmes filtres que la liste, aucun détail avant/après. */}
+    <p>{(['csv', 'xlsx', 'pdf'] as const).map((format, index) => (
+      <span key={format}>{index > 0 ? ' · ' : null}<a href={`/api/admin/audit/global/export/${format}${exportQuery}`} rel="nofollow">
+        {`Exporter cette sélection en ${format === 'csv' ? 'CSV' : format === 'xlsx' ? 'Excel' : 'PDF'}`}</a></span>
+    ))}{' '}
+      (événements globaux uniquement ; CSV et Excel : 10 000 maximum ; PDF : 1 000 maximum ;
+      propriétaire et droit d’export global requis ; aucun détail avant/après).</p>
     <form action="/espace/journal/global" method="get" className="shop-filters" role="search">
       <label htmlFor="global-audit-q">Rechercher une action ou un module</label>
       <input id="global-audit-q" name="q" type="search" maxLength={80} defaultValue={q ?? ''} />

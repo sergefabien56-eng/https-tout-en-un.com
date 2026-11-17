@@ -2,7 +2,7 @@
 
 ## État actuel prioritaire
 
-Lire `RESUME_HERE.md` et `NEXT_ACTIONS.md` ; ils priment sur les notes historiques ci-dessous. Base publiée `33ff179`, CI `44046217087` quatre jobs verts. Sous-lot local journal global propriétaire : tests, RLS et limites dans `docs/comptes-rendus/phase1-journal-global-proprietaire.md`. La CI précédente ne couvre pas le nouveau lot. ZIP Arena → publication sans force → lien CI immédiat → quatre jobs verts avant lot suivant. Aucun secret ; snapshot code ≠ sauvegarde DB. L10 et Phase 1 incomplets, Windows en pause.
+Lire `RESUME_HERE.md` et `NEXT_ACTIONS.md` ; ils priment sur les notes historiques ci-dessous. Base publiée `84db68b`, CI `44102180390` quatre jobs verts. Sous-lot local **export du journal global** : trois routes CSV/Excel/PDF + liens filtrés, tests, RLS et limites dans `docs/comptes-rendus/phase1-export-journal-global.md`. La CI de `84db68b` ne couvre pas ce nouveau lot ; PostgreSQL 16 et la suite navigateur du nouveau SHA restent à valider après publication. ZIP Arena → publication sans force → lien CI immédiat → quatre jobs verts avant lot suivant. Aucun secret ; snapshot code ≠ sauvegarde DB. L10 et Phase 1 incomplets, Windows en pause.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.
