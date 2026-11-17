@@ -44,8 +44,15 @@ jobs:
       - name: Tests unitaires et d'intégration
         run: npm test
 
-      - name: Audit des dépendances (bloquant sur high/critical)
-        run: npm audit --audit-level=high
+      # Décision du 2026-11-17 : la CI bloque sur les vulnérabilités high/critical
+      # des dépendances de PRODUCTION uniquement. Justification complète dans
+      # docs/securite/audit-dependances.md ; dépendances de développement auditées
+      # ci-dessous sans blocage, avec rapport visible dans le journal.
+      - name: Audit des dépendances de production (BLOQUANT high/critical)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit des dépendances de développement (informatif, non bloquant)
+        run: npm audit --audit-level=high || true
 
       - name: Build
         run: npm run build

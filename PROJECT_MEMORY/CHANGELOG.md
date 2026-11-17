@@ -1,3 +1,9 @@
+## 2026-11-17 — audit des dépendances : blocage sur la production seulement (local, non publié)
+
+- CI rouge sur `main` (`7e419827`, run 44161139878) **sans changement de dépendances** : avis `picomatch` GHSA-fc5q-39xc-vjpf (high) publié le 2026-10-19, **aucune version corrigée disponible** ; `npm audit fix --force` ne ferait que rétrograder vitest 4.x → 3.1.4.
+- Décision du propriétaire (option B sur trois) : la CI bloque sur `npm audit --omit=dev --audit-level=high` (**0 vulnérabilité en production**) ; l'audit complet reste exécuté et affiché, non bloquant. Justification, limites et plan de retour : `docs/securite/audit-dependances.md`.
+- Aucun paquet rétrogradé, aucun contrôle supprimé, aucune faille de production tolérée.
+
 ## 2026-11-17 — recette L10 : routes, isolation, exports hostiles, mobile (local, non publié)
 
 - `src/core/auth/route-permissions.ts` : source de vérité des 52 routes API (méthode + permission ou `null` publique) et des pages publiques.
