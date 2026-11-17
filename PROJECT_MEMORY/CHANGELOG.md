@@ -1,3 +1,13 @@
+## 2026-11-17 — recette L10 : routes, isolation, exports hostiles, mobile (local, non publié)
+
+- `src/core/auth/route-permissions.ts` : source de vérité des 52 routes API (méthode + permission ou `null` publique) et des pages publiques.
+- `tests/integration/route-coverage.test.ts` (7 tests) : liste déclarée == liste réelle sur disque, pages `/espace/**` gardées, routes `admin/*` déléguées à un module RLS, écritures hors `auth/` protégées par origine/CSRF.
+- `scripts/test-isolation-postgres.ts` : 10 vérifications sur PostgreSQL 17 réel sous rôle `toutenun_app` non-BYPASSRLS — autorisations qui fonctionnent et fuites impossibles dans les deux sens.
+- `tests/integration/hostile-exports.test.ts` (5 tests) : 21 routes d'export × 15 charges hostiles = 315 requêtes, aucun 5xx, refus 4xx explicites, BOM vérifié sur les octets.
+- `tests/e2e/mobile-overflow.spec.ts` : 13 pages à 375 px, tiroir fermé et ouvert, aucun défilement horizontal de page ; tableaux larges admis dans leur conteneur `overflow-x:auto`.
+- `scripts/e2e-locale.sh` et `PW_START_CMD` : recette navigateur locale rejouable (base neuve, fixtures, build de production) ; la CI garde `npm run dev`.
+- 390 Vitest / 76 fichiers, lint, typecheck et build verts.
+
 ## 2026-11-17 — export du journal global (local, non publié)
 
 - Routes `GET /api/admin/audit/global/export/{csv,xlsx,pdf}` : propriétaire global + `reports:export` global, RLS et policy vérifiées, `shop_id IS NULL` uniquement, sans before/after/request_id ; 10 000 lignes (CSV/Excel), 1 000 (PDF).

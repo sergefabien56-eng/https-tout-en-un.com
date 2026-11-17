@@ -16,7 +16,7 @@ export default defineConfig({
     { name: 'mobile-375', use: { ...devices['Desktop Chrome'], viewport: { width: 375, height: 812 }, isMobile: true } },
   ],
   webServer: {
-    command: 'npm run dev -- --hostname 0.0.0.0 --port 3100',
+    command: process.env.PW_START_CMD ?? 'npm run dev -- --hostname 0.0.0.0 --port 3100',
     url: 'http://127.0.0.1:3100/api/health',
     reuseExistingServer: !process.env.CI,
     timeout: 90_000,
