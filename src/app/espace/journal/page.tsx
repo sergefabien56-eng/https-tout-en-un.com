@@ -17,7 +17,7 @@ export default async function AuditPage({ searchParams }: {
   const token = cookieStore.get('toutenun_session')?.value;
   if (!shop) return <main className="workspace-main"><span className="tag">Journal d’activité</span>
     <h1>Choisissez une boutique</h1><p>Le journal exige une boutique autorisée. Aucun événement multi-boutiques n’est affiché sans périmètre vérifié.</p>
-    <Link href="/espace/boutiques">Choisir dans mes boutiques</Link></main>;
+    <Link href="/espace/boutiques">Choisir dans mes boutiques</Link><p><Link href="/espace/journal/global">Journal global — Propriétaire</Link></p></main>;
   if (!/^[1-9]\d{0,18}$/.test(shop) || !/^[1-9]\d{0,4}$/.test(raw)) notFound();
   const filters = { ...(q ? { q } : {}), ...(module ? { module } : {}), ...(actorId ? { actorId } : {}),
     ...(from ? { from } : {}), ...(to ? { to } : {}) };
@@ -42,7 +42,7 @@ export default async function AuditPage({ searchParams }: {
     throw error;
   }
   return <main className="workspace-main"><span className="tag">Journal d’activité · Boutique n° {shop}</span>
-    <h1>Événements de la boutique</h1><p><Link href="/espace/boutiques">Changer de boutique</Link></p>
+    <h1>Événements de la boutique</h1><p><Link href="/espace/boutiques">Changer de boutique</Link>{' · ' }<Link href="/espace/journal/global">Journal global — Propriétaire</Link></p>
     <nav aria-label="Périodes rapides du journal" className="pagination">
       <Link href={presetLink(7)}>7 derniers jours (UTC)</Link>
       <Link href={presetLink(30)}>30 derniers jours (UTC)</Link>

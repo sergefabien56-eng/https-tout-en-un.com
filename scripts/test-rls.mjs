@@ -44,10 +44,17 @@ try {
   // tandis que FORCE ROW LEVEL SECURITY doit encore leur appliquer les policies.
   await db.query('SET LOCAL ROLE toutenun_app');
   assert.equal((await db.query('SELECT current_user AS name')).rows[0]?.name, 'toutenun_app');
-  const read = () => db.query('SELECT id::text FROM shops WHERE id = ANY($1::bigint[]) ORDER BY id', [[a, b]]);
+  const read = () => db.query('SELECT id::text FROM shops WHERE id = ANY($1::bigint[]) ORDER BY shops.id', [[a, b]]);
   assert.deepEqual((await read()).rows, [], 'Aucune boutique visible sans contexte RLS');
   const readAudit = () => db.query("SELECT action FROM audit_log WHERE module = 'ci' ORDER BY action");
   assert.deepEqual((await readAudit()).rows, [], 'Aucun audit sans contexte RLS');
+  // 0016 : contexte propriétaire global uniquement, sans journal boutique.
+  await db.query("SELECT set_config('app.audit_global_user_id', $1, true)", [String(limitedId)]);
+  assert.deepEqual((await readAudit()).rows, [], 'Rôle boutique sans journal global');
+  await db.query("SELECT set_config('app.audit_global_user_id', $1, true)", [String(userId)]);
+  assert.deepEqual((await readAudit()).rows.map((row) => row.action), ['rls-global'], 'Propriétaire : seul audit global, aucune boutique');
+  await db.query("SELECT set_config('app.audit_global_user_id', '', true)");
+  assert.deepEqual((await readAudit()).rows, [], 'Contexte global effacé : lecture refusée');
   // La policy 0011 autorise uniquement l'audit rôle global avec acteur local,
   // sans ouvrir la lecture et sans ouvrir les autres formes d'audit.
   const globalAudit = (actor, module, action, entity) => db.query(`INSERT INTO audit_log
@@ -111,7 +118,7 @@ try {
   assert.deepEqual((await read()).rows, [], 'Catalogue effacé : aucune boutique visible');
   await db.query("SELECT set_config('app.shop_id', $1, true)", [a]);
   assert.deepEqual((await read()).rows.map((row) => row.id), [a], 'Boutique B invisible sous contexte A');
-  assert.deepEqual((await readAudit()).rows.map((row) => row.action), ['rls-a', 'rls-global']);
+  assert.deepEqual((await readAudit()).rows.map((row) => row.action), ['rls-a']);
   const other = await db.query('SELECT id FROM shops WHERE id = $1', [b]);
   assert.equal(other.rowCount, 0);
   const updated = await db.query('UPDATE shops SET display_name = $1 WHERE id = $2', ['Injection', b]);
@@ -129,7 +136,7 @@ try {
   assert.equal(denied, true, 'RLS WITH CHECK doit refuser l’écriture pour boutique B');
   await db.query("SELECT set_config('app.shop_id', $1, true)", [b]);
   assert.deepEqual((await read()).rows.map((row) => row.id), [b], 'Changement de contexte isolé');
-  assert.deepEqual((await readAudit()).rows.map((row) => row.action), ['rls-b', 'rls-global']);
+  assert.deepEqual((await readAudit()).rows.map((row) => row.action), ['rls-b']);
   await db.query("SELECT set_config('app.shop_id', '', true)");
   assert.deepEqual((await read()).rows, [], 'Contexte effacé : aucune boutique visible');
   assert.deepEqual((await readAudit()).rows, [], 'Contexte effacé : aucun audit visible');

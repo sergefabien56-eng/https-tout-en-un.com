@@ -156,11 +156,11 @@ jobs:
           DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
           E2E_DELEGATION_FILE: /tmp/ci-delegation-fixtures
         run: node scripts/seed-e2e-delegation.mjs
-      - name: Délégation réelle sur navigateur bureau et mobile
+      - name: Délégation et journal global sur navigateur bureau et mobile
         env:
           DATABASE_URL: postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test
           E2E_DELEGATION_FILE: /tmp/ci-delegation-fixtures
-        run: npx playwright test tests/e2e/delegation.spec.ts --workers=1
+        run: npx playwright test tests/e2e/delegation.spec.ts tests/e2e/global-audit.spec.ts --workers=1
       - name: Nettoyer les fixtures temporaires
         if: always()
         run: rm -f /tmp/ci-delegation-fixtures

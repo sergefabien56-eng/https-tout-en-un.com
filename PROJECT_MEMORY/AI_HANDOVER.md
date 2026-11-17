@@ -2,7 +2,7 @@
 
 ## État actuel prioritaire
 
-Lire `RESUME_HERE.md` et `NEXT_ACTIONS.md` ; ils priment sur les notes historiques ci-dessous. Base publiée `9fa2b45`, CI `43974576655` quatre jobs verts, 20 E2E. Sous-lot local de délégation boutique, tests et limites : `docs/comptes-rendus/phase1-delegation-roles-boutique.md`. Ce sous-lot n'est pas couvert par la CI précédente. ZIP Arena → publication sans force → lien CI immédiat → quatre jobs verts avant lot suivant. Aucun secret ; snapshot code ≠ sauvegarde DB. L10 et Phase 1 incomplets, Windows en pause.
+Lire `RESUME_HERE.md` et `NEXT_ACTIONS.md` ; ils priment sur les notes historiques ci-dessous. Base publiée `33ff179`, CI `44046217087` quatre jobs verts. Sous-lot local journal global propriétaire : tests, RLS et limites dans `docs/comptes-rendus/phase1-journal-global-proprietaire.md`. La CI précédente ne couvre pas le nouveau lot. ZIP Arena → publication sans force → lien CI immédiat → quatre jobs verts avant lot suivant. Aucun secret ; snapshot code ≠ sauvegarde DB. L10 et Phase 1 incomplets, Windows en pause.
 
 ## À lire et à vérifier en premier
 1. Lire `RESUME_HERE.md`, puis ce fichier, `PROJECT_STATUS.md` et `NEXT_ACTIONS.md` ; ne pas reconstruire le projet depuis zéro.
