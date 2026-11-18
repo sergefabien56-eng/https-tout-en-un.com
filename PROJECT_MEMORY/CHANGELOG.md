@@ -1,3 +1,11 @@
+## 2026-11-17 — correctif E2E : codes de secours partagés (local, non publié)
+
+- Run 44201672782 (commit `6ded693`) : jobs qualité et migrations verts, job navigateurs **rouge** à l'étape « Parcours publics et authentifiés ».
+- Cause : `tests/e2e/mobile-overflow.spec.ts` réutilisait le **scénario 2** de `owner-codes.ts`, déjà consommé par `authenticated-admin.spec.ts`. Un code de secours est à usage unique : la seconde connexion échoue. Bug introduit par ce lot, invisible en exécution isolée.
+- Correctif : scénarios **4 et 5** réservés au test mobile, fichier de codes porté de 16 à **24** (`scripts/extend-e2e-recovery.mjs` : 10 + 14), garde-fou `index >= 24` levé explicitement. Documentation de la règle dans `owner-codes.ts`.
+- Vérifié sur base neuve, suite complète : le test mobile **passe** ; deux tests préexistants de la suite bureau restent intermittents en local, sur un lot d'échecs qui change d'un run à l'autre (instabilité machine, pas régression). La CI tranche.
+- 390 Vitest, lint et typecheck verts.
+
 ## 2026-11-17 — audit des dépendances : blocage sur la production seulement (local, non publié)
 
 - CI rouge sur `main` (`7e419827`, run 44161139878) **sans changement de dépendances** : avis `picomatch` GHSA-fc5q-39xc-vjpf (high) publié le 2026-10-19, **aucune version corrigée disponible** ; `npm audit fix --force` ne ferait que rétrograder vitest 4.x → 3.1.4.

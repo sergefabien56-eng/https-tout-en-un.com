@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { ownerRecoveryIndex } from './owner-codes';
+import { ownerRecoveryIndex, type OwnerScenario } from './owner-codes';
 
 /** Connexion propriétaire CI réutilisable, codes de secours réservés par scénario. */
-export async function loginOwnerScenario(page: Page, testInfo: TestInfo, scenario: 0 | 1 | 2 | 3): Promise<void> {
+export async function loginOwnerScenario(page: Page, testInfo: TestInfo, scenario: OwnerScenario): Promise<void> {
   const codes = readFileSync(process.env.E2E_RECOVERY_FILE!, 'utf8').trim().split('\n');
   const code = codes[ownerRecoveryIndex(scenario, testInfo.retry, testInfo.project.name)];
   expect(code).toMatch(/^[A-Za-z0-9_-]{22}$/);
@@ -66,8 +66,10 @@ test('mobile 375 px : connexion et espace privé sans débordement horizontal', 
   expect(loginSizes.doc, `connexion : document ${loginSizes.doc} > viewport ${loginSizes.viewport} ${JSON.stringify(loginSizes.offenders)}`)
     .toBeLessThanOrEqual(loginSizes.viewport);
 
-  // Scénario 2 : le seul restant libre pour ce couple projet/retry.
-  await loginOwnerScenario(page, testInfo, 2);
+  // Scénario 4 : réservé à ce fichier, distinct de ceux d'authenticated-admin.spec.ts.
+  // Un code de secours est à usage unique : partager un scénario ferait échouer la seconde
+  // connexion de la suite CI.
+  await loginOwnerScenario(page, testInfo, 4);
   const offenders: string[] = [];
   for (const path of espacePages) {
     const response = await page.goto(path, { waitUntil: 'domcontentloaded' });

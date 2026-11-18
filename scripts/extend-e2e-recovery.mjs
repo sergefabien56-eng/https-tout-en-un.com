@@ -1,4 +1,5 @@
-/** Six codes de secours SUPPLÉMENTAIRES pour les seuls tests CI jetables.
+/** Quatorze codes de secours SUPPLÉMENTAIRES pour les seuls tests CI jetables.
+ * 10 (bootstrap) + 14 = 24 codes = 6 scénarios x 4 (bureau/mobile x tentative/retry).
  * Ne jamais afficher ni archiver le fichier ou les codes ; bootstrap standard inchangé.
  */
 import { randomBytes, createHash } from 'node:crypto';
@@ -17,7 +18,7 @@ const existing = (await readFile(file, 'utf8')).trim().split('\n');
 if (existing.length !== 10 || existing.some((value) => !/^[A-Za-z0-9_-]{22}$/.test(value))) {
   throw new Error('Codes E2E : fichier initial invalide.');
 }
-const codes = Array.from({ length: 6 }, () => randomBytes(16).toString('base64url'));
+const codes = Array.from({ length: 14 }, () => randomBytes(16).toString('base64url'));
 const hashes = codes.map((code) => createHash('sha256').update(code, 'ascii').digest('hex'));
 const db = new pg.Client({ connectionString: process.env.DATABASE_URL_ADMIN });
 await db.connect();
