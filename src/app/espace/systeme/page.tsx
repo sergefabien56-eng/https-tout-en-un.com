@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getDeepHealth } from '@/modules/monitoring/deep-health';
 import { getIncidentReport } from '@/modules/monitoring/system-incidents';
 import { getRouteLatency } from '@/modules/monitoring/route-latency';
+import { flushRouteLatency } from '@/modules/monitoring/route-latency-store';
 import { COLLECTOR_SCOPE } from '@/modules/monitoring/collect-errors';
 import { IncidentAcknowledgeButton } from '@/ui/incident-acknowledge-button';
 import { canExportSystem } from '@/modules/monitoring/export-system';
@@ -19,6 +20,10 @@ export default async function SystemPage() {
   let mayExport: boolean;
   try { const token = (await cookies()).get('toutenun_session')?.value;
     result = await getDeepHealth(token); mayExport = await canExportSystem(token);
+    // Les échantillons déposés en mémoire par l'instrumentation sont écrits ici : elle ne peut
+    // pas toucher la base elle-même (voir `instrument-routes.ts`). L'échec du vidage ne doit
+    // jamais empêcher l'affichage — un écran Système muet serait pire que des mesures en retard.
+    try { await flushRouteLatency(); } catch { /* mesures perdues, écran servi quand même */ }
     // Deux lectures séparées : un incident en échec de lecture ne doit pas effacer la latence.
     latency = await getRouteLatency(token); incidents = await getIncidentReport(token); }
   catch (error) {

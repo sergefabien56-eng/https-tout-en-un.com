@@ -15,6 +15,11 @@ const config = {
     '/api/shops/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
     '/api/shops/[shopId]/audit/export/pdf': ['./assets/fonts/DejaVuSans.ttf', './assets/fonts/LICENSE-DejaVu.txt'],
   },
+  // Modules natifs laissés en `require` à l'exécution, jamais empaquetés par webpack :
+  // sans cela, `argon2` (via node-gyp-build) et `pg` réclament `fs`, que le bundle serveur
+  // ne résout pas. Constaté : `/api/health` répondait 500 en boucle et Playwright expirait
+  // au démarrage du serveur (run 44320835442, « Timed out waiting 90000ms »).
+  serverExternalPackages: ['argon2', 'pg', 'pg-native'],
   poweredByHeader: false,
   reactStrictMode: true,
   async headers() {

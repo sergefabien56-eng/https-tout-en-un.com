@@ -1,55 +1,42 @@
-/** Branchement de la mesure HTTP : décisions de mesure, sans serveur ni base. */
-import { describe, expect, it, vi } from 'vitest';
-import type * as RouteLatency from '@/modules/monitoring/route-latency';
+/** Politique de mesure HTTP : décisions pures, sans serveur ni base. */
+import { describe, expect, it } from 'vitest';
+import {
+  MAX_BUFFERED_SAMPLES, MEASURED_METHODS, decideSample, decideSamples, type RawLatencySample,
+} from '@/modules/monitoring/instrument-routes';
 
-type Recorded = { routeKey: string; method: string; statusClass: number; durationMs: number };
-const recorded: Recorded[] = [];
-vi.mock('@/modules/monitoring/route-latency', async (importOriginal) => {
-  const original = await importOriginal() as typeof RouteLatency;
-  return { ...original, recordRouteLatency: async (input: Recorded) => { recorded.push(input); } };
+const raw = (over: Partial<RawLatencySample> = {}): RawLatencySample => ({
+  url: '/api/admin/users/42/status?x=1', method: 'PATCH', statusCode: 204, durationMs: 12.4, ...over,
 });
-const { measureRequest } = await import('@/modules/monitoring/instrument-routes');
 
-type Listener = () => void;
-function fakeResponse(statusCode: number) {
-  const listeners: Listener[] = [];
-  const response = {
-    statusCode,
-    on: (_event: string, listener: Listener) => { listeners.push(listener); return response; },
-    emit: () => { listeners.forEach((listener) => listener()); },
-  };
-  return response;
-}
-
-describe('mesure HTTP des routes API', () => {
-  it('mesure une route déclarée à la fin réelle de la réponse', () => {
-    recorded.length = 0;
-    const response = fakeResponse(200);
-    const decided = measureRequest('/api/admin/users/42/status?x=1', 'PATCH', response, 0, () => 12.4);
-    expect(decided).toBe(true);
-    expect(recorded).toHaveLength(0); // rien n'est écrit avant la fin de la réponse
-    response.emit();
-    expect(recorded).toEqual([{ routeKey: 'admin/users/[id]/status', method: 'PATCH', statusClass: 2, durationMs: 12.4 }]);
+describe('décision de mesure d’une route API', () => {
+  it('normalise la clé, classe le statut et conserve la durée réelle', () => {
+    expect(decideSample(raw())).toEqual({
+      routeKey: 'admin/users/[id]/status', method: 'PATCH', statusClass: 2, durationMs: 12.4,
+    });
+    expect(decideSample(raw({ statusCode: 500, durationMs: 0 }))?.statusClass).toBe(5);
+    expect(decideSample(raw({ statusCode: 200, durationMs: 1_234.5 }))?.durationMs).toBeCloseTo(1_234.5, 5);
   });
 
   it('écarte les pages, les routes non déclarées et les méthodes non suivies', () => {
-    recorded.length = 0;
-    expect(measureRequest('/espace/systeme', 'GET', fakeResponse(200), 0)).toBe(false);
-    expect(measureRequest('/api/inconnue', 'GET', fakeResponse(404), 0)).toBe(false);
-    expect(measureRequest('/api/health', 'HEAD', fakeResponse(200), 0)).toBe(false);
-    expect(recorded).toHaveLength(0);
+    expect(decideSample(raw({ url: '/espace/systeme', method: 'GET' }))).toBe(null);
+    expect(decideSample(raw({ url: '/api/inconnue', statusCode: 404 }))).toBe(null);
+    expect(decideSample(raw({ url: '/api/health', method: 'HEAD' }))).toBe(null);
+    expect(MEASURED_METHODS).toEqual(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
   });
 
-  it('n’écrit rien pour un statut inexploitable', () => {
-    recorded.length = 0;
-    const response = fakeResponse(0);
-    measureRequest('/api/health', 'GET', response, 0);
-    response.emit();
-    expect(recorded).toHaveLength(0);
+  it('n’accepte ni statut inexploitable ni durée aberrante', () => {
+    expect(decideSample(raw({ statusCode: 0 }))).toBe(null);
+    expect(decideSample(raw({ statusCode: 99 }))).toBe(null);
+    expect(decideSample(raw({ durationMs: -1 }))).toBe(null);
+    expect(decideSample(raw({ durationMs: 4_000_000 }))).toBe(null);
+    expect(decideSample(raw({ durationMs: Number.NaN }))).toBe(null);
   });
 
-  it('ne propage jamais une erreur de mesure', () => {
-    expect(() => measureRequest(undefined, undefined, fakeResponse(200), 0)).not.toThrow();
-    expect(() => measureRequest('/api/health', 'GET', {} as never, 0)).not.toThrow();
+  it('ne propage jamais d’exception, même sur une entrée vide', () => {
+    expect(() => decideSample({ url: '', method: '', statusCode: 0, durationMs: 0 })).not.toThrow();
+    expect(decideSample({ url: '', method: '', statusCode: 0, durationMs: 0 })).toBe(null);
+    expect(() => decideSamples([])).not.toThrow();
+    expect(decideSamples([raw(), raw({ url: '/espace/systeme' }), raw({ method: 'HEAD' })])).toHaveLength(1);
+    expect(MAX_BUFFERED_SAMPLES).toBeGreaterThan(0);
   });
 });

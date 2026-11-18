@@ -73,3 +73,59 @@ aucun en-tête, et toute erreur de mesure est avalée. Une panne de mesure ne d�
 Pas de production, pas de lecteur d'écran réel, 375 px seulement, recette utilisateur non faite.
 La CI reste le juge : quatre jobs verts, **zéro test instable** (cette base refuse qu'un test
 réussisse à la reprise).
+
+## Correctif du 18/11 — CI rouge sur le job navigateur (run 44320835442)
+
+### Symptôme
+Le job « Navigateur bureau et mobile 375 px » échouait sur `Timed out waiting 90000ms from
+config.webServer` : le serveur de développement n'était jamais prêt. Journaux de la CI
+inaccessibles (dépôt privé sans jeton) → diagnostic par annotations, puis reproduction locale.
+
+### Cause
+`src/instrumentation.ts` tirait, par imports statiques, la chaîne
+`route-latency → core/db/client → pg` **et** `node:http`. En `next dev`, ce fichier est compilé
+pour les runtimes nodejs **et** edge : la compilation échouait (`Can't resolve 'fs'`,
+`Can't resolve 'pg-native'`, puis `UnhandledSchemeError: Reading from "node:http" is not
+handled`), `/api/health` répondait **500** en boucle et Playwright expirait. Preuve par
+soustraction : `instrumentation.ts` déplacé → `/api/health` 200 en ~10 s, zéro erreur.
+
+### Tentatives écartées (ne pas les refaire)
+1. import statique de `node:http` → `UnhandledSchemeError` ;
+2. `import()` à spécificateur littéral → même graphe, même échec ;
+3. `import()` à spécificateur variable → « Critical dependency », module enveloppé, exécution
+   cassée ;
+4. `serverExternalPackages` seul → insuffisant tant que le graphe statique contient `pg`.
+
+### Correctif retenu
+- `scripts/latency-hook.mjs` : crochet en **JavaScript pur, hors du bundle**, chargé par
+  `import(/* webpackIgnore: true */ …)`. Il patche `http.Server` **et** `https.Server`
+  (en HTTPS, `https.Server` n'hérite pas du prototype de `http.Server`).
+- `src/instrumentation.ts` ne contient plus aucune référence à `node:http`, `pg` ou `argon2` ;
+  garde `NEXT_RUNTIME === 'nodejs'` puis interrupteur explicite `LATENCY_INSTRUMENTATION=on`.
+- `src/modules/monitoring/instrument-routes.ts` devient une **politique pure** (`decideSample`,
+  `decideSamples`, `MEASURED_METHODS`, `MAX_BUFFERED_SAMPLES`) — testée, sans effet de bord.
+- `src/modules/monitoring/route-latency-store.ts` : accès base uniquement ; draine le tampon
+  global (`Symbol.for('toutenun.latency.buffer')`) déposé par le crochet. L'écriture est faite
+  au premier chargement de l'écran Système, jamais pendant la requête mesurée.
+- `next.config.mjs` : `serverExternalPackages: ['argon2', 'pg', 'pg-native']`.
+
+### Défauts trouvés en vérifiant sur un serveur réel (et corrigés)
+- `bucket_start` aligné sur 5 minutes : la tranche en cours n'étant pas terminée, les mesures
+  des dernières minutes étaient invisibles. Ajout d'une colonne `started_at` (instant réel),
+  utilisée pour la lecture de fenêtre et la purge de rétention.
+- Refus explicites avant écriture : `assertWritableRouteKey` (route non déclarée) et durée hors
+  bornes. Une mesure fausse affichée comme un fait est pire qu'une mesure manquante.
+
+### Vérifications réelles (18/11)
+- `next dev` neuf : `/api/health` **200 en 5 s**, `/espace` 307, `/connexion` 200 ; plus aucune
+  erreur de compilation.
+- `next build` : 0. `tsc` : 0. `eslint .` : 0. `vitest run` : **427/427**, 80 fichiers.
+- Serveur autonome de production avec `LATENCY_INSTRUMENTATION=on` : 3 requêtes réelles → à la
+  première ouverture de l'écran Système, `route_latency` contient
+  `health | GET | 2 | samples=3 | max=32 ms`, horodatage récent. Aucune donnée simulée.
+- Playwright local : non concluant sur ce bac à sable (Chromium « Page crashed », mémoire) ;
+  la condition d'échec de la CI (serveur jamais prêt) est levée et vérifiée par `curl`.
+
+### Reste à faire côté propriétaire
+La migration **0018 n'est pas appliquée en production** : l'écran Système y affichera une
+latence vide (et le message « aucune mesure ») jusqu'à son application.

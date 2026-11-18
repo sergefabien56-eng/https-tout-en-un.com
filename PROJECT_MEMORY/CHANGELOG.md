@@ -1,3 +1,12 @@
+
+## 2026-11-18 — CI navigateur réparée : instrumentation hors bundle
+- `scripts/latency-hook.mjs` (JS pur, `webpackIgnore`) : `http.Server` **et** `https.Server`.
+- `instrumentation.ts` sans `node:http`/`pg` ; `LATENCY_INSTRUMENTATION=on` pour armer.
+- Politique de mesure extraite en fonctions pures ; magasin séparé (`route-latency-store.ts`).
+- `route_latency.started_at` : lecture de fenêtre et purge sur l'instant réel.
+- Preuves : dev 200 en 5 s, build 0, tsc 0, eslint 0, vitest 427/427, écriture réelle vérifiée
+  sur serveur autonome.
+
 ## 2026-11-18 — Écran Système : latence par route et incidents applicatifs (local, non publié)
 
 - Deux blocs qui affichaient « Indisponible » lisent désormais des mesures réelles. Migration `0018` :

@@ -14,6 +14,10 @@ CREATE TABLE route_latency (
   method       text NOT NULL CHECK (method IN ('GET','POST','PUT','PATCH','DELETE')),
   status_class smallint NOT NULL CHECK (status_class IN (2, 3, 4, 5)),
   bucket_start timestamptz NOT NULL,
+  -- Instant réel de la mesure. `bucket_start` est aligné sur 5 minutes : une tranche en cours
+  -- n'est complète qu'après coup, et lire « la dernière heure » sur des tranches alignées
+  -- rate la mesure la plus récente. Défaut trouvé en vérifiant l'écran sur un serveur réel.
+  started_at   timestamptz NOT NULL DEFAULT now(),
   samples      integer NOT NULL DEFAULT 1 CHECK (samples > 0),
   total_ms     bigint NOT NULL CHECK (total_ms >= 0),
   max_ms       integer NOT NULL CHECK (max_ms >= 0),
@@ -24,6 +28,7 @@ CREATE TABLE route_latency (
   )
 );
 CREATE INDEX route_latency_bucket_ix ON route_latency (bucket_start DESC);
+CREATE INDEX route_latency_started_ix ON route_latency (started_at DESC);
 
 -- Incidents : lecture globale réservée au Propriétaire, écriture système uniquement.
 -- La colonne d'acquittement existe déjà en 0004 ; cette policy autorise la SEULE mutation
