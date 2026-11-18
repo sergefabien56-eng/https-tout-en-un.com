@@ -15,29 +15,31 @@ import { useEffect, useState } from 'react';
 import { appConfig } from '@/core/config/app.config';
 
 /**
- * Icône provisoire : quatre carrés satellites reliés à un carré central.
+ * Icône de marque : quatre carrés satellites reliés à un carré central.
  * Cinq formes, quatre liens : plusieurs boutiques réunies dans un même outil.
+ * Piste retenue par le propriétaire le 18/11/2026 (option 2 sur deux).
  * Dessinée en dur ici, sans dépendance : elle s'affiche même si tout le reste échoue.
- * Elle reste PROVISOIRE tant que le propriétaire n'a pas validé de logo définitif.
+ * Elle reste PROVISOIRE tant que le propriétaire ne l'a pas déclarée définitive :
+ * c'est lui qui décide, pas le code.
  */
 export function ProvisionalBrandIcon({ size = 40 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 48 48" role="img"
-    aria-label="Icône provisoire : quatre boutiques réunies autour d’un même outil" focusable="false">
+    aria-label="Icône de marque : quatre boutiques réunies autour d’un même outil" focusable="false">
     <rect width="48" height="48" rx="11" fill="var(--brand-navy)" />
-    {/* Quatre liens fins partant du centre : ils expriment le regroupement sans devenir
-        des flèches, et restent lisibles à 20 px. */}
-    <g stroke="var(--brand-turquoise)" strokeWidth="1.9" strokeLinecap="round" opacity="0.85">
-      <path d="M24 24 L13.5 13.5" /><path d="M24 24 L34.5 13.5" />
-      <path d="M24 24 L13.5 34.5" /><path d="M24 24 L34.5 34.5" />
+    {/* Quatre liens pleins, du centre vers chaque boutique : ils portent le sens
+        (« plusieurs boutiques dans un même outil ») et restent visibles à 20 px. */}
+    <g stroke="var(--brand-turquoise)" strokeWidth="2.6" strokeLinecap="butt">
+      <path d="M24 24 L13 13" /><path d="M24 24 L35 13" />
+      <path d="M24 24 L13 35" /><path d="M24 24 L35 35" />
     </g>
-    {/* Carré central plein : le point de convergence. */}
-    <rect x="19" y="19" width="10" height="10" rx="2.6" fill="var(--brand-turquoise)" />
-    {/* Quatre boutiques. Un léger retrait les sépare du lien pour éviter l'effet de flèche. */}
+    {/* Carré central : le point de convergence. */}
+    <rect x="17.5" y="17.5" width="13" height="13" fill="var(--brand-turquoise)" />
+    {/* Quatre boutiques, légèrement détachées du lien pour rester nettes à petite taille. */}
     <g fill="var(--sidebar-text)">
-      <rect x="8.5" y="8.5" width="9" height="9" rx="2.4" />
-      <rect x="30.5" y="8.5" width="9" height="9" rx="2.4" />
-      <rect x="8.5" y="30.5" width="9" height="9" rx="2.4" />
-      <rect x="30.5" y="30.5" width="9" height="9" rx="2.4" />
+      <rect x="7.5" y="7.5" width="9" height="9" />
+      <rect x="31.5" y="7.5" width="9" height="9" />
+      <rect x="7.5" y="31.5" width="9" height="9" />
+      <rect x="31.5" y="31.5" width="9" height="9" />
     </g>
   </svg>;
 }

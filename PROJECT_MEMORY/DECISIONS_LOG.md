@@ -1,3 +1,12 @@
+## 2026-11-18 — Icône de marque : deuxième piste retenue
+
+Deux pistes graphiques ont été produites et présentées côte à côte. Le propriétaire a retenu la
+seconde : carré central turquoise plein, quatre liens pleins vers quatre carrés clairs, sur fond
+bleu marine. Le SVG de `src/ui/brand.tsx` reproduit ce dessin **en tracés**, sans image bitmap,
+pour rester net de 20 px à 512 px. L'icône reste **provisoire** dans l'interface : seul le
+propriétaire peut la déclarer définitive. Aucune marque existante n'a été copiée, aucun favicon
+ni image de partage n'est généré.
+
 # Décisions et traçabilité
 
 - Phase 0 : Vendor Center API OAuth (pas Seller Center historique) ; boutique = boutique Jumia × pays ; stock distant remplace la valeur observée ; marges estimées et confirmées distinctes ; aucune facture officielle fabriquée. Références `docs/jumia-integration.md` et `docs/README.md` (**propositions de conception ; validation utilisateur à confirmer**).

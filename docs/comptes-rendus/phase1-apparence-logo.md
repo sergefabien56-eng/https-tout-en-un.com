@@ -15,8 +15,14 @@ Un lecteur peut donc constater la valeur réelle sans chercher dans le code.
 
 ## 2. L'icône est provisoire, et le dit
 
-Cinq formes : quatre carrés satellites reliés par quatre liens fins à un carré central
-turquoise, sur un fond bleu marine. Aucun logo existant n'a été copié.
+Cinq formes : quatre carrés satellites reliés par quatre liens pleins à un carré central
+turquoise, sur fond bleu marine. Aucun logo existant n'a été copié.
+
+**Trace de la décision** : le 18 novembre 2026, deux pistes ont été produites et comparées
+côte à côte ; le propriétaire a retenu la seconde (liens pleins, formes nettes). Le SVG du
+dépôt reprend exactement ce dessin, en tracés — pas en image bitmap — pour rester net à
+20 px comme à 512 px. L'écran continue d'annoncer l'icône comme **provisoire** : c'est le
+propriétaire qui la déclarera définitive, pas le code.
 
 L'écran Paramètres affiche une phrase explicite : « Icône provisoire affichée… Elle n'est
 pas définitive et sera remplacée dès que vous aurez validé un logo. » Aucun écran ne prétend

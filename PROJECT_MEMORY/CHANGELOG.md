@@ -23,7 +23,7 @@
 ## 2026-11-18 — Apparence : nom « PRO », icône provisoire et logo commun (publié et validé par 35d40c8)
 
 - **Nom** : `APP_NAME` = « TOUT EN UN BUSINESS MANAGER PRO », `APP_SHORT_NAME` = « TOUT EN UN PRO ». Source unique inchangée (`app.config.ts`), aucun nom recopié dans un écran — le test qui le vérifie passe toujours.
-- **Icône provisoire** : cinq formes (quatre boutiques reliées à un carré central), bleu marine et turquoise, dessinée en SVG sans fichier externe. L'écran dit explicitement qu'elle n'est pas définitive. Le site fonctionne sans aucun logo importé.
+- **Icône de marque** : cinq formes (quatre boutiques reliées à un carré central), bleu marine et turquoise, dessinée en SVG sans fichier externe. **Deux pistes comparées le 18/11, la seconde retenue par le propriétaire** ; le SVG du dépôt reprend ce dessin exact en tracés. L'écran la déclare encore provisoire tant qu'il ne l'a pas déclarée définitive.
 - **Logo commun** : import par le **Propriétaire seul**. Un seul fichier, adaptation automatique : `object-fit: contain` (proportions conservées) et plaque claire ajoutée en mode sombre seulement si les pixels sont sombres. Aperçu simultané en clair, en sombre et à 20 px, avant tout envoi.
 - **Contrôle serveur** : type relevé sur les octets (SVG refusé), 1 Mio maximum, 32 à 2048 px, écart de proportions 1:4 maximum, ré-encodage `sharp` qui efface les métadonnées. Stockage en `app_settings`, aucun fichier sur disque.
 - **Droits** : `settings:manage` ne suffit pas (le Gestionnaire le possède) — vérification du rôle `owner` dans le module. Prouvé par test d'intégration en appel direct, hors écran. La lecture est ouverte à tout compte connecté, y compris un membre limité à une boutique (défaut trouvé par test, corrigé).
