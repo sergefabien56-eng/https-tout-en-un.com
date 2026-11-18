@@ -1,3 +1,30 @@
+## 2026-11-18 — Découpage du parcours admin : ABANDONNÉ (plafond de connexion)
+
+Le parcours « connexion 2FA, notifications et recherche utilisateurs » durait 8 min 54 s au
+navigateur en CI. Un découpage en trois tests a été tenté puis **abandonné sur décision du
+propriétaire**, pour une raison mesurée et non esthétique :
+
+- `src/core/auth/service.ts` compte **10 tentatives maximum par couple e-mail × fenêtre de
+  15 minutes** (`rate_limits`, bucket `login-email`, `if (count > 10) return null`). Le plafond
+  est un mécanisme de sécurité **volontaire**, pas un réglage de confort.
+- Le job navigateur exécute deux projets (`bureau`, `mobile-375`). La suite actuelle fait
+  **9 connexions** du compte propriétaire (4 tests × 2 projets + 1 test mobile) : sous le plafond.
+- Le découpage en 6 tests porterait ce total à **13 connexions** : la 11ᵉ et les suivantes sont
+  refusées, donc **la CI serait rouge par construction**. Constaté en local : `rate_limits`
+  à 13, connexion refusée, message d'erreur générique (voulu : pas d'énumération).
+- Un second obstacle indépendant : un code de secours est **à usage unique** et les scénarios
+  `owner-codes.ts` sont épuisés (0-3 administration, 4 mobile, 5 accessibilité → 24 codes).
+  Découper exigerait deux scénarios de plus et un fichier porté à 32 codes.
+- **Décision** : ne pas découper. Le dépassement de délai du run 44297920494 est déjà corrigé
+  autrement et validé (run 44301784481, `204fb87`, 4 jobs verts, 0 instable). La marge de 180 s
+  et `waitUntil: 'domcontentloaded'` restent le correctif de référence.
+
+Effet de bord à connaître pour tout futur lot : **toute addition de test qui se connecte en tant
+que propriétaire** doit respecter à la fois (a) le plafond de 10 connexions par fenêtre de
+15 minutes pour l'ensemble du job navigateur, et (b) la réservation d'un code de secours unique.
+La modification du test a été annulée : l'arbre de travail est **propre** sur `12ee000`, base
+publiée `204fb87`.
+
 ## 2026-11-18 — Icône de marque : deuxième piste retenue
 
 Deux pistes graphiques ont été produites et présentées côte à côte. Le propriétaire a retenu la

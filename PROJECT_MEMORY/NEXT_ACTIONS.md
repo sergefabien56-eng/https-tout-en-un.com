@@ -28,3 +28,11 @@ et apparence — nom, icône provisoire, logo commun (point 4).
 
 Déploiement (domaine, VPS, HTTPS, préproduction isolée) ; sauvegarde PostgreSQL chiffrée hors site avec restauration
 testée (RPO/RTO) ; démonstration de validation et compte rendu. Windows en pause. Snapshot code ≠ sauvegarde base.
+
+## Piège documenté : ne pas découper le parcours admin (18/11/2026)
+
+Le découpage en trois tests a été **essayé puis abandonné** : 6 tests × 2 projets + 1 = **13 connexions**
+du compte propriétaire par job navigateur, alors que `rate_limits` plafonne à **10 par e-mail et par
+15 minutes**. La CI serait rouge par construction, et les 24 codes de secours sont déjà tous réservés.
+Voir `DECISIONS_LOG.md` (entrée du 18/11). Correctif de référence conservé : `204fb87`
+(`setTimeout(180_000)` + `waitUntil: 'domcontentloaded'`), validé par le run 44301784481.
