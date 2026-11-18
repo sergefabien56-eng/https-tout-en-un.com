@@ -1,7 +1,8 @@
-# Actions suivantes — L10 après le run 44278561288
+# Actions suivantes — L10 après le run 44292382777
 
-Base publiée **`c8100b0f7c0d2e56cff59b54748361c93f3acc47`**, [run 44278561288](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44278561288) : quatre jobs verts.
-Livrés et validés en CI : accessibilité des six écrans (point 7) et la file de limitation de connexion (point 3).
+Base publiée **`35d40c8cc3c6348fb0b642b06ec4e21366cc64e1`**, [run 44292382777](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44292382777) : quatre jobs verts.
+Livrés et validés en CI : accessibilité des six écrans (point 7), file de limitation de connexion (point 3)
+et apparence — nom, icône provisoire, logo commun (point 4).
 **L10 et Phase 1 restent incomplets.**
 
 ## Chantiers L10 encore ouverts (aucun commencé)
