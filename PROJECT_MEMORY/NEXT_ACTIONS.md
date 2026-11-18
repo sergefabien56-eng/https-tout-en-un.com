@@ -1,6 +1,6 @@
-# Actions suivantes — L10 après le run 44292382777
+# Actions suivantes — L10 après le run 44301784481
 
-Base publiée **`35d40c8cc3c6348fb0b642b06ec4e21366cc64e1`**, [run 44292382777](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44292382777) : quatre jobs verts.
+Base publiée **`204fb87e32b58259eb69fee20aa4a24e5b85e527`**, [run 44301784481](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44301784481) : quatre jobs verts, 0 instable.
 Livrés et validés en CI : accessibilité des six écrans (point 7), file de limitation de connexion (point 3)
 et apparence — nom, icône provisoire, logo commun (point 4).
 **L10 et Phase 1 restent incomplets.**

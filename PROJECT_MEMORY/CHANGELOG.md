@@ -25,6 +25,7 @@
 - Le run 44297920494 a échoué sur **un seul test**, en mobile 375 : `page.goto('/espace/recherche')` a atteint le budget de 120 s en attendant l'événement `load`. Le test a réussi à sa reprise, mais `failOnFlakyTests` est activé en CI — volontairement : un test instable n'est pas vert.
 - **Aucun rapport avec le lot Apparence** : les 20 autres tests sont passés, dont l'import réel du logo et les aperçus clair/sombre.
 - Correctif : budget porté à **180 s** sur les quatre parcours, et `waitUntil: 'domcontentloaded'` pour `/espace/recherche` (l'assertion suivante vérifie le titre rendu). Les attentes d'assertion restent à 20 s. Voir `docs/comptes-rendus/phase1-apparence-logo.md` §11.
+- **Validé par le run 44301784481** sur `204fb87` : quatre jobs verts, **21 passés, 5 sautés, 0 instable**, étape 11 en **6,4 min** au lieu de 8,9 min avant expiration. Le diagnostic de délai est confirmé par la mesure, pas seulement par le raisonnement.
 
 ## 2026-11-18 — Apparence : nom « PRO », icône provisoire et logo commun (publié et validé par 35d40c8)
 
