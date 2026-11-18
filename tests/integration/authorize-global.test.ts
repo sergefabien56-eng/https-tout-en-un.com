@@ -279,8 +279,8 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     // Le runner crée schema_migrations, le test PGlite applique directement les fichiers.
     await db.exec('CREATE TABLE schema_migrations (version text PRIMARY KEY); GRANT SELECT ON schema_migrations TO settings_test_app;');
     await db.exec("INSERT INTO schema_migrations VALUES ('0001'), ('0002');");
-    expect(await getDeepHealth(owner.token)).toMatchObject({ globalEventsRecorded: null, globalCriticalOpen: null,
-      globalWarningsOpen: null,
+    expect(await getDeepHealth(owner.token)).toMatchObject({ globalEventsRecorded: 0, globalCriticalOpen: 0,
+      globalWarningsOpen: 0,
       // La file de limitation est lue réellement : sur une base fraîche, quatre zéros mesurés.
       // Aucune empreinte ne sort, et surtout aucun `null` déguisé en zéro.
       queue: { activeBuckets: 0, attemptsInWindow: 0, bucketsAtLimit: 0, attemptsLimit: 10,
@@ -300,7 +300,8 @@ describe('administration globale : utilisateurs réels uniquement', () => {
       } finally { await db.exec('ROLLBACK'); }
       const health = await getDeepHealth(owner.token);
       expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, version: '0.1.0',
-        globalEventsRecorded: null, globalCriticalOpen: null, globalWarningsOpen: null,
+        // Les trois incidents globaux insérés ci-dessus sont désormais réellement lus.
+        globalEventsRecorded: 3, globalCriticalOpen: 1, globalWarningsOpen: 1,
         // Mesure réelle sur la base de test : zéro seau, donc zéro tentative. Ce zéro est
         // une preuve de lecture, pas un `null` déguisé — la distinction est le cœur du lot.
         queue: { activeBuckets: 0, attemptsInWindow: 0, bucketsAtLimit: 0, attemptsLimit: 10,
@@ -318,7 +319,9 @@ describe('administration globale : utilisateurs réels uniquement', () => {
         useRestrictedRole = true;
         const csv = await exportSystemCsv(owner.token);
         expect(csv).toContain('"Instance — accès Propriétaire"');
-        expect(csv).toContain('"Événements globaux enregistrés","Indisponible"');
+        // Les trois incidents globaux sont maintenant lus réellement : l'export les compte.
+        expect(csv).toContain('"Incidents globaux enregistrés","3"');
+        expect(csv).toContain('"Critiques non acquittés","1"');
         expect(csv).toContain('"File de tâches","Indisponible — worker non livré"');
         expect(csv).not.toMatch(/PRIVATE_SENTINEL|health-shop-secret|DATABASE_URL|postgres:\/\/|password|secret|token/i);
         const book = new ExcelJS.Workbook(); await book.xlsx.load((await exportSystemXlsx(owner.token)).buffer);

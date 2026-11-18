@@ -27,6 +27,10 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   'admin/settings/export/xlsx': { method: 'GET', permission: 'settings:read' },
   'admin/settings/export/pdf': { method: 'GET', permission: 'settings:read' },
   'admin/system/export': { method: 'GET', permission: 'system:manage' },
+  // Incidents : lecture paginée et acquittement. Le module exige EN PLUS le rôle global
+  // `owner` : `system:manage` seul ne suffit pas à lire ni à acquitter un incident.
+  'admin/system/incidents': { method: 'GET', permission: 'system:manage' },
+  'admin/system/incidents/[id]/acknowledge': { method: 'POST', permission: 'system:manage' },
   'admin/system/export/xlsx': { method: 'GET', permission: 'system:manage' },
   'admin/system/export/pdf': { method: 'GET', permission: 'system:manage' },
   'admin/users': { method: 'GET', permission: 'users:read' },

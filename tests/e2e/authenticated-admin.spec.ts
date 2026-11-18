@@ -306,7 +306,7 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   const deep = await directApi(page.request).get('/api/health/deep');
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number; version: string; environment: string;
-    databaseQueryMs: number; globalEventsRecorded: number | null; globalCriticalOpen: number | null; globalWarningsOpen: number | null;
+    databaseQueryMs: number; globalEventsRecorded: number; globalCriticalOpen: number; globalWarningsOpen: number;
     queue: { activeBuckets: number; attemptsInWindow: number; bucketsAtLimit: number; attemptsLimit: number;
       windowMinutes: number; windowStart: string; keyKind: string } | null };
   expect(health.database).toBe('ok');
@@ -326,11 +326,20 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   expect(JSON.stringify(health.queue)).not.toMatch(/[0-9a-f]{32}/);
   expect(health.environment).toBe('staging');
   expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
-  expect(health.globalEventsRecorded).toBeNull();
-  expect(health.globalCriticalOpen).toBeNull();
-  expect(health.globalWarningsOpen).toBeNull();
-  await expect(page.getByRole('heading', { name: 'Événements système globaux enregistrés' })).toBeVisible();
-  await expect(page.getByText('Aucun zéro n’est déduit de données masquées.', { exact: false })).toBeVisible();
+  // Les incidents sont désormais lus réellement : trois entiers mesurés, jamais `null`.
+  expect(Number.isSafeInteger(health.globalEventsRecorded)).toBe(true);
+  expect(health.globalEventsRecorded).toBeGreaterThanOrEqual(0);
+  expect(Number.isSafeInteger(health.globalCriticalOpen)).toBe(true);
+  expect(Number.isSafeInteger(health.globalWarningsOpen)).toBe(true);
+  await expect(page.getByRole('heading', { name: 'Incidents applicatifs (30 derniers jours)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Latence par route' })).toBeVisible();
+  // La latence doit finir par contenir la route /api/health/deep, appelée juste au-dessus.
+  // L'écriture de mesure est volontairement non bloquante : on recharge jusqu'à la voir,
+  // sans jamais tolérer l'absence définitive (le test échoue si rien n'apparaît).
+  await expect(async () => {
+    await page.reload();
+    await expect(page.getByText('/api/health/deep', { exact: false }).first()).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 30_000 });
   await expect(page.getByText('Tâches en attente : indisponibles.', { exact: false })).toBeVisible();
   await expect(page.getByText(health.version, { exact: true })).toBeVisible();
   await expect(page.getByText('Préproduction', { exact: true })).toBeVisible();
@@ -345,6 +354,17 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   expect(await systemCsv!.text()).toContain('Indisponible — worker non livré');
   expect((await systemXlsx!.body()).subarray(0, 2).toString('ascii')).toBe('PK');
   expect((await systemPdf!.body()).subarray(0, 5).toString('ascii')).toBe('%PDF-');
+
+  // Endpoints incidents : lecture Propriétaire, refus sans session, acquittement protégé par CSRF.
+  const incidentsApi = await directApi(page.request).get('/api/admin/system/incidents');
+  expect(incidentsApi.status()).toBe(200);
+  expect(incidentsApi.headers()['cache-control']).toBe('no-store');
+  const incidentsBody = await incidentsApi.json() as { total: number; incidents: { id: string }[] };
+  expect(Number.isSafeInteger(incidentsBody.total)).toBe(true);
+  // Aucun corps ne doit contenir d'adresse e-mail ni de jeton, même dans les messages.
+  expect(JSON.stringify(incidentsBody)).not.toMatch(/@ci\.invalid|[A-Za-z0-9_-]{43}/);
+  // Acquittement sans jeton CSRF : refusé, et l'API ne modifie rien.
+  expect((await directApi(page.request).post('/api/admin/system/incidents/1/acknowledge')).status()).toBe(403);
 
   await page.goto('/espace/parametres');
   await expect(page.getByRole('heading', { name: 'Paramètres', exact: true })).toBeVisible();

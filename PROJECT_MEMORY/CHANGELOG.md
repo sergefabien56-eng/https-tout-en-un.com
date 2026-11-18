@@ -1,3 +1,26 @@
+## 2026-11-18 — Écran Système : latence par route et incidents applicatifs (local, non publié)
+
+- Deux blocs qui affichaient « Indisponible » lisent désormais des mesures réelles. Migration `0018` :
+  table `route_latency` (agrégats 5 min, rétention 24 h) et policies de lecture/acquittement des
+  `system_events` globaux, réservées à `owner` **et** `system:manage`.
+- Latence mesurée **sans toucher aux 52 gestionnaires** : écoute de `http.Server`. Deux approches
+  ont été essayées et **échouent** — enveloppes dans `src/app/api/_measured/` (dossier `_` ignoré
+  par Next, 0 route produite) et patch de `getRequestHandler` via `instrumentation.ts` (casse la
+  compilation : `WebpackError is not a constructor`). Les deux échecs sont documentés dans le
+  compte rendu pour ne pas être retentés.
+- Lucide : 76 échantillons réellement écrits en e2e local. Aucune requête, aucun en-tête, aucune
+  adresse : route normalisée, méthode, classe de statut, durées.
+- Incidents : catalogue fermé de 4 codes, 30 jours, acquittement unique, incident de boutique
+  jamais visible côté global (filtre SQL explicite en plus de la RLS).
+- **Non livré et affiché comme tel** : worker et file de tâches ; collecteur automatique (le rôle
+  applicatif ne peut pas écrire dans `system_events`, RLS 0007), décision d'un compte dédié à prendre.
+- Sept défauts trouvés par les tests et corrigés (voir le compte rendu) : collision
+  `admin/users/export` ↔ `[id]`, fenêtre sans borne haute, tranche en cours exclue, écriture
+  non alignée, paramètre partagé en SQL, test qui croyait changer de rôle PostgreSQL, horodatage fixe.
+- Vérifications : `tsc`, `eslint`, `build` OK ; **427 Vitest** (405 avant), 80 fichiers, tous verts.
+  e2e local ordre CI : 19 passés / 5 sautés / 2 échoués, **les deux mêmes échecs que sur `204fb87`**
+  (charge machine, `mobile-375` seulement).
+
 ## 2026-11-17 — correctif E2E : hydratation React avant le clic du tiroir (local, non publié)
 
 - Run 44205074253 (commit `88dd21e`) : qualité et migrations vertes ; job navigateurs rouge sur **un seul test**, le nôtre. Les logs donnent la cause exacte : `aria-expanded` reste à `false` après le clic, sans erreur de clic.

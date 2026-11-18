@@ -5,9 +5,11 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Sonde de santé (liveness). Ne divulgue aucun secret ni chaîne de connexion.
- * La sonde profonde (/api/health/deep) arrive au lot L10 : elle vérifiera la base, les
- * migrations appliquées et l'état de la file.
+ * La sonde publique ne dit jamais qu'une chose : le processus répond.
+ * `/api/health/deep` (Propriétaire) vérifie la base et lit les mesures réelles.
+ *
+ * `database` reste volontairement « configured-not-checked » : cette route n'interroge pas
+ * la base, l'annoncer « ok » ici serait une affirmation non mesurée.
  */
 export function GET(): NextResponse {
   return NextResponse.json(

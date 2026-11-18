@@ -34,10 +34,13 @@ export interface DeepHealth {
   checkedAt: string;
   /** `null` = aucune file de tâches : le worker n'existe pas encore. */
   queue: QueueSnapshot | null;
-  /** Indisponibles tant que la RLS interdit la lecture globale sans contexte boutique. */
-  globalEventsRecorded: number | null;
-  globalCriticalOpen: number | null;
-  globalWarningsOpen: number | null;
+  /**
+   * Compteurs du journal `system_events`, désormais réellement lus (policy 0018, contexte
+   * `app.system_events_user_id` posé par `authorize-global`). Aucun de ces nombres n'est déduit.
+   */
+  globalEventsRecorded: number;
+  globalCriticalOpen: number;
+  globalWarningsOpen: number;
 }
 
 /**
@@ -65,7 +68,12 @@ export async function readQueueSnapshot(db: PoolClient, now: Date): Promise<Queu
     limits: 'Limitation de connexion uniquement : aucun worker, aucune tâche planifiée, aucune reprise.' };
 }
 
-export async function readDeepHealth(db: PoolClient): Promise<DeepHealth> {
+/**
+ * `userId` est fourni par l'appelant déjà authentifié (`withAuthorizedGlobalTransaction`) :
+ * il sert uniquement à poser le contexte exigé par la policy 0018 avant de lire les incidents.
+ * Aucun identifiant n'est demandé au navigateur.
+ */
+export async function readDeepHealth(db: PoolClient, userId: string): Promise<DeepHealth> {
   const start = performance.now();
   const result = await db.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations');
   const databaseQueryMs = Math.max(0, Math.round(performance.now() - start));
@@ -73,15 +81,27 @@ export async function readDeepHealth(db: PoolClient): Promise<DeepHealth> {
   if (!Number.isSafeInteger(migrationsApplied) || migrationsApplied === undefined || migrationsApplied < 0)
     throw new Error('Comptage des migrations indisponible.');
   const queue = await readQueueSnapshot(db, new Date());
-  // La policy RLS exige un contexte boutique même pour les événements globaux.
-  // Un COUNT sans contexte retourne 0 alors que des lignes peuvent exister :
-  // ne pas contourner la RLS, ni présenter ce zéro trompeur comme une mesure.
+  // Lecture globale des incidents : le contexte `app.system_events_user_id` a été posé par
+  // `withAuthorizedGlobalTransaction`, et la policy 0018 vérifie à nouveau le rôle Propriétaire.
+  // Si la policy manque, la requête est refusée : on n'affiche pas un zéro trompeur.
+  if (!/^[1-9]\d*$/.test(userId)) throw new Error('Contexte Propriétaire absent : incidents indisponibles.');
+  await db.query("SELECT set_config('app.system_events_user_id', $1, true)", [userId]);
+  const events = await db.query<{ total: number; critical: number; warning: number }>(
+    `SELECT count(*)::int AS total,
+            count(*) FILTER (WHERE severity = 'critical' AND acknowledged_at IS NULL)::int AS critical,
+            count(*) FILTER (WHERE severity = 'warning' AND acknowledged_at IS NULL)::int AS warning
+       FROM system_events WHERE shop_id IS NULL`);
+  const counters = events.rows[0];
+  if (!counters || ![counters.total, counters.critical, counters.warning].every((n) => Number.isSafeInteger(n) && n >= 0))
+    throw new Error('Comptage des incidents indisponible.');
   return { version: appConfig.version, environment: appConfig.environment,
     database: 'ok', databaseQueryMs, migrationsApplied,
     checkedAt: new Date().toISOString(), queue,
-    globalEventsRecorded: null, globalCriticalOpen: null, globalWarningsOpen: null };
+    globalEventsRecorded: counters.total, globalCriticalOpen: counters.critical,
+    globalWarningsOpen: counters.warning };
 }
 
 export async function getDeepHealth(token: string | undefined): Promise<DeepHealth> {
-  return withAuthorizedGlobalTransaction({ token, permission: 'system:manage' }, readDeepHealth);
+  return withAuthorizedGlobalTransaction({ token, permission: 'system:manage' },
+    (db, { userId }) => readDeepHealth(db, userId));
 }

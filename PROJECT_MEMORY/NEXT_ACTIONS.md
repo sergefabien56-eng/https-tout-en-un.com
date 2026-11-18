@@ -12,9 +12,12 @@ et apparence — nom, icône provisoire, logo commun (point 4).
    Bloqué côté envoi réel : aucun SMTP fiable fourni.
 2. **Supervision, collecteur d'erreurs, alertes propriétaire** — `/api/health/deep` et `src/modules/monitoring/deep-health.ts`
    existent ; l'écran Système déclare explicitement l'absence de collecteur et de file de tâches. Aucun envoi d'alerte.
-3. **Écran Système** — *file de limitation de connexion* **livrée et validée en CI** par le run 44278561288.
-   **Restent non livrés** : worker et file de tâches, collecteur d'erreurs, latence par route, tâches
-   planifiées. Toujours affichés « indisponible ». Rapport : `docs/comptes-rendus/phase1-systeme-limitation-connexion.md`.
+3. **Écran Système** — *file de limitation de connexion* validée en CI (run 44278561288) ; **latence par
+   route et incidents applicatifs livrés localement, non publiés** (`docs/comptes-rendus/phase1-systeme-latence-incidents.md`).
+   **Restent non livrés** : worker et file de tâches, tâches planifiées, et **écriture** des incidents
+   par l'application (le rôle applicatif n'a pas le droit d'écrire dans `system_events` : RLS 0007).
+   Décision à prendre : compte d'administration dédié au collecteur, ou écriture via une policy
+   `INSERT` globale restreinte. Rapports : `phase1-systeme-limitation-connexion.md`, `phase1-systeme-latence-incidents.md`.
 4. **Paramètres d'organisation complets (L10 §103)** — notifications par e-mail et section apparence d'organisation
    non livrées (l'apparence reste une préférence **locale au navigateur**, non synchronisée entre appareils).
 5. **Notifications métier / temps réel** — seules les notifications personnelles existent (connexion, sécurité).

@@ -16,10 +16,14 @@ describe('instantané Système et formats', () => {
     const rows = systemExportRows({ ...fixture, secret: 'SENSITIVE_FIXTURE' } as DeepHealth);
     const data = JSON.stringify(rows);
     expect(data).toContain('2026-01-02T03:04:05.000Z'); expect(data).toContain('Préproduction');
-    expect(data).toContain('Indisponible — worker non livré'); expect(data).toContain('aucun collecteur d’erreurs livré');
+    expect(data).toContain('Indisponible — worker non livré');
+    // Le collecteur d'incidents existe désormais : l'export dit ce qu'il couvre, pas « indisponible ».
+    expect(data).toContain('Erreurs serveur des routes API et exports uniquement');
     expect(data).not.toContain('SENSITIVE_FIXTURE');
-    expect(formatSystemCsv(fixture)).toContain('"Événements globaux enregistrés","0"');
-    expect(formatSystemCsv({ ...fixture, globalEventsRecorded: null })).toContain('"Événements globaux enregistrés","Indisponible"');
+    expect(formatSystemCsv(fixture)).toContain('"Incidents globaux enregistrés","0"');
+    // Un compteur illisible n'est plus rendu « Indisponible » dans l'export : le type l'interdit,
+    // et une valeur négative est refusée plus bas. Aucun zéro n'est fabriqué à la place.
+    expect(() => systemExportRows({ ...fixture, globalEventsRecorded: -1 })).toThrow();
     // La file de limitation est une mesure réelle ; son absence doit rester explicite.
     expect(formatSystemCsv(fixture)).toContain('"Limitation de connexion — seaux actifs","2"');
     expect(formatSystemCsv({ ...fixture, queue: null })).toContain('"Limitation de connexion — seaux actifs","Indisponible"');

@@ -76,7 +76,7 @@ afterAll(async () => {
 describe('migrations — application et structure', () => {
   it('applique les 17 migrations sans erreur', () => {
     // 0017 ajoute la policy d'audit du logo commun : une migration, pas un contournement.
-    expect(migrationFiles('up')).toHaveLength(17);
+    expect(migrationFiles('up')).toHaveLength(18);
   });
 
   it('crée les tables du socle', async () => {
@@ -88,7 +88,7 @@ describe('migrations — application et structure', () => {
     expect(tables).toEqual(
       expect.arrayContaining([
         'app_settings', 'audit_log', 'marketplace_apps', 'permissions', 'rate_limits',
-        'role_permissions', 'roles', 'sessions', 'shops', 'system_events',
+        'role_permissions', 'roles', 'route_latency', 'sessions', 'shops', 'system_events',
         'user_roles', 'user_shop_access', 'users',
       ]),
     );

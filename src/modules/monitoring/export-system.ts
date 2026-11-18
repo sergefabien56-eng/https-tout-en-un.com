@@ -29,7 +29,7 @@ export async function canExportSystem(token: string | undefined): Promise<boolea
 export async function loadAuthorizedSystemExport(token: string | undefined): Promise<DeepHealth> {
   return withAuthorizedGlobalTransaction({ token, permission: 'system:manage' }, async (db, { userId }) => {
     await checkExportGrant(db, userId);
-    return readDeepHealth(db);
+    return readDeepHealth(db, userId);
   });
 }
 
@@ -40,7 +40,7 @@ export function systemExportRows(data: DeepHealth): string[][] {
   const measurements = [data.migrationsApplied, data.databaseQueryMs];
   const counters = [data.globalEventsRecorded, data.globalCriticalOpen, data.globalWarningsOpen];
   if (measurements.some((n) => !Number.isSafeInteger(n) || n < 0) ||
-    counters.some((n) => n !== null && (!Number.isSafeInteger(n) || n < 0))) throw new ValidationError('Compteur système invalide.');
+    counters.some((n) => !Number.isSafeInteger(n) || n < 0)) throw new ValidationError('Compteur système invalide.');
   const env = { development: 'Développement', staging: 'Préproduction', production: 'Production' }[data.environment];
   if (!env || data.database !== 'ok') throw new ValidationError('État système invalide.');
   if (data.queue !== null && (!Number.isSafeInteger(data.queue.activeBuckets) || data.queue.activeBuckets < 0 ||
@@ -57,9 +57,9 @@ export function systemExportRows(data: DeepHealth): string[][] {
     ['Base de données', 'Requête de contrôle réussie'],
     ['Migrations appliquées', String(data.migrationsApplied)],
     ['Durée de la requête de contrôle', `${data.databaseQueryMs} ms`],
-    ['Événements globaux enregistrés', data.globalEventsRecorded === null ? 'Indisponible' : String(data.globalEventsRecorded)],
-    ['Critiques non acquittés', data.globalCriticalOpen === null ? 'Indisponible' : String(data.globalCriticalOpen)],
-    ['Avertissements non acquittés', data.globalWarningsOpen === null ? 'Indisponible' : String(data.globalWarningsOpen)],
+    ['Incidents globaux enregistrés', String(data.globalEventsRecorded)],
+    ['Critiques non acquittés', String(data.globalCriticalOpen)],
+    ['Avertissements non acquittés', String(data.globalWarningsOpen)],
     ['File de tâches', 'Indisponible — worker non livré'],
     ['Tâches en attente', 'Indisponibles'],
     ['Limitation de connexion — seaux actifs', data.queue === null ? 'Indisponible' : String(data.queue.activeBuckets)],
@@ -67,9 +67,9 @@ export function systemExportRows(data: DeepHealth): string[][] {
     ['Limitation de connexion — seaux au plafond', data.queue === null ? 'Indisponible' : String(data.queue.bucketsAtLimit)],
     ['Limitation de connexion — fenêtre', data.queue === null ? 'Indisponible'
       : `${data.queue.windowMinutes} min depuis ${data.queue.windowStart}`],
-    ['Collecteur d’erreurs', 'Indisponible'],
+    ['Collecteur d’incidents', 'Erreurs serveur des routes API et exports uniquement'],
     ['Limites', 'Contrôle ponctuel ; aucun hébergement ni sauvegarde vérifié.'],
-    ['Événements globaux', 'Compteurs indisponibles ; aucun collecteur d’erreurs livré.'],
+    ['Incidents globaux', 'Lus dans le journal système sur la fenêtre 30 jours ; aucun incident inventé.'],
   ];
 }
 
