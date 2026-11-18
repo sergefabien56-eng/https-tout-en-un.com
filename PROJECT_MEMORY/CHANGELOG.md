@@ -1,4 +1,13 @@
 
+## 2026-11-18 — Collecteur d'incidents : écriture débloquée (0019, option B)
+- Policy `system_events_collector_insert` : INSERT seul, incident global, 4 codes du catalogue,
+  sévérité et catégorie connues, jamais créé acquitté, sans contexte boutique.
+- Ni SELECT, ni UPDATE, ni DELETE accordés par cette policy : lecture et acquittement restent
+  au Propriétaire (0018), la suppression reste impossible.
+- 7 tests d'intégration prouvent l'acceptation ET les cinq refus, plus la cohérence entre la
+  liste figée en base et `INCIDENT_CODES`.
+- Message de l'écran Système corrigé : l'écriture n'est plus « réservée à un compte dédié ».
+- Vérifications : tsc 0 · eslint 0 · 434 tests / 80 fichiers · build 0.
 ## 2026-11-18 — CI navigateur réparée : instrumentation hors bundle
 - `scripts/latency-hook.mjs` (JS pur, `webpackIgnore`) : `http.Server` **et** `https.Server`.
 - `instrumentation.ts` sans `node:http`/`pg` ; `LATENCY_INSTRUMENTATION=on` pour armer.

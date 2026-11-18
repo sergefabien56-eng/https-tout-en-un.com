@@ -1,11 +1,17 @@
 # Actions suivantes — L10 après le correctif 898e13b
 
+## Décision prise
+Collecteur d'incidents : **option B** retenue par le propriétaire (règle d'écriture ciblée,
+pas de second compte base). La migration `0019_incident_write` l'applique. L'écran Système
+collecte désormais réellement les incidents, sans pouvoir les modifier ni les effacer.
+
 ## Immédiat (côté propriétaire)
 1. **Publier `898e13b`** depuis l'archive prête (`TOUT-EN-UN-898e13b-a-publier.zip`, Drive
    `PRET-A-POUSSER`, id `1hSFKMs_43L8SbL2dJfB5A4CXtWSiIpli`) : avance rapide sur `1417f3e`.
 2. **Appliquer la migration 0018** en production (`drizzle/0018_route_latency_incidents.{up,down}.sql`),
    sinon l'écran Système y affichera « aucune mesure » et des incidents vides.
-3. **Armer la mesure** en production : `LATENCY_INSTRUMENTATION=on` dans l'environnement du
+3. **Appliquer aussi 0019** (même migration groupée) : sans elle, les incidents ne s'écrivent pas.
+4. **Armer la mesure** en production : `LATENCY_INSTRUMENTATION=on` dans l'environnement du
    serveur (sans cette variable, aucune mesure n'est écrite — c'est voulu et documenté).
 4. Suivre le run CI du push : le job navigateur doit passer (serveur prêt en une poignée de
    secondes au lieu de 90 s d'attente).

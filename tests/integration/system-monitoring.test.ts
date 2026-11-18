@@ -33,6 +33,8 @@ const { recordRouteLatency, getRouteLatency, readRouteLatency } =
   await import('@/modules/monitoring/route-latency');
 const { getIncidentReport, acknowledgeIncident, readIncidentReport } =
   await import('@/modules/monitoring/system-incidents');
+const { INCIDENT_CODES, recordIncident } =
+  await import('@/modules/monitoring/collect-errors');
 
 const owner = createSessionToken();
 const globalManager = createSessionToken();
@@ -200,5 +202,105 @@ describe('mesure sous rôle applicatif restreint (RLS active)', () => {
       const after = await getIncidentReport(owner.token);
       expect(after.incidents.find((i) => i.id === open.id)?.acknowledgedAt).toBeNull();
     } finally { await db.exec('ROLLBACK;'); }
+  });
+});
+
+/**
+ * 0019 — le collecteur écrit, et RIEN de plus.
+ *
+ * Ces tests ne vérifient pas « ça marche » : ils vérifient surtout que la porte reste étroite.
+ * Une policy d'écriture trop large sur le journal système est pire que pas de collecte du tout,
+ * parce que l'application pourrait alors fabriquer ou noyer de vrais incidents.
+ */
+describe('collecteur d’incidents : écriture ciblée (migration 0019)', () => {
+  /** Exécute une insertion sous le rôle applicatif restreint, sans contexte boutique. */
+  async function insertAsApp(sql: string, params: unknown[] = []): Promise<number> {
+    await db.exec('BEGIN; SET LOCAL ROLE monitor_test_app;');
+    try {
+      const result = await db.query(sql, params);
+      await db.exec('COMMIT;');
+      return result.affectedRows ?? 0;
+    } catch (error) {
+      await db.exec('ROLLBACK;');
+      throw error;
+    }
+  }
+
+  it('accepte un incident global dont le code appartient au catalogue', async () => {
+    const inserted = await insertAsApp(
+      `INSERT INTO system_events (severity, category, code, message, shop_id)
+       VALUES ('warning', 'export', 'export_failure', 'Un export a échoué côté serveur.', NULL)`);
+    expect(inserted).toBe(1);
+  });
+
+  it('refuse un code inventé, une sévérité libre et une catégorie libre', async () => {
+    // Chaque cas viole une condition distincte de la policy : si l'un passait, la porte serait
+    // plus large que ce qui a été décidé.
+    await expect(insertAsApp(
+      `INSERT INTO system_events (severity, category, code, message, shop_id)
+       VALUES ('warning', 'export', 'code_invente', 'message libre', NULL)`)).rejects.toThrow();
+    await expect(insertAsApp(
+      `INSERT INTO system_events (severity, category, code, message, shop_id)
+       VALUES ('info', 'export', 'export_failure', 'Un export a échoué côté serveur.', NULL)`)).rejects.toThrow();
+    await expect(insertAsApp(
+      `INSERT INTO system_events (severity, category, code, message, shop_id)
+       VALUES ('warning', 'n_importe_quoi', 'export_failure', 'Un export a échoué côté serveur.', NULL)`)).rejects.toThrow();
+  });
+
+  it('refuse un incident rattaché à une boutique, même avec un code valide', async () => {
+    // La boutique 1 existe dans les fixtures de ce fichier. Un incident de boutique est un acte
+    // métier : il ne doit jamais entrer par la porte du collecteur.
+    await expect(insertAsApp(
+      `INSERT INTO system_events (severity, category, code, message, shop_id)
+       VALUES ('warning', 'export', 'export_failure', 'Un export a échoué côté serveur.', 1)`)).rejects.toThrow();
+  });
+
+  it('refuse un incident créé déjà acquitté', async () => {
+    await expect(insertAsApp(
+      `INSERT INTO system_events (severity, category, code, message, shop_id, acknowledged_at, acknowledged_by)
+       VALUES ('warning', 'export', 'export_failure', 'Un export a échoué côté serveur.', NULL, now(), 1)`)).rejects.toThrow();
+  });
+
+  it('n’accorde toujours ni lecture, ni modification, ni suppression', async () => {
+    const report = await getIncidentReport(owner.token);
+    expect(report.total).toBeGreaterThan(0);
+    const target = report.incidents[0]!;
+    await db.exec('BEGIN; SET LOCAL ROLE monitor_test_app;');
+    try {
+      const read = await db.query<{ n: number }>(
+        'SELECT count(*)::int AS n FROM system_events WHERE shop_id IS NULL');
+      expect(read.rows[0]?.n).toBe(0);
+      const update = await db.query(
+        'UPDATE system_events SET message = $2 WHERE id = $1', [target.id, 'réécrit']);
+      expect(update.affectedRows).toBe(0);
+      const remove = await db.query('DELETE FROM system_events WHERE id = $1', [target.id]);
+      expect(remove.affectedRows).toBe(0);
+    } finally { await db.exec('ROLLBACK;'); }
+  });
+
+  it('garde la liste de codes de la base identique au catalogue de l’application', async () => {
+    // La policy fige une liste ; le code applicatif en fige une autre. Une divergence rendrait
+    // la collecte muette pour un code ajouté côté TypeScript, sans aucun signal.
+    // `polqual` porte l'expression USING ; `polwithcheck` porte le WITH CHECK — c'est ce dernier
+    // qui décrit une policy d'INSERT. Lire la mauvaise colonne donnait une chaîne vide et le test
+    // aurait pu passer pour une mauvaise raison.
+    const definition = await db.query<{ with_check: string | null }>(
+      `SELECT pg_get_expr(polwithcheck, polrelid) AS with_check FROM pg_policy
+       WHERE polname = 'system_events_collector_insert'`);
+    const clause = definition.rows[0]?.with_check ?? '';
+    expect(clause.length).toBeGreaterThan(0);
+    for (const code of Object.keys(INCIDENT_CODES)) expect(clause).toContain(code);
+    const quotedInPolicy = [...clause.matchAll(/'([a-z_]+)'/g)].map((match) => match[1])
+      .filter((value) => value!.endsWith('_failure'));
+    expect([...new Set(quotedInPolicy)].sort()).toEqual(Object.keys(INCIDENT_CODES).sort());
+  });
+
+  it('trace un incident réel de bout en bout : collecteur, base, écran Propriétaire', async () => {
+    const before = (await getIncidentReport(owner.token)).total;
+    await recordIncident('database_failure');
+    const after = await getIncidentReport(owner.token);
+    expect(after.total).toBe(before + 1);
+    expect(after.incidents.some((incident) => incident.code === 'database_failure'
+      && incident.severity === 'critical')).toBe(true);
   });
 });

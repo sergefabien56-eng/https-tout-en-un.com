@@ -8,11 +8,12 @@
  *   - l'écriture est silencieuse en cas d'échec : un incident non journalisé ne casse pas
  *     la requête qui l'a produit, et ne masque pas l'erreur d'origine.
  *
- * Le contexte RLS de `system_events` (0005) exige soit un `shop_id` courant, soit
- * `shop_id IS NULL` avec la policy 0018. Un incident système global est écrit sans contexte
- * boutique et sans contexte utilisateur : il n'appartient à personne, donc aucune policy
- * d'écriture globale n'est nécessaire — seule l'insertion en tant que rôle applicatif
- * avec `shop_id IS NULL` est possible, et la RLS 0005 l'autorise déjà.
+ * Écriture : la policy 0007 exige un contexte boutique, or un incident système survient
+ * justement quand ce contexte n'existe pas (panne de base, export qui casse, erreur de route
+ * avant toute identification). La migration **0019** accorde donc au seul rôle applicatif
+ * l'INSERTION d'un incident global, et uniquement si son code appartient au catalogue ci-dessous,
+ * sa sévérité et sa catégorie sont connues, et l'incident n'est pas créé déjà acquitté.
+ * Rien d'autre n'est accordé : ni lecture, ni modification, ni suppression.
  */
 import { withIdentityTransaction } from '@/core/db/client';
 import { createLogger } from '@/core/logger/logger';
@@ -43,10 +44,8 @@ export async function recordIncident(code: IncidentCode): Promise<void> {
       await db.query(`INSERT INTO system_events (severity, category, code, message, shop_id)
         VALUES ($1, $2, $3, $4, NULL)`, [spec.severity, spec.category, code, spec.message]);
     });
-    // Incidents : la RLS 0007 exige un contexte boutique pour ÉCRIRE, et la policy 0018 ne couvre
-    // que lecture et acquittement. Une insertion d'incident est donc un acte d'administration
-    // documenté, fait par un compte dédié ; avec le seul rôle applicatif, elle est refusée et
-    // l'écran Système ne doit pas prétendre le contraire (voir `COLLECTOR_SCOPE`).
+    // Depuis la policy 0019, cette insertion passe avec le rôle applicatif : le code, la
+    // sévérité et la catégorie sont vérifiés par la base elle-même, pas seulement ici.
   } catch {
     // Jamais de propagation : le journal système ne doit pas devenir une panne.
     journal.warn('incident non enregistré', { code });
@@ -56,4 +55,5 @@ export async function recordIncident(code: IncidentCode): Promise<void> {
 /** Compteur lisible pour l'écran Système : ce que le collecteur sait faire, et rien de plus. */
 export const COLLECTOR_SCOPE = 'Collecteur d’incidents applicatifs : erreurs serveur des routes API et exports. '
   + 'Aucun message d’erreur client, aucun suivi navigateur, aucune remontée d’identité. '
-  + 'Écriture réservée à un compte d’administration : le rôle applicatif ne peut pas écrire dans le journal système.';
+  + 'Quatre codes seulement sont enregistrés (export, base de données, route, application) ; '
+  + 'l’application peut ajouter un incident global, jamais le modifier ni l’effacer.';
