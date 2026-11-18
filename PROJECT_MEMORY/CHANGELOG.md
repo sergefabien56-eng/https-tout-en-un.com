@@ -1,3 +1,11 @@
+## 2026-11-17 — correctif E2E : hydratation React avant le clic du tiroir (local, non publié)
+
+- Run 44205074253 (commit `88dd21e`) : qualité et migrations vertes ; job navigateurs rouge sur **un seul test**, le nôtre. Les logs donnent la cause exacte : `aria-expanded` reste à `false` après le clic, sans erreur de clic.
+- Diagnostic : en CI le serveur est `next dev` et la navigation se fait en `domcontentloaded` : le HTML est affiché **avant** que React n'attache ses gestionnaires, donc le clic est silencieusement perdu. Mon test local utilisait `next start` (production, hydratation immédiate) et masquait le défaut.
+- Correctif : `waitForHydration()` attend une clé `__reactProps$` sur le bouton, puis le clic est rejoué sous `expect(...).toPass()` — un clic perdu avant hydratation est ainsi distingué d'un vrai défaut.
+- Vérification : `✓` avec `next dev` sur les premières pages (le test avance bien plus loin qu'avant), et `✓` complet (13 pages, tiroir fermé et ouvert) avec le build de production. Les échecs restants en local sont un `Out of memory: Killed process next-server` constaté dans `dmesg` sur une machine à 2 Go, pas un défaut applicatif.
+- 390 Vitest, lint et typecheck verts.
+
 ## 2026-11-17 — correctif E2E : codes de secours partagés (local, non publié)
 
 - Run 44201672782 (commit `6ded693`) : jobs qualité et migrations verts, job navigateurs **rouge** à l'étape « Parcours publics et authentifiés ».

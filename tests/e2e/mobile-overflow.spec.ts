@@ -26,6 +26,19 @@ export const espacePages = [
  * viewport, ni à la connexion ni dans l'espace privé connecté, formulaire compris.
  * Le test échoue avec la liste précise des pages fautives.
  */
+/**
+ * En CI le serveur est `next dev` et la navigation se fait en `domcontentloaded` : le HTML
+ * est affiché avant que React n'attache ses gestionnaires. Cliquer à cet instant ne fait
+ * rien (aucune erreur de clic, aria-expanded reste à false). Attendre une interaction
+ * réellement hydratée avant de cliquer.
+ */
+export async function waitForHydration(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const button = document.querySelector<HTMLButtonElement>('button.mobile-menu');
+    return Boolean(button) && Object.keys(button!).some((key) => key.startsWith('__reactProps$'));
+  }, undefined, { timeout: 30_000 });
+}
+
 export function expectNoHorizontalOverflow(page: Page) {
   return page.evaluate(() => {
     const viewport = window.innerWidth;
@@ -85,8 +98,14 @@ test('mobile 375 px : connexion et espace privé sans débordement horizontal', 
     }
     // Tiroir de navigation ouvert : le panneau doit tenir dans la largeur, sans déborder.
     if (await menu.isVisible()) {
+      await waitForHydration(page);
       await expect(menu).toHaveAttribute('aria-expanded', 'false');
-      await menu.click();
+      // Si un clic atterrit avant l'hydratation, il est silencieusement perdu : un seul
+      // essai ne suffit pas à distinguer « fermé » de « pas encore réactif ».
+      await expect(async () => {
+        await menu.click();
+        expect(await menu.getAttribute('aria-expanded')).toBe('true');
+      }).toPass({ timeout: 20_000, intervals: [500, 1000, 2000] });
       // Le tiroir est un panneau translaté, jamais réellement masqué : son état se lit
       // sur aria-expanded, et sa position doit être dans le viewport quand il est ouvert.
       await expect(menu).toHaveAttribute('aria-expanded', 'true');
