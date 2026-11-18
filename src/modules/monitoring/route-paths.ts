@@ -9,7 +9,6 @@
  * Ce module ne contient que des constantes et des calculs purs : rien à résoudre.
  */
 import { ROUTE_PERMISSIONS } from '@/core/auth/route-permissions';
-import { AppError } from '@/core/errors/app-error';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -45,16 +44,6 @@ export function statusClassOf(status: number): 2 | 3 | 4 | 5 | null {
   if (!Number.isInteger(status) || status < 100 || status > 599) return null;
   const klass = Math.floor(status / 100);
   return klass === 2 || klass === 3 || klass === 4 || klass === 5 ? klass : null;
-}
-
-/**
- * Vérifie qu'une clé de route peut être écrite. Placé ici, et non dans la base, pour que le
- * refus soit explicite et testé : une clé libre en base laisserait entrer n'importe quelle URL
- * — donc potentiellement un identifiant de requête dans un nom de route.
- */
-export function assertWritableRouteKey(routeKey: string): void {
-  if (!normalizeRoutePath(`/api/${routeKey}`) && !Object.hasOwn(ROUTE_PERMISSIONS, routeKey))
-    throw new AppError('VALIDATION_FAILED', { userMessage: 'Route inconnue : mesure refusée.' });
 }
 
 export function bucketStartOf(now: Date): Date {

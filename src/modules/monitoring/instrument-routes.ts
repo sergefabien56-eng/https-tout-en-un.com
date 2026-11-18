@@ -1,6 +1,5 @@
-import {
-  normalizeRoutePath, statusClassOf, type HttpMethod,
-} from '@/modules/monitoring/route-paths';
+import { statusClassOf, type HttpMethod } from '@/modules/monitoring/route-paths';
+import { ROUTE_PERMISSIONS } from '@/core/auth/route-permissions';
 
 /**
  * Politique de mesure des routes API — décision pure, testée, sans aucun effet de bord.
@@ -32,6 +31,34 @@ export interface RawLatencySample {
 /** Échantillon validé et normalisé, prêt à être écrit par le magasin. */
 export interface LatencySample {
   routeKey: string; method: HttpMethod; statusClass: 2 | 3 | 4 | 5; durationMs: number;
+}
+
+/**
+ * Chemins d'API déclarés, avec leurs segments dynamiques : `shops/[shopId]/members`.
+ *
+ * Construit à partir de `ROUTE_PERMISSIONS`, qui est une simple constante : ce module reste
+ * donc sans dépendance native et peut être importé par l'instrumentation (voir l'historique
+ * ci-dessus). Le faire était nécessaire : `route-paths.ts` importe `AppError`, qui n'existe
+ * pas dans le bundle de l'instrumentation ; l'import levait au chargement et l'écriture des
+ * mesures ne partait jamais — incident mesuré en CI le 18/11 (écran Système sans la route
+ * `/api/health/deep` pourtant appelée juste avant).
+ */
+const DECLARED_PATHS = Object.keys(ROUTE_PERMISSIONS).map((route) => route.split('/'));
+
+/** Chemin normalisé d'une requête API, ou `null` si la route n'est pas déclarée. */
+export function normalizeRoutePath(pathname: string): string | null {
+  if (!pathname.startsWith('/api/')) return null;
+  const segments = pathname.slice('/api/'.length).split('/').filter((segment) => segment.length > 0);
+  if (segments.length === 0) return null;
+  // Un segment littéral l'emporte toujours sur un segment dynamique : sans cette priorité,
+  // `/api/admin/users/export` serait compté comme `admin/users/[id]` et la mesure attribuerait
+  // un export réel à la fiche d'un compte. Les statiques sont donc essayées d'abord.
+  const exact = DECLARED_PATHS.find((known) => known.every((part, index) => part === segments[index])
+    && known.length === segments.length);
+  if (exact) return exact.join('/');
+  const dynamic = DECLARED_PATHS.find((known) => known.length === segments.length
+    && known.every((part, index) => part.startsWith('[') || part === segments[index]));
+  return dynamic ? dynamic.join('/') : null;
 }
 
 /**

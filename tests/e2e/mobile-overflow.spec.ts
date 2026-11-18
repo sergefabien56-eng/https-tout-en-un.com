@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { ownerRecoveryIndex, type OwnerScenario } from './owner-codes';
+import { MOBILE_OVERFLOW_SCENARIO, ownerRecoveryIndex, type OwnerScenario } from './owner-codes';
 
 /** Connexion propriétaire CI réutilisable, codes de secours réservés par scénario. */
 export async function loginOwnerScenario(page: Page, testInfo: TestInfo, scenario: OwnerScenario): Promise<void> {
@@ -81,8 +81,12 @@ test('mobile 375 px : connexion et espace privé sans débordement horizontal', 
 
   // Scénario 4 : réservé à ce fichier, distinct de ceux d'authenticated-admin.spec.ts.
   // Un code de secours est à usage unique : partager un scénario ferait échouer la seconde
-  // connexion de la suite CI.
-  await loginOwnerScenario(page, testInfo, 4);
+  // connexion de la suite CI. Défaut réel corrigé le 18/11 : `owner-codes.ts` annonçait que ce
+  // fichier réutilisait le scénario 0, alors qu'il en consommait un 5e (scénario 4). Déjà pris
+  // par `accessibilite-admin.spec.ts`, le code était épuisé → retour sur /connexion, deux fois,
+  // échec définitif. Les scénarios sont désormais énumérés à UN seul endroit, et ce test prend
+  // le premier resté libre.
+  await loginOwnerScenario(page, testInfo, MOBILE_OVERFLOW_SCENARIO);
   const offenders: string[] = [];
   for (const path of espacePages) {
     const response = await page.goto(path, { waitUntil: 'domcontentloaded' });

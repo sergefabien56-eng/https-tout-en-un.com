@@ -157,6 +157,9 @@ jobs:
         env:
           DATABASE_URL: postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test
           E2E_RECOVERY_FILE: /tmp/ci-recovery-codes
+          # La mesure de latence n'écrit que si elle est armée : sans cette variable, l'écran
+          # Système n'aurait aucun échantillon et le parcours devrait tolérer une latence vide.
+          LATENCY_INSTRUMENTATION: 'on'
         run: npm run test:e2e
       - name: Préparer les membres fictifs pour la délégation
         env:

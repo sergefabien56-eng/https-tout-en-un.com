@@ -8,8 +8,7 @@
  */
 import { withIdentityTransaction } from '@/core/db/client';
 import {
-  LATENCY_BUCKET_MS, LATENCY_RETENTION_MS, SLOW_SAMPLE_MS, assertWritableRouteKey, bucketStartOf,
-  type HttpMethod,
+  LATENCY_BUCKET_MS, LATENCY_RETENTION_MS, SLOW_SAMPLE_MS, bucketStartOf, type HttpMethod,
 } from '@/modules/monitoring/route-paths';
 import { MAX_BUFFERED_SAMPLES, decideSamples, type RawLatencySample } from '@/modules/monitoring/instrument-routes';
 
@@ -47,8 +46,10 @@ export async function recordRouteLatency(input: {
   durationMs: number; now?: Date;
 }): Promise<void> {
   // Refus explicites AVANT toute écriture : une mesure fausse en base est pire qu'une mesure
-  // manquante, parce qu'elle est ensuite affichée comme un fait.
-  assertWritableRouteKey(input.routeKey);
+  // manquante, parce qu'elle est ensuite affichée comme un fait. La clé est tenue par le type
+  // et par la normalisation de l'instrumentation ; la base garde ses propres contraintes.
+  if (!input.routeKey || input.routeKey.length > 200 || input.routeKey.startsWith('/'))
+    throw new Error('Route inconnue : mesure refusée.');
   const durationMs = Math.round(input.durationMs);
   if (!Number.isFinite(input.durationMs) || durationMs < 0 || durationMs > 3_600_000)
     throw new Error('Durée de mesure invalide.');

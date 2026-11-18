@@ -129,3 +129,30 @@ soustraction : `instrumentation.ts` déplacé → `/api/health` 200 en ~10 s, z�
 ### Reste à faire côté propriétaire
 La migration **0018 n'est pas appliquée en production** : l'écran Système y affichera une
 latence vide (et le message « aucune mesure ») jusqu'à son application.
+
+## Deuxième passe — run 44351056218 (CI réparée au démarrage, parcours encore rouge)
+
+Le serveur démarre à nouveau (plus aucun `Timed out waiting 90000ms`, 6,5 min de parcours
+réels), mais trois tests échouent, tous liés à la latence. Deux défauts distincts, tous deux
+de ma main.
+
+### 1. L'écriture des mesures ne partait jamais
+`instrument-routes.ts` importait `route-paths.ts`, qui importe `AppError` : module absent du
+bundle de l'instrumentation. L'import levait au chargement, l'exception était avalée par le
+`catch` de `instrumentation.ts` — donc **silencieusement** — et aucun échantillon n'était écrit.
+Symptôme exact observé en CI : `/api/health/deep` appelée juste avant, mais absente du tableau
+de latence après 30 s de rechargements.
+
+Correctif : la normalisation des chemins est désormais **dans** `instrument-routes.ts`, calculée
+une fois depuis `ROUTE_PERMISSIONS` (constante pure). `route-paths.ts` garde la sienne pour le
+reste de l'application ; une divergence entre les deux ferait échouer les tests unitaires.
+
+### 2. La mesure n'était pas armée en CI
+`LATENCY_INSTRUMENTATION` n'était déclarée nulle part hors du commentaire de `instrumentation.ts`.
+Le parcours e2e vérifie une mesure réelle : il ne pouvait pas passer. L'étape « Parcours publics
+et authentifiés » porte maintenant `LATENCY_INSTRUMENTATION: 'on'`.
+
+### 3. Échec de connexion mobile (375 px)
+`loginOwnerScenario` reste sur `/connexion` après saisie du code TOTP. Ce chemin sera rejoué
+après les deux correctifs : les 5 refus 401 observés lors des essais locaux peuvent produire un
+message d'erreur qui déplace la cible du clic. Aucune conclusion tirée sans reproduction.
