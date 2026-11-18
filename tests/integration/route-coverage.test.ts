@@ -36,6 +36,23 @@ describe('recette L10 — couverture déclarée des routes', () => {
     }
   });
 
+  it('déclare une méthode réellement exportée par le fichier de route', () => {
+    // Le test précédent compare les chemins. Il ne voyait pas qu'une route déclarée PUT
+    // exportait en réalité POST ou PATCH : quatre routes vivaient avec une méthode fausse.
+    // Ici on lit les exports du fichier et on exige que la méthode déclarée en fasse partie.
+    for (const route of apiRoutes) {
+      const source = readFileSync(join(ROOT, 'src/app/api', `${route}/route.ts`), 'utf8');
+      const exported = [...source.matchAll(/export async function (GET|POST|PUT|PATCH|DELETE)/g)]
+        .map((match) => match[1]!);
+      // `auth/csrf` et `health` réexportent leur handler sous un autre nom : hors périmètre.
+      if (exported.length === 0) continue;
+      const declared = ROUTE_PERMISSIONS[route]?.method;
+      expect(declared, route).toBeDefined();
+      expect(exported, `${route} déclare ${declared} mais exporte ${exported.join(', ')}`)
+        .toContain(declared);
+    }
+  });
+
   it('ne considère comme publiques que les routes explicitement listées', () => {
     const declaredPublic = Object.entries(ROUTE_PERMISSIONS)
       .filter(([, entry]) => entry.permission === null).map(([route]) => route).sort();

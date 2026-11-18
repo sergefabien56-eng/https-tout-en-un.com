@@ -42,7 +42,11 @@ export function systemExportRows(data: DeepHealth): string[][] {
   if (measurements.some((n) => !Number.isSafeInteger(n) || n < 0) ||
     counters.some((n) => n !== null && (!Number.isSafeInteger(n) || n < 0))) throw new ValidationError('Compteur système invalide.');
   const env = { development: 'Développement', staging: 'Préproduction', production: 'Production' }[data.environment];
-  if (!env || data.database !== 'ok' || data.queue !== 'indisponible') throw new ValidationError('État système invalide.');
+  if (!env || data.database !== 'ok') throw new ValidationError('État système invalide.');
+  if (data.queue !== null && (!Number.isSafeInteger(data.queue.activeBuckets) || data.queue.activeBuckets < 0 ||
+    !Number.isSafeInteger(data.queue.attemptsInWindow) || data.queue.attemptsInWindow < 0 ||
+    !Number.isSafeInteger(data.queue.bucketsAtLimit) || data.queue.bucketsAtLimit < 0 ||
+    Number.isNaN(Date.parse(data.queue.windowStart)))) throw new ValidationError('File de limitation invalide.');
   return [
     ['Périmètre', 'Instance — accès Propriétaire'],
     ['Période', 'Sans période — instantané'],
@@ -58,6 +62,11 @@ export function systemExportRows(data: DeepHealth): string[][] {
     ['Avertissements non acquittés', data.globalWarningsOpen === null ? 'Indisponible' : String(data.globalWarningsOpen)],
     ['File de tâches', 'Indisponible — worker non livré'],
     ['Tâches en attente', 'Indisponibles'],
+    ['Limitation de connexion — seaux actifs', data.queue === null ? 'Indisponible' : String(data.queue.activeBuckets)],
+    ['Limitation de connexion — tentatives dans la fenêtre', data.queue === null ? 'Indisponible' : String(data.queue.attemptsInWindow)],
+    ['Limitation de connexion — seaux au plafond', data.queue === null ? 'Indisponible' : String(data.queue.bucketsAtLimit)],
+    ['Limitation de connexion — fenêtre', data.queue === null ? 'Indisponible'
+      : `${data.queue.windowMinutes} min depuis ${data.queue.windowStart}`],
     ['Collecteur d’erreurs', 'Indisponible'],
     ['Limites', 'Contrôle ponctuel ; aucun hébergement ni sauvegarde vérifié.'],
     ['Événements globaux', 'Compteurs indisponibles ; aucun collecteur d’erreurs livré.'],

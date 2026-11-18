@@ -43,5 +43,20 @@ export default async function SystemPage() {
     <div className="card"><h2>File de tâches</h2>
       <p>Indisponible — le worker n’est pas encore livré. Aucun état « OK » n’est simulé. Tâches en attente : indisponibles.</p>
     </div>
+    <div className="card"><h2>Limitation de connexion</h2>
+      {result.queue === null ? <p>Indisponible.</p> : <>
+        <dl className="detail-list">
+          <dt>Seaux actifs sur la fenêtre</dt><dd>{result.queue.activeBuckets}</dd>
+          <dt>Seaux ayant atteint le plafond</dt><dd>{result.queue.bucketsAtLimit}</dd>
+          <dt>Tentatives comptées</dt><dd>{result.queue.attemptsInWindow}</dd>
+          <dt>Plafond appliqué par connexion</dt><dd>{result.queue.attemptsLimit} tentatives</dd>
+          <dt>Fenêtre</dt><dd>{result.queue.windowMinutes} minutes depuis {new Intl.DateTimeFormat('fr-FR',
+            { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(result.queue.windowStart))} UTC</dd>
+        </dl>
+        <p>Mesuré dans la table <code>rate_limits</code>, la même que celle interrogée par la connexion.
+          Un seau est une <strong>empreinte</strong> d’adresse e-mail : aucune adresse en clair n’est stockée ni affichée.</p>
+        <p>{result.queue.limits} Ce compteur ne surveille pas les erreurs applicatives et ne remplace pas une file de tâches.</p>
+      </>}
+    </div>
   </main>;
 }

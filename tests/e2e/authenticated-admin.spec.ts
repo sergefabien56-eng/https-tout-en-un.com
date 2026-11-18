@@ -291,17 +291,34 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
   await page.getByRole('link', { name: 'Système' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Système', exact: true })).toBeVisible();
   await expect(page.getByText(/File de tâches/)).toBeVisible();
+  // Le bloc « File de tâches » doit rester « Indisponible » : le worker n'existe pas.
+  await expect(page.getByText(/Indisponible — le worker n’est pas encore livré/)).toBeVisible();
+  // En revanche la limitation de connexion est une mesure réelle, lue dans `rate_limits`.
+  await expect(page.getByRole('heading', { name: 'Limitation de connexion' })).toBeVisible();
+  await expect(page.getByText(/Plafond appliqué par connexion/)).toBeVisible();
+  await expect(page.getByText(/Un seau est une/)).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
   const deep = await directApi(page.request).get('/api/health/deep');
   expect(deep.status()).toBe(200);
   const health = await deep.json() as { database: string; migrationsApplied: number; version: string; environment: string;
-    databaseQueryMs: number; queue: string; globalEventsRecorded: number | null; globalCriticalOpen: number | null; globalWarningsOpen: number | null };
+    databaseQueryMs: number; globalEventsRecorded: number | null; globalCriticalOpen: number | null; globalWarningsOpen: number | null;
+    queue: { activeBuckets: number; attemptsInWindow: number; bucketsAtLimit: number; attemptsLimit: number;
+      windowMinutes: number; windowStart: string; keyKind: string } | null };
   expect(health.database).toBe('ok');
   // La CI doit avoir appliqué toutes les migrations présentes dans le dépôt.
   const expectedMigrations = readdirSync('drizzle').filter((name) => /^\d{4}_.+\.up\.sql$/.test(name)).length;
   expect(expectedMigrations).toBeGreaterThan(0);
   expect(health.migrationsApplied).toBe(expectedMigrations);
-  expect(health.queue).toBe('indisponible');
+  // La file de limitation est une mesure réelle : la connexion de ce test vient d'y écrire.
+  // Ce zéro-là serait un mensonge, donc on exige une valeur strictement positive.
+  expect(health.queue).not.toBeNull();
+  expect(health.queue!.activeBuckets).toBeGreaterThan(0);
+  expect(health.queue!.attemptsInWindow).toBeGreaterThan(0);
+  expect(health.queue!.attemptsLimit).toBe(10);
+  expect(health.queue!.windowMinutes).toBe(15);
+  expect(health.queue!.keyKind).toBe('empreinte');
+  // Aucune empreinte de seau ne doit sortir de l'API.
+  expect(JSON.stringify(health.queue)).not.toMatch(/[0-9a-f]{32}/);
   expect(health.environment).toBe('staging');
   expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);
   expect(health.globalEventsRecorded).toBeNull();

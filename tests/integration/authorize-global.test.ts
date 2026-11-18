@@ -279,7 +279,12 @@ describe('administration globale : utilisateurs réels uniquement', () => {
     // Le runner crée schema_migrations, le test PGlite applique directement les fichiers.
     await db.exec('CREATE TABLE schema_migrations (version text PRIMARY KEY); GRANT SELECT ON schema_migrations TO settings_test_app;');
     await db.exec("INSERT INTO schema_migrations VALUES ('0001'), ('0002');");
-    expect(await getDeepHealth(owner.token)).toMatchObject({ globalEventsRecorded: null, globalCriticalOpen: null, globalWarningsOpen: null });
+    expect(await getDeepHealth(owner.token)).toMatchObject({ globalEventsRecorded: null, globalCriticalOpen: null,
+      globalWarningsOpen: null,
+      // La file de limitation est lue réellement : sur une base fraîche, quatre zéros mesurés.
+      // Aucune empreinte ne sort, et surtout aucun `null` déguisé en zéro.
+      queue: { activeBuckets: 0, attemptsInWindow: 0, bucketsAtLimit: 0, attemptsLimit: 10,
+        windowMinutes: 15, keyKind: 'empreinte' } });
     await db.exec(`INSERT INTO system_events (severity, category, code, message, shop_id) VALUES
       ('critical', 'test', 'health-global-critical', 'PRIVATE_SENTINEL', NULL),
       ('warning', 'test', 'health-global-warning', 'PRIVATE_SENTINEL', NULL),
@@ -294,8 +299,15 @@ describe('administration globale : utilisateurs réels uniquement', () => {
         expect(masked.rows[0]?.n).toBe(0); // RLS masque les lignes : 0 n’est pas une mesure fiable.
       } finally { await db.exec('ROLLBACK'); }
       const health = await getDeepHealth(owner.token);
-      expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, queue: 'indisponible', version: '0.1.0',
-        globalEventsRecorded: null, globalCriticalOpen: null, globalWarningsOpen: null });
+      expect(health).toMatchObject({ database: 'ok', migrationsApplied: 2, version: '0.1.0',
+        globalEventsRecorded: null, globalCriticalOpen: null, globalWarningsOpen: null,
+        // Mesure réelle sur la base de test : zéro seau, donc zéro tentative. Ce zéro est
+        // une preuve de lecture, pas un `null` déguisé — la distinction est le cœur du lot.
+        queue: { activeBuckets: 0, attemptsInWindow: 0, bucketsAtLimit: 0, attemptsLimit: 10,
+          windowMinutes: 15, keyKind: 'empreinte' } });
+      // Une empreinte de seau ne doit jamais sortir, même sous forme de clé.
+      expect(Object.keys(health.queue!).sort()).toEqual(['activeBuckets', 'attemptsInWindow', 'attemptsLimit',
+        'bucketsAtLimit', 'keyKind', 'limits', 'windowMinutes', 'windowStart']);
       expect(['development', 'staging', 'production']).toContain(health.environment);
       expect(health.databaseQueryMs).toEqual(expect.any(Number));
       expect(health.databaseQueryMs).toBeGreaterThanOrEqual(0);

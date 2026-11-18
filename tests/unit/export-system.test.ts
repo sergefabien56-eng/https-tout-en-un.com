@@ -6,7 +6,10 @@ import { formatSystemCsv, formatSystemXlsx, systemExportRows } from '@/modules/m
 import { formatSystemPdf } from '@/modules/monitoring/export-system-pdf';
 
 const fixture: DeepHealth = { version: '0.1.0', environment: 'staging', database: 'ok',
-  databaseQueryMs: 12, migrationsApplied: 12, checkedAt: '2026-01-02T03:04:05.000Z', queue: 'indisponible',
+  databaseQueryMs: 12, migrationsApplied: 12, checkedAt: '2026-01-02T03:04:05.000Z',
+  queue: { activeBuckets: 2, attemptsInWindow: 5, windowStart: '2026-01-02T03:00:00.000Z',
+    windowMinutes: 15, attemptsLimit: 10, bucketsAtLimit: 0, keyKind: 'empreinte',
+    limits: 'Limitation de connexion uniquement : aucun worker, aucune tâche planifiée, aucune reprise.' },
   globalEventsRecorded: 0, globalCriticalOpen: 0, globalWarningsOpen: 0 };
 describe('instantané Système et formats', () => {
   it('reproduit le périmètre contrôlé, sans détails non prévus ni fausse santé', () => {
@@ -17,6 +20,11 @@ describe('instantané Système et formats', () => {
     expect(data).not.toContain('SENSITIVE_FIXTURE');
     expect(formatSystemCsv(fixture)).toContain('"Événements globaux enregistrés","0"');
     expect(formatSystemCsv({ ...fixture, globalEventsRecorded: null })).toContain('"Événements globaux enregistrés","Indisponible"');
+    // La file de limitation est une mesure réelle ; son absence doit rester explicite.
+    expect(formatSystemCsv(fixture)).toContain('"Limitation de connexion — seaux actifs","2"');
+    expect(formatSystemCsv({ ...fixture, queue: null })).toContain('"Limitation de connexion — seaux actifs","Indisponible"');
+    // Aucune empreinte ni adresse ne doit jamais sortir, même si le type le permettait.
+    expect(JSON.stringify(systemExportRows(fixture))).not.toMatch(/[0-9a-f]{32}/);
   });
   it.each(['=cmd', '+1', '@x', '-1', '  =cmd'])('neutralise %s dans les trois formats', async (version) => {
     const data = { ...fixture, version };

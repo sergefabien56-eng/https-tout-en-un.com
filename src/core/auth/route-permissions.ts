@@ -28,10 +28,13 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   'admin/system/export/pdf': { method: 'GET', permission: 'system:manage' },
   'admin/users': { method: 'GET', permission: 'users:read' },
   'admin/users/[id]': { method: 'GET', permission: 'users:read' },
-  'admin/users/[id]/status': { method: 'PUT', permission: 'users:write' },
-  'admin/users/[id]/global-roles': { method: 'PUT', permission: 'roles:manage' },
-  'admin/users/[id]/shop-roles': { method: 'PUT', permission: 'roles:manage' },
-  'admin/users/[id]/shop-access': { method: 'PUT', permission: 'roles:manage' },
+  'admin/users/[id]/status': { method: 'PATCH', permission: 'users:write' },
+  'admin/users/[id]/global-roles': { method: 'POST', permission: 'roles:manage' },
+  'admin/users/[id]/shop-roles': { method: 'POST', permission: 'roles:manage' },
+  // POST autorise une boutique à un rôle global ; DELETE révoque un accès indépendant.
+  // La table ne retient qu'une méthode : c'est POST qui est déclaré, DELETE est vérifié
+  // par le test de cohérence des exports (voir route-coverage.test.ts).
+  'admin/users/[id]/shop-access': { method: 'POST', permission: 'roles:manage' },
   'admin/users/[id]/directory-access': { method: 'PUT', permission: 'roles:manage' },
   'admin/users/export': { method: 'GET', permission: 'users:read' },
   'admin/users/export/xlsx': { method: 'GET', permission: 'users:read' },

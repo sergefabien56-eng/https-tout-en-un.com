@@ -10,8 +10,9 @@ Le chantier accessibilité (ci-dessous, point 7) est **livré et validé en CI**
    Bloqué côté envoi réel : aucun SMTP fiable fourni.
 2. **Supervision, collecteur d'erreurs, alertes propriétaire** — `/api/health/deep` et `src/modules/monitoring/deep-health.ts`
    existent ; l'écran Système déclare explicitement l'absence de collecteur et de file de tâches. Aucun envoi d'alerte.
-3. **Écran Système complet (L10 §103)** — fichiers/journal d'erreurs, tâches en attente, latence des routes : non livrés,
-   affichés « indisponible ». Ne jamais remplacer par un faux OK.
+3. **Écran Système** — *file de limitation de connexion* livrée localement (non publiée) :
+   `docs/comptes-rendus/phase1-systeme-limitation-connexion.md`. **Restent non livrés** : worker et
+   file de tâches, collecteur d'erreurs, latence par route, tâches planifiées. Toujours affichés « indisponible ».
 4. **Paramètres d'organisation complets (L10 §103)** — notifications par e-mail et section apparence d'organisation
    non livrées (l'apparence reste une préférence **locale au navigateur**, non synchronisée entre appareils).
 5. **Notifications métier / temps réel** — seules les notifications personnelles existent (connexion, sécurité).
