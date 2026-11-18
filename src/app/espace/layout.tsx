@@ -7,6 +7,7 @@ import { AppError } from '@/core/errors/app-error';
 import { SessionHeartbeat } from '@/ui/session-heartbeat';
 import { getNavigationPermissions } from '@/ui/navigation-permissions';
 import { countOwnUnreadBadge } from '@/modules/notifications/unread-badge';
+import { readVisibleOrganizationLogo } from '@/modules/identity/organization-logo';
 
 /** Toutes les pages sous /espace partagent l'authentification et la coquille. */
 export default async function PrivateLayout({ children }: { children: React.ReactNode }) {
@@ -45,7 +46,11 @@ export default async function PrivateLayout({ children }: { children: React.Reac
       if (!(error instanceof AppError && error.httpStatus === 403)) throw error;
     }
   }
-  return <AppShell userName={session.displayName} selectedShop={selectedShop} auditShopAccess={auditShopAccess}
+  // Le logo est un détail d'affichage : s'il est illisible, l'application doit s'ouvrir
+  // quand même, avec l'icône provisoire. Aucune erreur de logo ne bloque la navigation.
+  let logoUrl: string | null = null;
+  try { logoUrl = (await readVisibleOrganizationLogo(token)).url; } catch { logoUrl = null; }
+  return <AppShell userName={session.displayName} logoUrl={logoUrl} selectedShop={selectedShop} auditShopAccess={auditShopAccess}
     permissions={[...grants.permissions]}
     globalPermissions={[...grants.globalPermissions]} unreadNotifications={unreadNotifications}>
     <SessionHeartbeat />{children}</AppShell>;

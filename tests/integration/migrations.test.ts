@@ -74,8 +74,9 @@ afterAll(async () => {
 });
 
 describe('migrations — application et structure', () => {
-  it('applique les 16 migrations sans erreur', () => {
-    expect(migrationFiles('up')).toHaveLength(16);
+  it('applique les 17 migrations sans erreur', () => {
+    // 0017 ajoute la policy d'audit du logo commun : une migration, pas un contournement.
+    expect(migrationFiles('up')).toHaveLength(17);
   });
 
   it('crée les tables du socle', async () => {

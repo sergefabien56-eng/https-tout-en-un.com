@@ -2,8 +2,8 @@
  * Configuration unique de l'application.
  * Le nom officiel est défini ICI et nulle part ailleurs (un test le vérifie).
  */
-export const APP_NAME = 'TOUT EN UN BUSINESS MANAGER' as const;
-export const APP_SHORT_NAME = 'TOUT EN UN' as const;
+export const APP_NAME = 'TOUT EN UN BUSINESS MANAGER PRO' as const;
+export const APP_SHORT_NAME = 'TOUT EN UN PRO' as const;
 export const APP_VERSION = '0.1.0' as const;
 
 /**

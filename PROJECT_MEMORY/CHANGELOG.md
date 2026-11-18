@@ -20,6 +20,17 @@
 - Décision du propriétaire (option B sur trois) : la CI bloque sur `npm audit --omit=dev --audit-level=high` (**0 vulnérabilité en production**) ; l'audit complet reste exécuté et affiché, non bloquant. Justification, limites et plan de retour : `docs/securite/audit-dependances.md`.
 - Aucun paquet rétrogradé, aucun contrôle supprimé, aucune faille de production tolérée.
 
+## 2026-11-18 — Apparence : nom « PRO », icône provisoire et logo commun (local, non publié)
+
+- **Nom** : `APP_NAME` = « TOUT EN UN BUSINESS MANAGER PRO », `APP_SHORT_NAME` = « TOUT EN UN PRO ». Source unique inchangée (`app.config.ts`), aucun nom recopié dans un écran — le test qui le vérifie passe toujours.
+- **Icône provisoire** : cinq formes (quatre boutiques reliées à un carré central), bleu marine et turquoise, dessinée en SVG sans fichier externe. L'écran dit explicitement qu'elle n'est pas définitive. Le site fonctionne sans aucun logo importé.
+- **Logo commun** : import par le **Propriétaire seul**. Un seul fichier, adaptation automatique : `object-fit: contain` (proportions conservées) et plaque claire ajoutée en mode sombre seulement si les pixels sont sombres. Aperçu simultané en clair, en sombre et à 20 px, avant tout envoi.
+- **Contrôle serveur** : type relevé sur les octets (SVG refusé), 1 Mio maximum, 32 à 2048 px, écart de proportions 1:4 maximum, ré-encodage `sharp` qui efface les métadonnées. Stockage en `app_settings`, aucun fichier sur disque.
+- **Droits** : `settings:manage` ne suffit pas (le Gestionnaire le possède) — vérification du rôle `owner` dans le module. Prouvé par test d'intégration en appel direct, hors écran. La lecture est ouverte à tout compte connecté, y compris un membre limité à une boutique (défaut trouvé par test, corrigé).
+- **Migration 0017** : la policy RLS du journal refusait l'audit du logo. Policy étroite ajoutée pour `update_organization_logo` et `remove_organization_logo`, sans ouvrir la lecture. Le journal ne contient jamais l'image.
+- **Préférences individuelles** : le thème clair/sombre reste local au navigateur ; aucun code du logo n'y touche. Vérifié par test.
+- Locaux : typecheck, lint, build, **405 Vitest / 77 fichiers**. Navigateur : import réel d'un logo sombre 300×200, aperçu clair/sombre, retrait. Échecs intermittents de navigation sur cette machine, également présents sans ce lot. Voir `docs/comptes-rendus/phase1-apparence-logo.md`.
+
 ## 2026-11-18 — Système : file de limitation de connexion et méthodes de routes (publié et validé par c8100b0)
 
 - **Recette L10 Système (local, CI en attente)** : `DeepHealth.queue` passe de la chaîne `'indisponible'` à une mesure réelle de `rate_limits` (seaux actifs, tentatives, seaux au plafond, fenêtre de 15 min, plafond 10). Aucune empreinte ni adresse ne sort, prouvé par test. Un zéro sur base fraîche reste une lecture réussie ; une lecture impossible vaut `null` et l'écran affiche « Indisponible ». **Aucune file de tâches n'est créée** : le worker n'existe toujours pas et l'écran le dit.

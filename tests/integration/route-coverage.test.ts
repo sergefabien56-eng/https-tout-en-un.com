@@ -62,6 +62,9 @@ describe('recette L10 — couverture déclarée des routes', () => {
       'auth/csrf', 'auth/login', 'auth/logout', 'auth/me', 'auth/refresh',
       'auth/sessions', 'auth/sessions/[id]/revoke', 'auth/sessions/revoke-others',
       'health', 'notifications', 'notifications/[id]/read',
+      // Logo commun : lisible par tout compte connecté, y compris un membre limité à une
+      // boutique. La modification, elle, est sous admin/settings/organization-logo.
+      'organization/logo',
     ]);
     expect(PUBLIC_ROUTES).toEqual(['auth/login', 'auth/csrf']);
     for (const route of PUBLIC_ROUTES) expect(ROUTE_PERMISSIONS[route]).toBeDefined();

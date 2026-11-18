@@ -6,6 +6,11 @@
   --brand-blue: #1765f5;
   --link-color: #1765f5;
   --brand-orange: #f57c1f;
+  /* Identité demandée : bleu marine et turquoise. Le turquoise reste un accent, jamais
+     un fond de texte (contraste insuffisant sur blanc en dessous de 18 px). */
+  --brand-turquoise: #14a8a0;
+  --brand-turquoise-soft: #e6f7f6;
+  --brand-navy-deep: #0b1428;
   --brand-green: #12855b;
   --ok-text: #12855b;
   --soon-text: #955009;
@@ -110,6 +115,22 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .sidebar-brand { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 12px 16px; font-size: 14px; font-weight: 800; }
 .sidebar-brand small { display: block; color: var(--sidebar-muted); font-size: 10px; font-weight: 500; letter-spacing: .03em; }
 .brand-mark { display: inline-flex; justify-content: center; align-items: center; flex: 0 0 36px; height: 36px; border-radius: 10px; background: var(--brand-blue); color: white; font-size: 13px; }
+/* Logo importé : proportions conservées (`contain`), jamais déformé ni recadré. */
+.sidebar-brand { min-height: 76px; }
+.topbar-brand { display: inline-flex; align-items: center; flex: 0 0 auto; }
+/* Le nom complet tient sur deux lignes courtes : il ne doit jamais pousser l'icône. */
+.sidebar-brand > :last-child { min-width: 0; }
+.sidebar-brand .sidebar-full { overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+.brand-image { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.brand-image img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+/* Plaque claire ajoutée seulement si les pixels du logo sont sombres : sans elle, un logo
+   bleu marine disparaîtrait sur la barre latérale sombre. La plaque reste discrète et
+   suit le rayon de l'icône. */
+.brand-image-on-light { background: #ffffff; border-radius: 10px; padding: 3px; }
+.brand-lockup { display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-lockup-text { display: flex; flex-direction: column; min-width: 0; }
+.brand-lockup-name { font-weight: 800; letter-spacing: .01em; }
+.brand-lockup-text small { color: var(--sidebar-muted); font-size: 10px; font-weight: 500; letter-spacing: .03em; }
 .sidebar-tools { display: flex; gap: 14px; padding: 4px 20px 12px; }
 .sidebar-tools button { min-height: 40px; padding: 0; background: none; border: 0; color: var(--sidebar-muted); font-weight: 500; font-size: 11px; }
 .sidebar-tools button:hover, .sidebar-tools button:focus-visible { color: white; }
@@ -245,3 +266,37 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .notification-list { padding: 0; list-style: none; }
 .notification-list .card h2 { margin: 0 0 8px; }
 .notification-list small { color: var(--text-muted); }
+
+/* Gestion du logo commun — aperçu en clair ET en sombre, simultanément.
+   Deux surfaces fixes : le propriétaire doit voir le rendu des deux modes sans changer
+   son propre thème, ce qui garantirait l'oubli d'un des deux cas. */
+.logo-manager { display: flex; flex-direction: column; gap: 14px; }
+.logo-manager-note { margin: 0; }
+.logo-previews { display: flex; flex-wrap: wrap; gap: 12px; }
+.logo-preview { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.logo-preview .logo-preview-surface { display: flex; align-items: center; justify-content: center;
+  width: 104px; height: 104px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); }
+.logo-preview-light .logo-preview-surface { background: #ffffff; }
+.logo-preview-dark .logo-preview-surface { background: var(--brand-navy-deep);
+  /* Bordure interne plus marquée : sans elle, l'aperçu « sombre » se confond avec la page
+     quand l'utilisateur est lui-même en mode sombre, et l'aperçu ne prouve plus rien. */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16); }
+.logo-preview-small .logo-preview-surface { width: 56px; height: 56px; }
+.logo-preview figcaption { font-size: 11px; color: var(--text-secondary); }
+.logo-preview-lockup { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0;
+  background: var(--sidebar-bg); color: var(--sidebar-text); padding: 12px 16px; border-radius: var(--radius-md); }
+.logo-preview-full { color: var(--sidebar-muted); font-size: 11px; }
+.logo-provisional { background: var(--brand-turquoise-soft); color: var(--brand-navy);
+  border-radius: var(--radius-md); padding: 10px 12px; margin: 0; }
+.logo-form { display: flex; flex-direction: column; gap: 8px; }
+.logo-form label { font-weight: 600; }
+.logo-form input[type="file"] { padding: 10px; border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md); background: var(--bg-app); min-height: 44px; }
+.logo-form p { margin: 0; font-size: 12px; }
+.logo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.logo-actions .logo-secondary { background: var(--bg-surface); color: var(--text-primary);
+  border: 1px solid var(--border-subtle); }
+.logo-manager-audit { font-size: 12px; color: var(--text-muted); margin: 0; }
+@media (max-width: 600px) {
+  .logo-preview .logo-preview-surface { width: 84px; height: 84px; }
+}

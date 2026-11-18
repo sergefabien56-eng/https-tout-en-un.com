@@ -1,6 +1,6 @@
 # Schéma de données effectivement migré (v34)
 
-**Source de vérité** : `drizzle/0001_*.up.sql` … `0016_*.up.sql` et `.down.sql` ; `docs/database.md` est une conception plus large, **pas** le schéma effectif. L'exécuteur `scripts/migrate.mjs` suit `schema_migrations`, versions et checksums ; vérifier la base cible avant toute commande.
+**Source de vérité** : `drizzle/0001_*.up.sql` … `0017_*.up.sql` et `.down.sql` ; `docs/database.md` est une conception plus large, **pas** le schéma effectif. L'exécuteur `scripts/migrate.mjs` suit `schema_migrations`, versions et checksums ; vérifier la base cible avant toute commande.
 
 | Migrations | Tables / modifications réellement présentes |
 |---|---|
@@ -23,4 +23,5 @@ Aucune table commandes/produits/stocks/finance Jumia réelle migrée à ce stade
 
 - **0014** : policy INSERT audit limitée aux changements de matrice des rôles.
 - **0015** : `user_directory_access` et policy d'audit pour les accords individuels ; le rollback détruit les accords.
+- **0017** : policy INSERT étroite pour l'audit du logo commun (`update_organization_logo`, `remove_organization_logo`), acteur vérifié, `shop_id IS NULL`. Aucune lecture du journal n'est ouverte : la policy 0012 reste la seule autre voie d'écriture pour les réglages globaux. Voir `docs/comptes-rendus/phase1-apparence-logo.md`.
 - **0016** : policy audit boutique resserrée, policy SELECT des audits globaux pour le propriétaire actif et index global. Le rollback restaure la policy SQL 0007 plus permissive pour les lignes globales en contexte boutique ; voir `docs/comptes-rendus/phase1-journal-global-proprietaire.md`.

@@ -10,6 +10,9 @@ import { readOrganizationCurrency } from '@/modules/identity/organization-curren
 import { OrganizationCurrencyForm } from '@/ui/organization-currency-form';
 import { getNavigationPermissions } from '@/ui/navigation-permissions';
 import { getSession } from '@/core/auth/service';
+import { appConfig } from '@/core/config/app.config';
+import { readOrganizationLogo } from '@/modules/identity/organization-logo';
+import { OrganizationLogoForm } from '@/ui/organization-logo-form';
 
 export const dynamic = 'force-dynamic';
 export default async function SettingsPage() {
@@ -17,7 +20,9 @@ export default async function SettingsPage() {
   let result: Awaited<ReturnType<typeof readOrganizationSettings>>;
   let organization: Awaited<ReturnType<typeof readOrganizationName>>;
   let currency: Awaited<ReturnType<typeof readOrganizationCurrency>>;
-  try { result = await readOrganizationSettings(token); organization = await readOrganizationName(token); currency = await readOrganizationCurrency(token); }
+  let logo: Awaited<ReturnType<typeof readOrganizationLogo>>;
+  try { result = await readOrganizationSettings(token); organization = await readOrganizationName(token);
+    currency = await readOrganizationCurrency(token); logo = await readOrganizationLogo(token); }
   catch (error) {
     if (error instanceof AppError && error.httpStatus === 401) redirect('/connexion');
     if (error instanceof AppError && error.httpStatus === 403) notFound();
@@ -48,6 +53,15 @@ export default async function SettingsPage() {
       <p>Valeur enregistrée : <strong>{currency.currency ?? 'Non configurée'}</strong>.</p>
       <p>Choix confirmé : franc CFA (XOF). Chaque boutique garde sa devise ; aucune conversion ni aucun taux ne sont appliqués par ce réglage. Les règles financières restent à valider.</p>
       {grants?.globalPermissions.has('settings:manage') && <OrganizationCurrencyForm current={currency.currency} />}
+    </div>
+    <div className="card"><h2>Logo de l’application</h2>
+      <p>Le logo commun s’affiche sur tous les écrans, à la place de l’icône provisoire.
+        Il ne change ni le nom officiel, ni les préférences d’affichage de chacun.</p>
+      <p>Nom affiché : <strong>{appConfig.name}</strong> — défini dans la configuration
+        de l’application, jamais recopié dans un écran.</p>
+      {grants?.globalPermissions.has('settings:manage')
+        ? <OrganizationLogoForm state={logo} />
+        : <p>Seul le Propriétaire peut changer le logo. Aucun formulaire n’est affiché pour votre compte.</p>}
     </div>
     <div className="card"><h2>Autres paramètres prévus</h2>
       <p>Notifications par e-mail : indisponibles sans service SMTP fiable. Aucun envoi n’est annoncé.</p>

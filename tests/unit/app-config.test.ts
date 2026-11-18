@@ -12,8 +12,8 @@ function walk(directory: string): string[] {
 
 describe('nom officiel — une seule source de vérité', () => {
   it('le nom officiel et le nom court sont ceux attendus', () => {
-    expect(APP_NAME).toBe('TOUT EN UN BUSINESS MANAGER');
-    expect(APP_SHORT_NAME).toBe('TOUT EN UN');
+    expect(APP_NAME).toBe('TOUT EN UN BUSINESS MANAGER PRO');
+    expect(APP_SHORT_NAME).toBe('TOUT EN UN PRO');
     expect(appConfig.name).toBe(APP_NAME);
   });
 

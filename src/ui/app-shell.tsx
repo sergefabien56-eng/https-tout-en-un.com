@@ -10,6 +10,7 @@ import { QuickActions } from '@/ui/quick-actions';
 import { THEME_CHANGED_EVENT, applyThemePreference, readThemePreference, saveThemePreference,
   type ThemePreference } from '@/ui/theme-preference';
 import { appConfig } from '@/core/config/app.config';
+import { BrandMark } from '@/ui/brand';
 import { visibleNavigation } from '@/ui/navigation.config';
 import { Button } from '@/ui/components/button';
 
@@ -24,9 +25,9 @@ function readIds(): string[] {
   } catch { return ['dashboard']; }
 }
 
-export function AppShell({ userName, selectedShop, auditShopAccess = false, permissions, globalPermissions, unreadNotifications, children }: {
+export function AppShell({ userName, selectedShop, auditShopAccess = false, permissions, globalPermissions, unreadNotifications, logoUrl = null, children }: {
   userName: string; selectedShop?: string | null; auditShopAccess?: boolean; permissions: readonly string[];
-  globalPermissions?: readonly string[]; unreadNotifications: number; children: ReactNode;
+  globalPermissions?: readonly string[]; unreadNotifications: number; logoUrl?: string | null; children: ReactNode;
 }) {
   const pathname = usePathname();
   const groups = visibleNavigation(new Set(permissions), new Set(globalPermissions ?? permissions));
@@ -105,8 +106,8 @@ export function AppShell({ userName, selectedShop, auditShopAccess = false, perm
     <div className={`workspace ${rail ? 'workspace-rail' : ''} ${drawer ? 'workspace-drawer-open' : ''}`}>
       {drawer && <button className="workspace-scrim" type="button" aria-label="Fermer le menu" onClick={() => { setDrawer(false); menuButton.current?.focus(); }} />}
       <aside className="workspace-sidebar" aria-label="Navigation principale" id="app-sidebar">
-        <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true">T1</span>
-          <span className="sidebar-full">{appConfig.shortName}<small>Business Manager</small></span>
+        <div className="sidebar-brand"><BrandMark logoUrl={logoUrl} size={36} />
+          <span className="sidebar-full">{appConfig.shortName}<small>{appConfig.name}</small></span>
           <Button variant="ghost" size="icon" className="drawer-close" aria-label="Fermer le menu" onClick={() => { setDrawer(false); menuButton.current?.focus(); }}><X size={20} /></Button>
         </div>
         <div className="sidebar-tools sidebar-full">
@@ -154,6 +155,9 @@ export function AppShell({ userName, selectedShop, auditShopAccess = false, perm
             onClick={() => { setRail(!rail); localStorage.setItem(RAIL_KEY, String(!rail)); }}>
             {rail ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </Button>
+          {/* Même source que la barre latérale : le logo du propriétaire apparaît partout,
+              et l'icône provisoire prend sa place tant qu'aucun logo n'est importé. */}
+          <span className="topbar-brand"><BrandMark logoUrl={logoUrl} size={26} /></span>
           <strong className="topbar-name">{appConfig.shortName}</strong>
           <ShopSwitcher selectedShop={selectedShop ?? null} />
           <div className="topbar-spacer" />

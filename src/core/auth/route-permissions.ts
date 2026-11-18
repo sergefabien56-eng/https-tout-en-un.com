@@ -19,6 +19,9 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   'admin/roles/export/pdf': { method: 'GET', permission: 'roles:manage' },
   'admin/settings': { method: 'GET', permission: 'settings:read' },
   'admin/settings/organization-name': { method: 'PUT', permission: 'settings:manage' },
+  // POST importe, DELETE retire. Les deux sont réservés au Propriétaire par le module,
+  // qui contrôle le rôle au-delà de `settings:manage` (le Gestionnaire le possède aussi).
+  'admin/settings/organization-logo': { method: 'POST', permission: 'settings:manage' },
   'admin/settings/reference-currency': { method: 'PUT', permission: 'settings:manage' },
   'admin/settings/export': { method: 'GET', permission: 'settings:read' },
   'admin/settings/export/xlsx': { method: 'GET', permission: 'settings:read' },
@@ -51,6 +54,10 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   'shops/export/pdf': { method: 'GET', permission: 'shops:read' },
   'search': { method: 'GET', permission: 'dashboard:read' },
   'preferences/shop': { method: 'POST', permission: 'shops:read' },
+  // Image du logo commun : tout utilisateur connecté peut la voir. La modification passe
+  // uniquement par admin/settings/organization-logo, réservé au Propriétaire.
+  // Session seule : un membre limité à une boutique doit voir le logo commun.
+  'organization/logo': { method: 'GET', permission: null },
   'notifications': { method: 'GET', permission: null },
   'notifications/[id]/read': { method: 'POST', permission: null },
   'auth/sessions': { method: 'GET', permission: null },

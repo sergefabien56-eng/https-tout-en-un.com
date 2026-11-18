@@ -3,6 +3,7 @@ import { ownerRecoveryIndex } from './owner-codes';
 import { readFileSync, readdirSync } from 'node:fs';
 import ExcelJS from 'exceljs';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import sharp from 'sharp';
 import { expectNoSeriousAccessibilityViolations } from './accessibility';
 
 // Seulement en CI : utilisateur et codes FICTIFS créés dans une base PostgreSQL jetable.
@@ -388,6 +389,51 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
     await expect(page.getByText('Fuseau enregistré.', { exact: true })).toBeVisible();
     await page.reload();
     await expect(page.getByLabel('Fuseau de référence de l’organisation')).toHaveValue(nextTimezone);
+  }
+  // Logo commun : icône provisoire visible sans import, puis import, aperçu clair et sombre,
+  // retrait réel. L'API est aussi éprouvée en appel direct, hors de l'écran.
+  await expect(page.getByRole('heading', { name: 'Logo de l’application' })).toBeVisible();
+  await expect(page.getByText(/Icône provisoire affichée : cinq carrés/, { exact: false })).toBeVisible();
+  await expect(page.getByRole('figure', { name: 'Mode clair' })).toBeVisible();
+  await expect(page.getByRole('figure', { name: 'Mode sombre' })).toBeVisible();
+  // Un fichier réel, produit ici : aucun binaire n'est ajouté au dépôt.
+  const logo = await sharp({ create: { width: 300, height: 200, channels: 3,
+    background: { r: 16, g: 28, b: 57 } } }).png().toBuffer();
+  // Un appel direct sans le jeton CSRF est refusé AVANT même l'examen du fichier : c'est la
+  // première barrière. Le refus d'un contenu actif (SVG) est prouvé séparément par le test
+  // d'intégration, qui appelle le module avec un vrai jeton de session.
+  const withoutCsrf = await directApi(page.request).post('/api/admin/settings/organization-logo', {
+    data: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'),
+    headers: { 'Content-Type': 'image/png' } });
+  expect(withoutCsrf.status()).toBe(403);
+  if (testInfo.project.name === 'bureau') {
+    const logoCard = page.locator('.card', { has: page.getByRole('heading', { name: 'Logo de l’application' }) });
+    await logoCard.locator('input[type=file]').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: logo });
+    await expect(logoCard.getByText(/Fichier choisi : logo.png/, { exact: false })).toBeVisible();
+    const [logoResponse] = await Promise.all([
+      page.waitForResponse((response) => response.url().endsWith('/api/admin/settings/organization-logo')
+        && response.request().method() === 'POST'),
+      logoCard.getByRole('button', { name: 'Enregistrer ce logo' }).click(),
+    ]);
+    expect(logoResponse.status()).toBe(200);
+    await expect(logoCard.getByText('Logo enregistré et journalisé.', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText(/Logo importé par le Propriétaire/, { exact: false })).toBeVisible();
+    // L'image servie est bien un PNG, non reniflable comme autre chose.
+    const served = await directApi(page.request).get('/api/organization/logo');
+    expect(served.status()).toBe(200);
+    expect(served.headers()['content-type']).toContain('image/png');
+    expect(served.headers()['x-content-type-options']).toBe('nosniff');
+    expect((await served.body()).subarray(1, 4).toString('ascii')).toBe('PNG');
+    // Retrait réel : l'icône provisoire revient, et la base redevient celle d'avant le test.
+    const [removal] = await Promise.all([
+      page.waitForResponse((response) => response.url().endsWith('/api/admin/settings/organization-logo')
+        && response.request().method() === 'DELETE'),
+      logoCard.getByRole('button', { name: 'Retirer le logo' }).click(),
+    ]);
+    expect(removal.status()).toBe(200);
+    await page.reload();
+    await expect(page.getByText(/Icône provisoire affichée : cinq carrés/, { exact: false })).toBeVisible();
   }
   expect((await directApi(page.request).put('/api/admin/settings/organization-name', { data: { name: 'Interdit' } })).status()).toBe(403);
   expect((await directApi(page.request).put('/api/admin/settings/reference-currency', { data: { currency: 'XOF' } })).status()).toBe(403);
