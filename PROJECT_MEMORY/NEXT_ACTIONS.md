@@ -1,7 +1,7 @@
-# Actions suivantes — L10 après le run 44208729767
+# Actions suivantes — L10 après le run 44269439637
 
-Base publiée **`acbd578ff2297a5120d1768f32bbce3b42cd3684`**, [run 44208729767](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44208729767) : quatre jobs verts.
-Vérification : `reprise/verification-publication-acbd578.md`. **L10 et Phase 1 restent incomplets.**
+Base publiée **`9069f1ed09a8c2ee6f0e3ed942fc2737756ada12`**, [run 44269439637](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44269439637) : quatre jobs verts.
+Le chantier accessibilité (ci-dessous, point 7) est **livré et validé en CI**. **L10 et Phase 1 restent incomplets.**
 
 ## Chantiers L10 encore ouverts (aucun commencé)
 
@@ -16,9 +16,8 @@ Vérification : `reprise/verification-publication-acbd578.md`. **L10 et Phase 1 
    non livrées (l'apparence reste une préférence **locale au navigateur**, non synchronisée entre appareils).
 5. **Notifications métier / temps réel** — seules les notifications personnelles existent (connexion, sécurité).
 6. **Recette utilisateur** — jamais faite ; J3 non prononcé. Aucune validation par une personne réelle hors CI.
-7. ~~**Poste accessibilité — 6 écrans sans contrôle `axe`**~~ → **traité localement** (base `acbd578`), non publié :
-   `docs/comptes-rendus/accessibilite-ecrans-admin.md`. Six écrans instrumentés sans ajouter de connexion
-   (quota de 10 tentatives de login / 15 min). Prochaine étape : publier et vérifier les quatre jobs.
+7. ~~**Poste accessibilité — 6 écrans sans contrôle `axe`**~~ → **livré et validé en CI** par le run 44269439637
+   (étapes 11 et 13 vertes). Rapport : `docs/comptes-rendus/accessibilite-ecrans-admin.md`.
 8. **Règles XOF** (taux, conversions, arrondis, commissions) — **non définies par le propriétaire, donc non inventées**.
    La devise de référence est seulement enregistrée ; aucun calcul.
 
