@@ -20,6 +20,13 @@
 - Décision du propriétaire (option B sur trois) : la CI bloque sur `npm audit --omit=dev --audit-level=high` (**0 vulnérabilité en production**) ; l'audit complet reste exécuté et affiché, non bloquant. Justification, limites et plan de retour : `docs/securite/audit-dependances.md`.
 - Aucun paquet rétrogradé, aucun contrôle supprimé, aucune faille de production tolérée.
 
+## 2026-11-18 — accessibilité : six écrans d'administration audités (local, non publié)
+
+- **Recette L10 accessibilité (local, CI en attente)** : six écrans sans aucun contrôle Axe (`roles`, `utilisateurs`, fiche compte, `systeme`, `sessions`, `journal/global`) passent désormais par `expectNoSeriousAccessibilityViolations`. Audit mené d'abord sans modification : aucune violation `serious`/`critical`, résultat prouvé par un témoin `image-alt` et par des assertions de contenu (un écran d'erreur serait « propre » aussi). Aucun code applicatif touché.
+- Choix assumé : **instrumentation des parcours existants** plutôt que deux tests supplémentaires. Le login est limité à 10 tentatives par adresse et par fenêtre de 15 minutes (compteur persistent `rate_limits`, mesuré à 16 localement) ; un fichier de deux tests supplémentaires aurait fait basculer la suite au-delà du quota. Tests inchangés à 26, codes de secours inchangés à 24.
+- Locaux : typecheck, lint, **390 Vitest / 76 fichiers** ; suite navigateur dans l'ordre exact de la CI (deux vagues, fixtures semées entre les deux) : 21 + 4 passés, **0 échec, 0 flaky**.
+- Limite : sur cette machine (2 Go), les navigations échouent par intermittence **même sur le code non modifié** (2 échecs sur une exécution de référence) ; la stabilité réelle ne sera établie que par la CI. Voir `docs/comptes-rendus/accessibilite-ecrans-admin.md`.
+
 ## 2026-11-17 — recette L10 : routes, isolation, exports hostiles, mobile (local, non publié)
 
 - `src/core/auth/route-permissions.ts` : source de vérité des 52 routes API (méthode + permission ou `null` publique) et des pages publiques.

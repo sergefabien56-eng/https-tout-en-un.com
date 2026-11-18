@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { expectNoSeriousAccessibilityViolations } from './accessibility';
 import { directApi } from './direct-api';
 
 test('journal global propriétaire : lecture limitée et refus délégué', async ({ page, context }, info) => {
@@ -14,6 +15,8 @@ test('journal global propriétaire : lecture limitée et refus délégué', asyn
   await expect(page.getByRole('heading', { name: 'Journal global', exact: true })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'fixture_global_audit' })).toBeVisible();
   await expect(page.getByText('SECRET_SHOP_EVENT')).toHaveCount(0);
+  // Recette L10 : cet écran n'était audité par aucun contrôle d'accessibilité.
+  await expectNoSeriousAccessibilityViolations(page);
   const response = await directApi(page.request).get('/api/admin/audit/global?module=fixture_global');
   expect(response.status()).toBe(200); expect(response.headers()['cache-control']).toBe('no-store');
   const text = await response.text();

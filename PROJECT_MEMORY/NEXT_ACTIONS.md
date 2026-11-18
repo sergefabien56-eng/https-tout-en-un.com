@@ -16,8 +16,9 @@ Vérification : `reprise/verification-publication-acbd578.md`. **L10 et Phase 1 
    non livrées (l'apparence reste une préférence **locale au navigateur**, non synchronisée entre appareils).
 5. **Notifications métier / temps réel** — seules les notifications personnelles existent (connexion, sécurité).
 6. **Recette utilisateur** — jamais faite ; J3 non prononcé. Aucune validation par une personne réelle hors CI.
-7. **Poste accessibilité — 6 écrans sans contrôle `axe`** : `roles`, `utilisateurs`, `utilisateurs/[id]`, `systeme`,
-   `sessions`, `journal/global`. Les 10 autres sont couverts (`expectNoSeriousAccessibilityViolations`).
+7. ~~**Poste accessibilité — 6 écrans sans contrôle `axe`**~~ → **traité localement** (base `acbd578`), non publié :
+   `docs/comptes-rendus/accessibilite-ecrans-admin.md`. Six écrans instrumentés sans ajouter de connexion
+   (quota de 10 tentatives de login / 15 min). Prochaine étape : publier et vérifier les quatre jobs.
 8. **Règles XOF** (taux, conversions, arrondis, commissions) — **non définies par le propriétaire, donc non inventées**.
    La devise de référence est seulement enregistrée ; aucun calcul.
 

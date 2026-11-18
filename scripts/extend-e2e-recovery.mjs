@@ -1,5 +1,6 @@
 /** Quatorze codes de secours SUPPLÉMENTAIRES pour les seuls tests CI jetables.
  * 10 (bootstrap) + 14 = 24 codes = 6 scénarios x 4 (bureau/mobile x tentative/retry).
+ * Scénarios : 0-3 admin authentifié, 4-5 accessibilité admin (recette L10).
  * Ne jamais afficher ni archiver le fichier ou les codes ; bootstrap standard inchangé.
  */
 import { randomBytes, createHash } from 'node:crypto';

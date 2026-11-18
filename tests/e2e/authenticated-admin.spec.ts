@@ -193,6 +193,11 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   await expect(page).toHaveURL(/\/espace\/utilisateurs\/[1-9]\d*$/);
   await expect(page.getByRole('heading', { name: 'Propriétaire CI' })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('Global (toutes les boutiques)')).toBeVisible();
+  // Recette L10 — la fiche compte n'était auditée par aucun contrôle d'accessibilité.
+  // Ici, le compte est protégé : la page est volontairement sans boutons de mutation,
+  // c'est cet état réel qu'on audite, pas une version enrichie qui n'existe pas.
+  await expect(page.getByRole('heading', { name: 'Compte', exact: true })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
   // Les séquences PostgreSQL ne sont PAS rembobinées par ROLLBACK : la fixture RLS
   // peut consommer l'ID 1. Ne jamais supposer que le propriétaire porte cet ID.
   const ownerId = result.users.find((entry) => entry.email === 'proprietaire@ci.invalid')?.id;
@@ -728,6 +733,12 @@ test('propriétaire CI : journal et sessions', async ({ page }, testInfo) => {
   await expect(page.getByRole('heading', { name: 'Choisissez une boutique' })).toBeVisible();
   // Une boutique inexistante ne doit pas exposer de journal, même au propriétaire.
   expect((await directApi(page.request).get('/api/shops/999999/audit')).status()).toBe(403);
+  // Recette L10 — journal global : écran jamais audité jusqu'ici. Même session, aucune
+  // connexion supplémentaire (le login est limité à 10 tentatives par fenêtre de 15 min).
+  await page.goto('/espace/journal/global', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Journal global', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Filtrer' })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
   expect((await directApi(page.request).get(`/api/shops/${shopId}/audit`)).status()).toBe(200);
   await page.goto('/espace');
   const sessionsLink = page.getByRole('link', { name: 'Consulter mes sessions actives' });

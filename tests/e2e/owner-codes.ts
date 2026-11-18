@@ -2,8 +2,10 @@
  * Quatre codes uniques par scénario : bureau/mobile, puis première tentative/retry.
  *
  * Le bootstrap crée 10 codes et `scripts/extend-e2e-recovery.mjs` en ajoute 14 : 24 au total,
- * soit 6 scénarios (0 à 5) x 4 codes. Les scénarios 0 à 3 sont réservés à
- * `authenticated-admin.spec.ts` ; les scénarios 4 et 5 sont réservés à `mobile-overflow.spec.ts`.
+ * soit 6 scénarios (0 à 5) x 4 codes. Réservation :
+ *   - 0 à 3 : `authenticated-admin.spec.ts`
+ *   - 4 et 5 : `accessibilite-admin.spec.ts` (recette L10, accessibilité des six écrans non audités)
+ *   - `mobile-overflow.spec.ts` réutilise le scénario 0 et ne consomme donc aucun code supplémentaire.
  * Un code de secours est à usage unique : deux tests qui partagent un scénario consomment
  * le même code et le second échoue. Ajouter un test consommateur impose donc un nouveau
  * scénario ET l'extension correspondante du fichier de codes.
