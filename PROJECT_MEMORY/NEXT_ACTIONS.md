@@ -1,4 +1,16 @@
-# Actions suivantes — L10 après le run 44301784481
+# Actions suivantes — L10 après le correctif 898e13b
+
+## Immédiat (côté propriétaire)
+1. **Publier `898e13b`** depuis l'archive prête (`TOUT-EN-UN-898e13b-a-publier.zip`, Drive
+   `PRET-A-POUSSER`, id `1hSFKMs_43L8SbL2dJfB5A4CXtWSiIpli`) : avance rapide sur `1417f3e`.
+2. **Appliquer la migration 0018** en production (`drizzle/0018_route_latency_incidents.{up,down}.sql`),
+   sinon l'écran Système y affichera « aucune mesure » et des incidents vides.
+3. **Armer la mesure** en production : `LATENCY_INSTRUMENTATION=on` dans l'environnement du
+   serveur (sans cette variable, aucune mesure n'est écrite — c'est voulu et documenté).
+4. Suivre le run CI du push : le job navigateur doit passer (serveur prêt en une poignée de
+   secondes au lieu de 90 s d'attente).
+
+## Historique — après le run 44301784481
 
 Base publiée **`204fb87e32b58259eb69fee20aa4a24e5b85e527`**, [run 44301784481](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44301784481) : quatre jobs verts, 0 instable.
 Livrés et validés en CI : accessibilité des six écrans (point 7), file de limitation de connexion (point 3)
