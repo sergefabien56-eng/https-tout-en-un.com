@@ -20,11 +20,12 @@
 - Décision du propriétaire (option B sur trois) : la CI bloque sur `npm audit --omit=dev --audit-level=high` (**0 vulnérabilité en production**) ; l'audit complet reste exécuté et affiché, non bloquant. Justification, limites et plan de retour : `docs/securite/audit-dependances.md`.
 - Aucun paquet rétrogradé, aucun contrôle supprimé, aucune faille de production tolérée.
 
-## 2026-11-18 — Système : file de limitation de connexion et méthodes de routes (local, non publié)
+## 2026-11-18 — Système : file de limitation de connexion et méthodes de routes (publié et validé par c8100b0)
 
 - **Recette L10 Système (local, CI en attente)** : `DeepHealth.queue` passe de la chaîne `'indisponible'` à une mesure réelle de `rate_limits` (seaux actifs, tentatives, seaux au plafond, fenêtre de 15 min, plafond 10). Aucune empreinte ni adresse ne sort, prouvé par test. Un zéro sur base fraîche reste une lecture réussie ; une lecture impossible vaut `null` et l'écran affiche « Indisponible ». **Aucune file de tâches n'est créée** : le worker n'existe toujours pas et l'écran le dit.
 - **Correction** : quatre routes déclaraient `PUT` alors qu'elles exportent `PATCH` ou `POST` (`admin/users/[id]/status`, `global-roles`, `shop-roles`, `shop-access`). Le test de couverture comparait les chemins, pas les méthodes. Un test lit désormais les exports réels ; prouvé par réintroduction volontaire de l'erreur.
-- Locaux : typecheck, lint, build, **391 Vitest / 76 fichiers**. Navigateur dans l'ordre CI : test Système vert en bureau et mobile, mesure réelle observée (`activeBuckets: 1`, `attemptsInWindow: 3`). Échecs intermittents ailleurs, **également présents sans ce lot** (3 échecs sur une référence). Voir `docs/comptes-rendus/phase1-systeme-limitation-connexion.md`.
+- Locaux : typecheck, lint, build, **391 Vitest / 76 fichiers**. Navigateur dans l'ordre CI : test Système vert en bureau et mobile, mesure réelle observée (`activeBuckets: 1`, `attemptsInWindow: 3`). Échecs intermittents ailleurs, **également présents sans ce lot** (3 échecs sur une référence).
+- **Publication validée** : [run 44278561288](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44278561288) sur `c8100b0`, quatre jobs verts, étapes 11 et 13 vertes, « Traces en cas d'échec » sautée. Voir `docs/comptes-rendus/phase1-systeme-limitation-connexion.md`.
 
 ## 2026-11-18 — accessibilité : six écrans d'administration audités (publié et validé par 9069f1e)
 

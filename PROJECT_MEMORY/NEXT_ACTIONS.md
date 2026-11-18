@@ -1,7 +1,8 @@
-# Actions suivantes — L10 après le run 44269439637
+# Actions suivantes — L10 après le run 44278561288
 
-Base publiée **`9069f1ed09a8c2ee6f0e3ed942fc2737756ada12`**, [run 44269439637](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44269439637) : quatre jobs verts.
-Le chantier accessibilité (ci-dessous, point 7) est **livré et validé en CI**. **L10 et Phase 1 restent incomplets.**
+Base publiée **`c8100b0f7c0d2e56cff59b54748361c93f3acc47`**, [run 44278561288](https://github.com/sergefabien56-eng/https-tout-en-un.com/actions/runs/44278561288) : quatre jobs verts.
+Livrés et validés en CI : accessibilité des six écrans (point 7) et la file de limitation de connexion (point 3).
+**L10 et Phase 1 restent incomplets.**
 
 ## Chantiers L10 encore ouverts (aucun commencé)
 
@@ -10,9 +11,9 @@ Le chantier accessibilité (ci-dessous, point 7) est **livré et validé en CI**
    Bloqué côté envoi réel : aucun SMTP fiable fourni.
 2. **Supervision, collecteur d'erreurs, alertes propriétaire** — `/api/health/deep` et `src/modules/monitoring/deep-health.ts`
    existent ; l'écran Système déclare explicitement l'absence de collecteur et de file de tâches. Aucun envoi d'alerte.
-3. **Écran Système** — *file de limitation de connexion* livrée localement (non publiée) :
-   `docs/comptes-rendus/phase1-systeme-limitation-connexion.md`. **Restent non livrés** : worker et
-   file de tâches, collecteur d'erreurs, latence par route, tâches planifiées. Toujours affichés « indisponible ».
+3. **Écran Système** — *file de limitation de connexion* **livrée et validée en CI** par le run 44278561288.
+   **Restent non livrés** : worker et file de tâches, collecteur d'erreurs, latence par route, tâches
+   planifiées. Toujours affichés « indisponible ». Rapport : `docs/comptes-rendus/phase1-systeme-limitation-connexion.md`.
 4. **Paramètres d'organisation complets (L10 §103)** — notifications par e-mail et section apparence d'organisation
    non livrées (l'apparence reste une préférence **locale au navigateur**, non synchronisée entre appareils).
 5. **Notifications métier / temps réel** — seules les notifications personnelles existent (connexion, sécurité).
