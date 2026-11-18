@@ -25,8 +25,11 @@ async function loginOwner(page: Page, testInfo: TestInfo, scenario: 0 | 1 | 2 | 
 }
 
 test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs', async ({ page }, testInfo) => {
-  // Laisser une marge aux navigations Next dev sous charge CI ; les assertions restent strictes.
-  test.setTimeout(120_000);
+  // Marge de navigation : ce parcours enchaîne une trentaine d'étapes et charge des pages
+  // lourdes (annuaire, notifications, recherche, fiche compte) sur bureau ET mobile 375.
+  // 120 s se sont révélés insuffisants en CI le 18/11/2026 : `page.goto` a expiré alors que
+  // le serveur répondait. 180 s laisse la place à la navigation, sans relâcher les assertions.
+  test.setTimeout(180_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   await loginOwner(page, testInfo, 0);
   await page.getByRole('button', { name: 'Actions rapides' }).click();
@@ -227,7 +230,8 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
   expect((await directApi(page.request).patch(`/api/admin/users/${ownerId}/status`,
     { data: { status: 'suspended' } })).status()).toBe(403);
   // Recherche transversale bornée : comptes avec droit global, boutiques filtrées par RLS.
-  await page.goto('/espace/recherche');
+  // `domcontentloaded` : l'assertion juste après vérifie le titre rendu, pas la fin du flux.
+  await page.goto('/espace/recherche', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Rechercher dans mon espace' })).toBeVisible();
   const directoryQuery = page.getByRole('searchbox', { name: 'Boutique, utilisateur, e-mail ou action d’audit' });
   await directoryQuery.fill('proprietaire');
@@ -241,8 +245,8 @@ test('propriétaire CI : connexion 2FA, notifications et recherche utilisateurs'
 });
 
 test('propriétaire CI : rôles, système et paramètres', async ({ page }, testInfo) => {
-  // Délai global conservé ; les assertions et attentes individuelles restent strictes.
-  test.setTimeout(120_000);
+  // Même marge que le premier parcours : les positions d'attente restent à 20 s.
+  test.setTimeout(180_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   await loginOwner(page, testInfo, 1);
   if (testInfo.project.name === 'mobile-375') await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
@@ -473,7 +477,7 @@ test('propriétaire CI : rôles, système et paramètres', async ({ page }, test
 });
 
 test('propriétaire CI : boutiques, apparence et recherche par boutique', async ({ page }, testInfo) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   // Connexion indépendante : aucune dépendance à l'ordre ni à la session du test précédent.
   await loginOwner(page, testInfo, 2);
@@ -647,7 +651,7 @@ test('propriétaire CI : boutiques, apparence et recherche par boutique', async 
 });
 
 test('propriétaire CI : journal et sessions', async ({ page }, testInfo) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   test.skip(!process.env.E2E_RECOVERY_FILE, 'PostgreSQL CI + bootstrap requis.');
   // Contexte indépendant : ouvrir sa session et choisir explicitement la boutique CI.
   await loginOwner(page, testInfo, 3);

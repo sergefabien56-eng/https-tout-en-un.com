@@ -105,3 +105,33 @@ La gestion du logo n'y accède jamais. Un test vérifie qu'aucune clé de thème
 - Aucun logo **définitif** n'est choisi : l'icône reste provisoire jusqu'à validation.
 - Aucune génération automatique de variantes (favicon, image de partage) : non demandée.
 - Aucun redimensionnement à la volée : l'image est stockée à une seule taille (512 px max).
+
+## 11. Échec CI du 18/11/2026 (run 44297920494) — délai de navigation, pas régression
+
+Le job navigateur est tombé sur **un seul test**, en mobile 375 :
+
+```
+[.  ] › » propriétaire CI : connexion 2FA, notifications et recherche utilisateurs
+Error: page.goto: Test timeout of 120000ms exceeded.
+  navigating to "http://127.0.0.1:3100/espace/recherche", waiting until "load"
+```
+
+**Ce que cela n'était pas.** Aucun rapport avec l'icône ni avec le logo : les 20 autres
+tests sont passés, y compris l'import réel du logo et les aperçus clair/sombre. Le test
+fautif a même réussi à sa reprise — mais `failOnFlakyTests` est activé en CI, et c'est
+**volontaire** : un test instable ne doit pas être déclaré vert.
+
+**La cause réelle.** Ce parcours enchaîne une trentaine d'étapes sur bureau **et** mobile et
+charge des pages lourdes (annuaire, notifications, recherche, fiche compte). Son budget était
+de 120 s. En mobile, `page.goto` attend l'événement `load`, c'est-à-dire la fin de **toutes**
+les ressources : sous charge, la limite est atteinte avant la fin du parcours.
+
+**Le correctif, minimal.**
+
+| Avant | Après | Pourquoi |
+|---|---|---|
+| `test.setTimeout(120_000)` × 4 | `180_000` × 4 | marge de navigation, sans relâcher les assertions |
+| `page.goto('/espace/recherche')` | `{ waitUntil: 'domcontentloaded' }` | l'assertion suivante vérifie le titre rendu, pas la fin du flux |
+
+Les attentes d'assertion restent à 20 s : rien n'a été relâché côté exigence. Le précédent
+existait déjà dans le dépôt, pour `/espace/journal/global`.
