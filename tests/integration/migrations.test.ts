@@ -74,11 +74,12 @@ afterAll(async () => {
 });
 
 describe('migrations — application et structure', () => {
-  it('applique les 19 migrations sans erreur', () => {
+  it('applique les 20 migrations sans erreur', () => {
     // 0018 ajoute la mesure de latence et les policies d'incidents ; 0019 ouvre au collecteur
-    // l'insertion seule d'un incident global. Chaque changement de règle est une migration,
-    // jamais un contournement.
-    expect(migrationFiles('up')).toHaveLength(19);
+    // l'insertion seule d'un incident global ; 0020 ajoute le journal des renouvellements Jumia,
+    // la garde anti-rotation et la RLS de marketplace_apps. Chaque changement de règle est une
+    // migration, jamais un contournement.
+    expect(migrationFiles('up')).toHaveLength(20);
   });
 
   it('crée les tables du socle', async () => {

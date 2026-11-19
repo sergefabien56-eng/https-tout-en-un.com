@@ -103,6 +103,19 @@ jobs:
           psql "$DATABASE_URL_ADMIN" -v ON_ERROR_STOP=1 -v app_password='ci-app-password' -f scripts/db-roles.sql
           DATABASE_URL=postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test npx tsx scripts/test-delegation-postgres.ts
 
+      # Deux renouvellements simultanés du même jeton Jumia ne doivent produire qu'UN appel API :
+      # chaque `POST /token` invalide le refresh token utilisé, donc deux appels déconnectent la
+      # boutique. Ce test exige plusieurs connexions réelles, donc PostgreSQL et pas PGlite.
+      - name: Un seul renouvellement de jeton Jumia sous concurrence
+        env:
+          DATABASE_URL_ADMIN: postgres://postgres:postgres@localhost:5432/tout_en_un_test
+        run: |
+          psql "$DATABASE_URL_ADMIN" -v ON_ERROR_STOP=1 -v app_password='ci-app-password' -f scripts/db-roles.sql
+          CI=true APP_ENV=staging \
+          DATABASE_URL_ADMIN=postgres://postgres:postgres@localhost:5432/tout_en_un_test \
+          DATABASE_URL=postgres://toutenun_app:ci-app-password@localhost:5432/tout_en_un_test \
+          npx tsx scripts/test-jumia-token-race.ts
+
   e2e:
     name: Navigateur bureau et mobile 375 px
     runs-on: ubuntu-latest
